@@ -1,0 +1,23 @@
+.hero{
+  background: #003580;      /* booking-like blue */
+  padding: 60px 0 80px;     /* top + bottom space */
+}
+
+.hero-inner{
+  max-width: 1100px;        /* control width */
+  margin: 0 auto;           /* center */
+  padding: 0 16px;          /* side padding for small screens */
+}
+
+.hero-title{
+  color: white;
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.hero-sub{
+  color: white;
+  font-size: 18px;
+  margin: 10px 0 28px;
+}
