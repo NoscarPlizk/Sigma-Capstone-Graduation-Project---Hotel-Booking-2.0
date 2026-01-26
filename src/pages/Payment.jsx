@@ -1,6 +1,6 @@
 import { Form, Row, Col, Button, Container, Card, Spinner } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
-import { BookedList } from "../../content/hotelContent";
+import { BookedList } from "../content/hotelContent";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 

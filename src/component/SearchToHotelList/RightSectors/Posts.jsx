@@ -1,7 +1,7 @@
 import { Row, Col, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
-import { BookedList } from "../../content/hotelContent";
+import { BookedList } from "../../../content/hotelContent";
 
 function StartRank({ rank }) {
   return (

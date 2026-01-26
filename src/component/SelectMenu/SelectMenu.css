@@ -1,0 +1,47 @@
+.searchbar{
+  background: white;
+  border: 4 solid #febb02;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+
+.searchbar-row{
+  display: gird;
+  grid-template-columns: 1.3fr 1fr 1fr auto;
+  gap: 0;
+}
+
+.seg{
+  padding: 14px 16px;
+  background: white;
+}
+
+.seg-title{
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px 0 /* margin-top: 0; margin-right: 0; margin-bottom: 8px; margin-left: 0; */
+}
+
+.seg-control{
+  border: 1;
+  border-color: black;
+  background: white;
+  box-shadow: none;
+  padding-left: 1;
+  padding-right: 0;
+}
+
+.seg-btn{
+  height: 100%;
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 0;
+  background: #0071c2;
+}
+
+.peoplepax-popover{
+  --bs-popover-max-width: none; 
+}

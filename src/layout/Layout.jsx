@@ -11,7 +11,7 @@ export default function Layout() {
     <>
       <Navbar bg="success">
         <Container>
-          <Navbar.Brand href='/'><strong>Hotel4Book</strong></Navbar.Brand>
+          <Navbar.Brand href='/'><strong>Placesota</strong></Navbar.Brand>
           <Nav>
             <Nav.Link href='/userauth'>
               {!token ? <Button>Login</Button> : null}
@@ -23,7 +23,7 @@ export default function Layout() {
               {token ? <Image 
                 src='https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg'
                 roundedCircle
-                style={{ width: 90, height: 90 }}
+                style={{ width: 40, height: 40 }}
               /> : null }
             </Nav.Link>
           </Nav>
