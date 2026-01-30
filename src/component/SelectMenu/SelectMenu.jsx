@@ -1,10 +1,12 @@
 import { Button, Card, Row, Col } from "react-bootstrap";
 import { useContext, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { BookedList } from "../../content/hotelContent";
 import "./SelectMenu.css";
 import PeoplePax from "./PeoplePax";
+import searchHotelLocalnInfo from "../../content/SearchHotelNDestination" ;
 
-export default function SelectMenu({ searchDestination }) {
+export default function SelectMenu() {
   const search = useContext(BookedList).search;
   const setSearch = useContext(BookedList).setSearch;
   const initialDate = useContext(BookedList).initialDate;
@@ -19,8 +21,19 @@ export default function SelectMenu({ searchDestination }) {
   const setChildAge = useContext(BookedList).setChildAge;
   const roomAmount = useContext(BookedList).roomAmount;
   const setRoomAmount = useContext(BookedList).setRoomAmount;
-
+  const setSearchData = useContext(BookedList).setSearchData;
+  const redirect = useNavigate();
   const PeopleRef = useRef(null);
+
+  async function startQuery() {
+    await searchHotelLocalnInfo(
+      search, setSearchData,
+      adultPax, childAge, 
+      initialDate, dueDate, 
+      roomAmount
+    );
+    redirect('/searchtohotellist');
+  }
 
   return (
     <Card className="searchbar mx-auto">
@@ -46,8 +59,18 @@ export default function SelectMenu({ searchDestination }) {
           </Col>
           <Col xs={12} className="seg" md={3}>
             <h6 className="seg-title">Check In and out</h6>
-              <input className="form-control seg-control" type="date" value={initialDate} onChange={(e) => setInitialDate(e.target.value)}/>
-              <input className="form-control seg-control" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}/>
+              <input 
+                className="form-control seg-control" 
+                type="date" 
+                value={initialDate} 
+                onChange={(e) => setInitialDate(e.target.value)}
+              />
+              <input 
+                className="form-control seg-control" 
+                type="date" 
+                value={dueDate} 
+                onChange={(e) => setDueDate(e.target.value)}
+              />
           </Col>
           <Col xs={12} className="seg" md={3}>
             <PeoplePax 
@@ -59,7 +82,7 @@ export default function SelectMenu({ searchDestination }) {
             />
           </Col>
           <Col xs={12} md="auto" className="seg-btn-col">
-            <Button className="seg-btn" onClick={searchDestination} >
+            <Button className="seg-btn" onClick={startQuery} >
               Search
             </Button>
           </Col>

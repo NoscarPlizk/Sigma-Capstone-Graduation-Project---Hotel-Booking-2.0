@@ -18,7 +18,7 @@ export default function App() {
   const [ dueDate, setDueDate ] = useState('');
   const [ adultPax, setAdultPax ] = useState(1);
   const [ childPax, setChildPax ] = useState(0);
-  const [ childAge, setChildAge ] = useState(0);
+  const [ childAge, setChildAge ] = useState([]);
   const [ roomAmount, setRoomAmount ] = useState(1);  
 
   const [ searchData, setSearchData ] = useState([]); // prepare bulid a railway to map
@@ -40,17 +40,17 @@ export default function App() {
       searchData, setSearchData
     }}>
       <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<MainHome />} />
-              <Route path="searchtohotellist" element={<SearchToHotelList />} />
-              <Route path="userauth" element={<AuthPages />} />
-              <Route path="viewhotel" element={<ViewHotel />} />
-              <Route path="userpage" element={<UserPage />} />
-              <Route path="allbookedlist" element={<AllBookedList />} />
-              <Route path="payment" element={<Payment />} />
-            </Route>
-          </Routes>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<MainHome />} />
+            <Route path="searchtohotellist" element={<SearchToHotelList />} />
+            <Route path="userauth" element={<AuthPages />} />
+            <Route path="viewhotel" element={<ViewHotel />} />
+            <Route path="userpage" element={<UserPage />} />
+            <Route path="allbookedlist" element={<AllBookedList />} />
+            <Route path="payment" element={<Payment />} />
+          </Route>
+        </Routes>
       </BrowserRouter>
     </BookedList.Provider>
   );

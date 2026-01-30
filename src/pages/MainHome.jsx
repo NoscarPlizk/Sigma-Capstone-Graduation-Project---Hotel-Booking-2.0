@@ -1,10 +1,7 @@
 import { Row, Col, Container, Card } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import axios from 'axios';
+import { Link } from "react-router-dom";
 import SelectMenu from "../component/SelectMenu/SelectMenu";
 import "./MainHome.css";
-import { BookedList } from "../content/hotelContent";
 
 function SelectCard({ title, imgUrl }) {
   return (
@@ -43,84 +40,8 @@ function SelectCard({ title, imgUrl }) {
 }
 
 export default function MainHome() {
-  const search = useContext(BookedList).search;
-  const initialDate = useContext(BookedList).initialDate;
-  const dueDate = useContext(BookedList).dueDate;
-  const adultPax = useContext(BookedList).adultPax;
-  const childPax = useContext(BookedList).childPax;
-  const childAge = useContext(BookedList).childAge;
-  const searchData = useContext(BookedList).searchData;
-  const setSearchData = useContext(BookedList).setSearchData;
 
-  const redirect = useNavigate();
-
-  async function searchDestination() {
-    if (!search?.trim()) return;
-    const options = {
-      method: 'GET',
-      url: 'https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination',
-      params: { query: search },
-      headers: {
-        'x-rapidapi-key': import.meta.env.VITE_RAPIDAPI_KEY,
-        'x-rapidapi-host': import.meta.env.VITE_RAPIDAPI_HOST,
-      }
-    };
-
-    let SHDdata = [];
-
-    try {
-      const response = await axios.request(options);
-      console.log(response.data);
-      SHDdata = response.data;
-    } catch (error) {
-      return console.error(error);
-    }
-    
-    serchHotels({ SHDdata, adultPax, childPax });
-  };
-
-  async function serchHotels({ SHDdata, adultPax, childAge }) {
-    const { dest_id, search_type } = SHDdata;
   
-    const options = {
-      method: 'GET',
-      url: 'https://booking-com15.p.rapidapi.com/api/v1/hotels/searchHotels',
-      params: {
-        dest_id,
-        search_type,
-        adults: adultPax,
-        children_age: childAge,
-        room_qty: '1',
-        page_number: '1',
-        units: 'metric',
-        temperature_unit: 'c',
-        languagecode: 'en-us',
-        currency_code: 'AED',
-        location: 'US'
-      },
-      headers: {
-        'x-rapidapi-key': import.meta.env.VITE_RAPIDAPI_KEY,
-        'x-rapidapi-host': import.meta.env.VITE_RAPIDAPI_HOST,
-      }
-    };
-
-    try {
-      const response = await axios.request(options);
-      const check = response.data;
-
-      if (!check?.success) {
-        console.warn("Backend Fetch Error:", check?.error || check?.message);
-        return;
-      }
-
-      console.log(response.data);
-      setSearchData(response.data); 
-    } catch (error) {
-      console.error(error);
-    }
-    redirect('/home');
-  };
-
   return (
     <>
       <Row>
@@ -128,7 +49,7 @@ export default function MainHome() {
           <div className="hero-inner">
             <h1 className="hero-title">Find your next stay</h1>
             <p className="hero-sub">Search deals on hotels, homes, and much more...</p>
-            <SelectMenu searchDestination={searchDestination} />
+            <SelectMenu />
           </div>
         </div>
         <Container>
