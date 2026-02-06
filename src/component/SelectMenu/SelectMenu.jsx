@@ -1,10 +1,11 @@
 import { Button, Card, Row, Col } from "react-bootstrap";
 import { useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookedList } from "../../content/hotelContent";
+import { BookedList } from "../../content/data transfer/bookedListContent";
 import "./SelectMenu.css";
 import PeoplePax from "./PeoplePax";
-import searchHotelLocalnInfo from "../../content/SearchHotelNDestination" ;
+import searchHotelDestination from "../../content/api/searchHotelDestination";
+import searchHotels from "../../content/api/SearchHotel";
 
 export default function SelectMenu() {
   const search = useContext(BookedList).search;
@@ -21,20 +22,26 @@ export default function SelectMenu() {
   const setChildAge = useContext(BookedList).setChildAge;
   const roomAmount = useContext(BookedList).roomAmount;
   const setRoomAmount = useContext(BookedList).setRoomAmount;
-  const setSearchData = useContext(BookedList).setSearchData;
+  const setSearchFetchData = useContext(BookedList).setSearchFetchData;
   const redirect = useNavigate();
   const PeopleRef = useRef(null);
 
   async function startQuery() {
-    await searchHotelLocalnInfo(
-      search, setSearchData,
-      adultPax, childAge, 
-      initialDate, dueDate, 
-      roomAmount
-    );
+    const hotdesdata = await searchHotelDestination(search);
+    console.log({ selectMenu_hotdesdata: hotdesdata })
+    const seahot = await searchHotels(
+      hotdesdata, 
+      adultPax, 
+      childAge, 
+      initialDate, 
+      dueDate, 
+      roomAmount, 
+    )
+    console.log({ selectMenu_seahot: seahot })
+    setSearchFetchData(seahot);
     redirect('/searchtohotellist');
-  }
-
+  };
+    
   return (
     <Card className="searchbar mx-auto">
       <Card.Body>

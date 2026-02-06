@@ -1,8 +1,7 @@
 import { Row, Col, Container, Button, Modal, Card } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext, useState } from "react";
-import axios from "axios";
-import { BookedList } from '../content/hotelContent';
+import { BookedList } from '../content/data transfer/bookedListContent';
 
 
   function ChildLabel({a, b}) {
@@ -36,7 +35,7 @@ import { BookedList } from '../content/hotelContent';
 
   function HotelRoomTypeCard() {
     return (
-      <Row className="grid">
+      <>
         <Col md={9}>
           <Card>
             <Card.Body>
@@ -63,8 +62,7 @@ import { BookedList } from '../content/hotelContent';
             </Card.Body>
           </Card>
         </Col>
-      </Row>
-
+      </>
     );  
   }
 
@@ -81,8 +79,8 @@ export default function ViewHotel() {
   const roomAmount = useContext(BookedList).roomAmount;
   const setRoomAmount = useContext(BookedList).setRoomAmount;
   const redirect = useNavigate();
-  const { state } = useLocation(); // Layout.jsx
-
+  const { state } = useLocation();
+  
   const hotel_img_link = state?.img;
   const hotel_name = state?.name;
   const unit_price = state?.price;
@@ -91,46 +89,6 @@ export default function ViewHotel() {
   let total_price = roomAmount * unit_price;
   
 
-  const inspectAuthThenBook = async (e) => {
-    e.preventDefault();
-    if (!token) redirect('/userauth');
-    let booked_status = false;
-
-    console.log({ Info_data: roomAmount, start_date, end_date, adult_pax, child_pax })
-    if (!start_date || !end_date || !roomAmount) {
-      console.log({ message: `MISSING START DATE, END DATE, or ROOM AMOUNT`});
-      setShowModal(true);
-      return;
-    }
-
-    try {
-      const res = await axios.post(`${APIurl}booked`, {
-        hotel_name, 
-        roomAmount,
-        location,
-        start_date, 
-        end_date, 
-        adult_pax, 
-        child_pax, 
-        hotel_img_link, 
-        total_price, 
-        booked_status,
-        unit_price,
-      });
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-    }
-    redirect("/");
-  };
-
-  const increaseRoomAmount = () => {
-    setRoomAmount(roomAmount + 1);
-  }
-
-  const decreaseRoomAmount = () => {
-    setRoomAmount(roomAmount - 1);
-  }
   
   return (
     <>        
@@ -147,33 +105,44 @@ export default function ViewHotel() {
         </Modal.Body>
       </Modal>
       <Container>
-        <Row>
-          <Col>
-            <img src={hotel_img_link} width="200" height="250"/>
+        <Row style={{ height: '500px' }}>
+          <Col xs={8}>
+            <Card>
+              <Card.Body>
+                <Row className="g-2">
+                  <Col>
+                    <img src={hotel_img_link} width="200" height="250" style={{ objectFit: 'cover' }}/>
+                  </Col>
+                  <Col>
+                    <img src={hotel_img_link} width="200" height="250" style={{ objectFit: 'cover' }}/>
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
           </Col>
-          <Col>
+          <Col xs={4}>
             <h3>{hotel_name}</h3>
             <p>Description</p>
             <h4><strong>RM {unit_price}</strong> per Room</h4>
             <Row>
               <Col>
-                <Button onClick={increaseRoomAmount}>
+                {/* <Button onClick={}>
                   +
-                </Button>
+                </Button> */}
               </Col>
               <Col>
-                <p>{room_amount} Room </p>
+                <p>Room</p>
               </Col>
               <Col>
-                <Button onClick={decreaseRoomAmount}>
+                {/* <Button onClick={}>
                   -
-                </Button>
+                </Button> */}
               </Col>
             </Row>
             <h4>Total RM: {total_price}</h4>
-            <Button onClick={inspectAuthThenBook}>
+            {/* <Button onClick={}>
               Book Now
-            </Button>
+            </Button> */}
           </Col>
         </Row>
           <LabelTag />

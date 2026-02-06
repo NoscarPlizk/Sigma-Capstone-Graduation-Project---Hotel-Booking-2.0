@@ -96,9 +96,11 @@ export default function PeoplePax({
       />
       <Overlay 
         placement="bottom-start" // position of the Popover
-        target={PeopleRef} 
+        target={PeopleRef.current} 
         show={mainshow} 
-        onHide={() => setMainShow(false)}>
+        onHide={() => setMainShow(false)}
+        rootClose
+      >
         <Popover className="peoplepax-popover"> 
           <div 
             className="d-flex flex-column align-item-center p-2 gap-2" 

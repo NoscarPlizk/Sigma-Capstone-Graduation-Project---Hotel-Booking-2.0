@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { Modal, Button, Form, Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { BookedList } from "../content/hotelContent";
+import { BookedList } from "../content/data transfer/bookedListContent";
 
 export default function AuthPages() {
   const [ show, setShow ] = useState(false);

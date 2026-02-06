@@ -1,6 +1,6 @@
 import { Col, Image, Row, Button, Container } from "react-bootstrap";
 import { useContext, useEffect } from "react";
-import { BookedList } from "../content/hotelContent";
+import { BookedList } from "../content/data transfer/bookedListContent";
 import { useNavigate } from "react-router-dom";
 
 export default function UserPage() {  

@@ -1,5 +1,5 @@
 import { Row, Col, Card, Image, Button, Container } from "react-bootstrap";
-import { BookedList } from "../content/hotelContent";
+import { BookedList } from "../content/data transfer/bookedListContent";
 import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useLocalStorage from "use-local-storage";

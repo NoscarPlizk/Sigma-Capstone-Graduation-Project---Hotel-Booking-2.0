@@ -1,7 +1,10 @@
 import { Row, Col, Container, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { useEffect } from 'react';
+import { BookedList } from "../content/data transfer/bookedListContent";
 import SelectMenu from "../component/SelectMenu/SelectMenu";
 import "./MainHome.css";
+import { useContext } from "react";
 
 function SelectCard({ title, imgUrl }) {
   return (
@@ -10,7 +13,7 @@ function SelectCard({ title, imgUrl }) {
         className="border-0 rounded-4 overflow-hidden position-relative shadow"
         style={{ width: 320, height: 220 }}
       >
-        <Link to={'/home'} className="w-100 h-100">
+        <Link to={'/searchtohotellist'} className="w-100 h-100">
           <Card.Img
             src={imgUrl}
             alt={title}
@@ -35,13 +38,10 @@ function SelectCard({ title, imgUrl }) {
         </Link>
       </Card>
     </Col>
-
   );
 }
 
 export default function MainHome() {
-
-  
   return (
     <>
       <Row>

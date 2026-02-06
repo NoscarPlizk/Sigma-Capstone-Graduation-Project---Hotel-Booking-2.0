@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from 'react';
-import { BookedList } from "./content/hotelContent"; 
+import { useLocation, BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from 'react';
+import { BookedList } from "./content/data transfer/bookedListContent"; 
 import useLocalStorage from "use-local-storage";
 import AuthPages from "./pages/AuthPages";
 import Layout from "./layout/Layout";
@@ -13,22 +13,20 @@ import MainHome from "./pages/MainHome";
 
 export default function App() {
   const [ token, setToken ] = useLocalStorage('token', '');
-  const [ search, setSearch ] = useState('');
-  const [ initialDate, setInitialDate ] = useState('');
-  const [ dueDate, setDueDate ] = useState('');
-  const [ adultPax, setAdultPax ] = useState(1);
-  const [ childPax, setChildPax ] = useState(0);
-  const [ childAge, setChildAge ] = useState([]);
-  const [ roomAmount, setRoomAmount ] = useState(1);  
+  const [ search, setSearch ] = useLocalStorage('search','');
+  const [ initialDate, setInitialDate ] = useLocalStorage('initialDate', '');
+  const [ dueDate, setDueDate ] = useLocalStorage('dueDate','');
+  const [ adultPax, setAdultPax ] = useLocalStorage('adultPax', 1);
+  const [ childPax, setChildPax ] = useLocalStorage('childPax',0);
+  const [ childAge, setChildAge ] = useLocalStorage('childAge', []);
+  const [ roomAmount, setRoomAmount ] = useLocalStorage('roomAmount', 1);  
 
-  const [ searchData, setSearchData ] = useState([]); // prepare bulid a railway to map
-  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAge });
+  const [ searchFetchData, setSearchFetchData ] = useLocalStorage('searchFetchData', {}); // prepare bulid a railway to map
+  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAge, roomAmount });
 
-  const APIurl = "https://c05a3a4b-6ce4-4b73-bcb4-4adf00190f87-00-1cbacayl5uma6.pike.replit.dev/";
 
   return (
     <BookedList.Provider value={{ 
-      APIurl,
       token, setToken, 
       search, setSearch, 
       initialDate, setInitialDate,
@@ -37,21 +35,52 @@ export default function App() {
       childPax, setChildPax, 
       childAge, setChildAge,
       roomAmount, setRoomAmount,
-      searchData, setSearchData
+      searchFetchData, setSearchFetchData
     }}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<MainHome />} />
-            <Route path="searchtohotellist" element={<SearchToHotelList />} />
-            <Route path="userauth" element={<AuthPages />} />
-            <Route path="viewhotel" element={<ViewHotel />} />
-            <Route path="userpage" element={<UserPage />} />
-            <Route path="allbookedlist" element={<AllBookedList />} />
-            <Route path="payment" element={<Payment />} />
-          </Route>
-        </Routes>
+        <AppInner 
+          setSearch={setSearch}
+          setInitialDate={setInitialDate}
+          setDueDate={setDueDate}
+          setAdultPax={setAdultPax}
+          setChildPax={setChildPax}
+          setChildAge={setChildAge}
+          setRoomAmount={setRoomAmount}
+        />
       </BrowserRouter>
     </BookedList.Provider>
+  );
+}
+
+function AppInner({
+  setSearch, setInitialDate, setDueDate, setAdultPax, 
+  setChildPax, setChildAge, setRoomAmount
+}) {
+  const location = useLocation();
+
+    useEffect(() => {
+    if (location.pathname === "/") {
+      setSearch('');
+      setInitialDate('');
+      setDueDate('');
+      setAdultPax(1);
+      setChildPax(0);
+      setChildAge([]);
+      setRoomAmount(1)
+    }
+  }, [location.pathname])
+
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<MainHome />} />
+        <Route path="searchtohotellist" element={<SearchToHotelList />} />
+        <Route path="userauth" element={<AuthPages />} />
+        <Route path="viewhotel" element={<ViewHotel />} />
+        <Route path="userpage" element={<UserPage />} />
+        <Route path="allbookedlist" element={<AllBookedList />} />
+        <Route path="payment" element={<Payment />} />
+      </Route>
+    </Routes>
   );
 }

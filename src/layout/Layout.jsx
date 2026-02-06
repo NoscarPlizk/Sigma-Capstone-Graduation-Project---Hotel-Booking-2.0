@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Nav, Navbar, Button, Image } from "react-bootstrap";
 import { Outlet } from "react-router-dom";
 import { useContext } from 'react';
-import { BookedList } from '../content/hotelContent';
+import { BookedList } from '../content/data transfer/bookedListContent';
 
 export default function Layout() {
   const token = useContext(BookedList).token;
