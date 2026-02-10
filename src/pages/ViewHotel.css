@@ -1,0 +1,43 @@
+.hg {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 220px 220px auto;
+  grid-template-areas: 
+    "main rt"
+    "main rb"
+    "thumbs thumbs";
+}
+
+.hg-main { grid-area: main; }
+.hg-rt   { grid-area: rt; }
+.hg-rb   { grid-area: rb; }
+
+.hg-title {
+  border: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hg-thumbs {
+  grid-area: thumbs;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.hg-thumb {
+  width: 100%;
+  height: 90px;
+  display: block;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.tb {
+  display: grid;
+  gap: 10px;
+  
+}

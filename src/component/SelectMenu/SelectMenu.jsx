@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { BookedList } from "../../content/data transfer/bookedListContent";
 import "./SelectMenu.css";
 import PeoplePax from "./PeoplePax";
-import searchHotelDestination from "../../content/api/searchHotelDestination";
+import searchHotelDestination from "../../content/api/SearchHotelDestination";
 import searchHotels from "../../content/api/SearchHotel";
 
 export default function SelectMenu() {

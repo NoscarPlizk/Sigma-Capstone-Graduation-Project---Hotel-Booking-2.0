@@ -24,11 +24,11 @@ function LeftBar() {
 } 
 
 
-function Posts({ img, name, location, star, price }) {
+function Posts({ hotels }) {
   const redirect = useNavigate();
   
   const redirected = () => {
-    redirect("/viewhotel", { state: { img, name, location, star, price }}); 
+    redirect("/viewhotel", { state: { hotels }}); 
   };
 
   return (
@@ -36,14 +36,14 @@ function Posts({ img, name, location, star, price }) {
       <Card.Body>
         <Row> 
           <Col md={4}> 
-            <img src={img} width="300" height="250" />
+            <img src={hotels?.property?.photoUrls ?? []} width="300" height="250" />
           </Col>
           <Col md={6}>
-            <h3>{name}</h3>
-            <p>{location}</p>
+            <h3>{hotels?.property?.name ?? ''}</h3>
+            <p>{hotels?.property?.wishlistName ?? ''}</p>
           </Col>
           <Col md={2} className="d-flex flex-column">
-            <h3><strong>RM {price}</strong></h3>
+            <h3><strong>RM {hotels?.property?.strikethroughPrice?.value}</strong></h3>
             <p>per room per night</p>
             <Button className="p-3 mt-auto" onClick={redirected}>
               See avaliability
@@ -68,10 +68,7 @@ function RightSector({ searchFetchData }) {
       { hotels.map((hotels, index) => (
         <Posts 
           key={index}
-          img={hotels?.property?.photoUrls ?? []}
-          name={hotels?.property?.name ?? ''} 
-          location={hotels?.property?.wishlistName} 
-          price={hotels?.property?.strikethroughPrice?.value}
+          hotels={hotels}
         /> 
       ))}
     </>
