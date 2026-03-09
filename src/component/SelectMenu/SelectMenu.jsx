@@ -20,11 +20,21 @@ export default function SelectMenu() {
   const setChildPax = useContext(BookedList).setChildPax;
   const childAge = useContext(BookedList).childAge;
   const setChildAge = useContext(BookedList).setChildAge;
+  const childAgeString = useContext(BookedList).childAgeString;
+  const setChildAgeString = useContext(BookedList).setChildAgeString;
   const roomAmount = useContext(BookedList).roomAmount;
   const setRoomAmount = useContext(BookedList).setRoomAmount;
   const setSearchFetchData = useContext(BookedList).setSearchFetchData;
   const redirect = useNavigate();
   const PeopleRef = useRef(null);
+  
+  function joinChildAgetoString(childAge, setChildAgeString) {
+    const stringifcation = Array.isArray(childAge) ? childAge.join(',') : '' ;
+    setChildAgeString(stringifcation);
+  }
+
+  joinChildAgetoString(childAge, setChildAgeString);
+  console.log("childAgeString:", childAgeString);
 
   async function startQuery() {
     const hotdesdata = await searchHotelDestination(search);
@@ -32,7 +42,7 @@ export default function SelectMenu() {
     const seahot = await searchHotels(
       hotdesdata, 
       adultPax, 
-      childAge, 
+      childAgeString, 
       initialDate, 
       dueDate, 
       roomAmount, 

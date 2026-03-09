@@ -36,10 +36,31 @@
   border-radius: 12px;
 }
 
+.lg-container {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.lg-child {
+  display: flex;
+  width: fit-content;
+  height: 60px;
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 10px;
+  gap: 5px;
+  font-size: 25px;
+}
+
+
+
 .ha {
   display: grid;
   gap: 10px;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 4fr 1fr;
   grid-template-rows: auto;
   grid-template-areas:
     "hotelinfosec reservesec";
@@ -51,7 +72,7 @@
 .ha-tablehead {
   display: grid;
   gap: 10px;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 4fr 1fr;
   grid-template-rows: 50px;
 }
 
@@ -77,12 +98,57 @@
 
 .ct-left {
   flex: 0 0 30%;
-  border: 1px solid;
 }
 
 .ct-right {
-  flex: 1;
   border: 1px solid;
+}
+
+.inside-table-header {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: 
+    "guest perks price rooms";
+  border: 1px solid;
+  padding: 5px;
+}
+
+.ith-guest { grid-area: guest; }
+.ith-perks { grid-area: perks; }
+.ith-price { grid-area: price; }
+.ith-rooms { grid-area: rooms; }
+
+.inside-table {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: 
+    "guest-co perks-co price-co rooms-co";
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+.it-guest-co { grid-area: guest-co; }
+.it-perks-co { grid-area: perks-co; } 
+.it-price-co { grid-area: price-co; }
+.it-rooms-co { grid-area: rooms-co; }
+
+.table-content-row {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid;
+  padding: 5px;
+}
+
+.table-content-button {
+  padding: 5px;
+  border: 1px solid;
+}
+
+#room_number {
+  height: 30px;
+  border-radius: 10px ;
 }
 
 .ct-icons {
@@ -115,7 +181,6 @@
   font-size: 15px;
   margin-right: 5px;
   margin-bottom: 5px;
-  border: 1px solid #cfcfcf;
   border-radius: 8px;
   padding-left: 3px;
   padding-right: 3px;

@@ -19,11 +19,10 @@ export default function App() {
   const [ adultPax, setAdultPax ] = useLocalStorage('adultPax', 1);
   const [ childPax, setChildPax ] = useLocalStorage('childPax',0);
   const [ childAge, setChildAge ] = useLocalStorage('childAge', []);
+  const [ childAgeString, setChildAgeString ] = useLocalStorage('childAgeString', null);
   const [ roomAmount, setRoomAmount ] = useLocalStorage('roomAmount', 1);  
-
   const [ searchFetchData, setSearchFetchData ] = useLocalStorage('searchFetchData', {}); // prepare bulid a railway to map
-  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAge, roomAmount });
-
+  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAgeString, roomAmount });
 
   return (
     <BookedList.Provider value={{ 
@@ -34,6 +33,7 @@ export default function App() {
       adultPax, setAdultPax, 
       childPax, setChildPax, 
       childAge, setChildAge,
+      childAgeString, setChildAgeString,
       roomAmount, setRoomAmount,
       searchFetchData, setSearchFetchData
     }}>
@@ -68,7 +68,7 @@ function AppInner({
       setChildAge([]);
       setRoomAmount(1)
     }
-  }, [location.pathname])
+  }, [location.pathname]);
 
   return (
     <Routes>
