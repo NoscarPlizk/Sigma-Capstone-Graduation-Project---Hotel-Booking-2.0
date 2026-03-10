@@ -39,7 +39,6 @@
 .lg-container {
   display: flex;
   flex-wrap: wrap;
-  border: 1px solid;
   gap: 15px;
   margin-bottom: 20px;
 }

@@ -2,6 +2,8 @@ import { Col, Image, Row, Button, Container } from "react-bootstrap";
 import { useContext, useEffect } from "react";
 import { BookedList } from "../content/data transfer/bookedListContent";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../content/firebase";
 
 export default function UserPage() {  
   const terminateSession = useNavigate();
@@ -13,9 +15,14 @@ export default function UserPage() {
     if (!token) redirect('/userauth');
   }, [token])
 
-  const SignOutProcess = () => {
-    setToken('');
-    return terminateSession('/');
+  const SignOutProcess = async () => {
+    try {
+      await signOut(auth);
+      setToken('');
+      redirect("/userauth");
+    } catch (error) {
+      console.error(error);
+    }
   }
 
 

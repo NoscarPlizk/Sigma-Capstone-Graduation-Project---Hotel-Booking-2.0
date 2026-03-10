@@ -1,8 +1,12 @@
 import { useState, useEffect, useContext } from "react";
 import { Modal, Button, Form, Container, Row, Col } from "react-bootstrap";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { BookedList } from "../content/data transfer/bookedListContent";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword 
+} from "firebase/auth";
+import { auth } from "../content/firebase";
 
 export default function AuthPages() {
   const [ show, setShow ] = useState(false);
@@ -14,7 +18,16 @@ export default function AuthPages() {
   const setToken = useContext(BookedList).setToken;
 
   useEffect(() => {
-    if (token) redirect('/');
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setToken(user);
+      console.log("token_Auth:", token);
+
+      if (user) {
+        redirect('/');
+      }
+    });
+
+    return unsubscribe;
   }, [token]);
 
   const handleShowRegister = () => {
@@ -27,16 +40,8 @@ export default function AuthPages() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === '' || password === '') 
-    return console.log({ message: "EMPTY!!, Either username or password is Empty:", username: username, password: password });
-      
     try {
-      const res = await axios.post(`${APIurl}login`, { username, password });
-      if (res.data && res.data.auth === true && res.data.token) {
-        setToken(res.data.token);
-        console.log('login was successful, token saved');
-      }
-      console.log(res.data);
+      await signInWithEmailAndPassword(auth, username, password);
     } catch (error) {
       console.error(error);
     }
@@ -44,18 +49,47 @@ export default function AuthPages() {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    if (username === '' || password === '') 
-    return console.log({ "EMPTY!!, Either username or password is Empty:": { username, password } });
-    
     try {
-      const res = await axios.post(`${APIurl}signup`, { username, password });
-      console.log(res.data);
-            
-      console.log('login was successful, token saved');
+      const res = await createUserWithEmailAndPassword(
+        auth, username, password
+      );
+      console.log(res.user);
     } catch (error) {
       console.error(error);
     }
   };
+
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   if (username === '' || password === '') 
+  //   return console.log({ message: "EMPTY!!, Either username or password is Empty:", username: username, password: password });
+      
+  //   try {
+  //     const res = await axios.post(`${APIurl}login`, { username, password });
+  //     if (res.data && res.data.auth === true && res.data.token) {
+  //       setToken(res.data.token);
+  //       console.log('login was successful, token saved');
+  //     }
+  //     console.log(res.data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+  // const handleSignUp = async (e) => {
+  //   e.preventDefault();
+  //   if (username === '' || password === '') 
+  //   return console.log({ "EMPTY!!, Either username or password is Empty:": { username, password } });
+    
+  //   try {
+  //     const res = await axios.post(`${APIurl}signup`, { username, password });
+  //     console.log(res.data);
+            
+  //     console.log('login was successful, token saved');
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   return (
     <>

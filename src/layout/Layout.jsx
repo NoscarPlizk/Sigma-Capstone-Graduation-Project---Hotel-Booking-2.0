@@ -14,7 +14,7 @@ export default function Layout() {
           <Navbar.Brand href='/'><strong>Placesota</strong></Navbar.Brand>
           <Nav>
             <Nav.Link href='/userauth'>
-              {!token ? <Button>Login</Button> : null}
+              {!token ? <Button>Login or Signup</Button> : null}
             </Nav.Link>
             <Nav.Link href='/allbookedlist'>
               {token ? <Button>Check Booked Hotel List</Button> : null }

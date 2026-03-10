@@ -12,7 +12,7 @@ import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
 
 export default function App() {
-  const [ token, setToken ] = useLocalStorage('token', '');
+  const [ token, setToken ] = useLocalStorage('token', null);
   const [ search, setSearch ] = useLocalStorage('search','');
   const [ initialDate, setInitialDate ] = useLocalStorage('initialDate', '');
   const [ dueDate, setDueDate ] = useLocalStorage('dueDate','');
@@ -22,6 +22,7 @@ export default function App() {
   const [ childAgeString, setChildAgeString ] = useLocalStorage('childAgeString', null);
   const [ roomAmount, setRoomAmount ] = useLocalStorage('roomAmount', 1);  
   const [ searchFetchData, setSearchFetchData ] = useLocalStorage('searchFetchData', {}); // prepare bulid a railway to map
+  console.log("token:", token);
   console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAgeString, roomAmount });
 
   return (
