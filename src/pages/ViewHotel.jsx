@@ -225,8 +225,13 @@ import * as Falcons from "react-icons/fa";
                               </div>
                             </div>
                             <div className="it-price-co table-content-row">
+                              <p>Total Price</p>
                               <h5 className="all-child">
                                 {offer?.product_price_breakdown?.all_inclusive_amount?.amount_unrounded}
+                              </h5>
+                              <p>Per Night Price</p>
+                              <h5 className="all-child">
+                                {offer?.product_price_breakdown?.gross_amount_per_night?.amount_unrounded}
                               </h5>
                             </div>
                             <div className="it-rooms-co table-content-button">
