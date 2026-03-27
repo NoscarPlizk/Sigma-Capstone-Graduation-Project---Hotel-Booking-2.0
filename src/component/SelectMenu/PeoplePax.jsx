@@ -106,12 +106,23 @@ export default function PeoplePax({
             className="d-flex flex-column align-item-center p-2 gap-2" 
             style={{ width: 300 }}
             >
-            <SubPlusMinusBar title={"Adult"} state={adultPax} setState={setAdultPax} />
+            <SubPlusMinusBar 
+              title={"Adult"} 
+              state={adultPax} 
+              setState={setAdultPax} 
+            />
             <SpecialSubPlusMinusBar 
-              title={"Child"} state={childPax} setState={setChildPax} 
-              astate={childAge} aSetState={setChildAge}
+              title={"Child"} 
+              state={childPax} 
+              setState={setChildPax} 
+              astate={childAge} 
+              aSetState={setChildAge}
              />
-            <SubPlusMinusBar title={"Rooms"} state={roomAmount} setState={setRoomAmount} />
+            <SubPlusMinusBar 
+              title={"Rooms"} 
+              state={roomAmount} 
+              setState={setRoomAmount} 
+            />
           </div>
         </Popover>
       </Overlay>

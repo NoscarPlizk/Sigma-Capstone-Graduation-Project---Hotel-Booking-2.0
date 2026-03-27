@@ -1,11 +1,12 @@
 import { Row, Col, Container, Button, Modal, Card } from "react-bootstrap";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, redirect } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { BookedList } from '../content/data transfer/bookedListContent';
 import getHotelDetails from '../content/api/GetHotelDetails';
 import getHotelPhoto from '../content/api/GetHotelPhoto';
 import getRoomList from "../content/api/GetRoomList";
 import getDescriptionAndInfo from "../content/api/GetDescriptionAndInfo";
+import SelectMenu from "../component/SelectMenu/SelectMenu";
 import "./ViewHotel.css";
 import * as Falcons from "react-icons/fa";
 
@@ -112,22 +113,31 @@ import * as Falcons from "react-icons/fa";
   };
 
   function DescriptionDetails({ hotelDescriptionData }) {
-    const script = hotelDescriptionData?.data[0]?.description ?? '';
-
     return (
       <div>
         <h5>Descriptions</h5>
-        <p>{script}</p>
+        {hotelDescriptionData?.data
+          .filter(element => element.descriptiontype_id === 6)
+          .map((script) => (
+            <p key={script.descriptiontype_id}>{script.description}</p>
+        ))}
       </div>
     )
   }
 
   function HotelRoomType({ roomList }) {
+    const [ saveHouse, setSaveHouse ] = useState([]);
+    const redirect = useNavigate();
+
     if (!roomList) return <div>Loading....</div>;
     console.log("roomList", roomList);
     console.log({ room_photo: roomList?.data?.rooms });
     const rooms = roomList?.data?.block;
     const rooms_data = roomList?.data?.rooms;
+
+    const redirectPurchase = () => {
+      redirect('/purchaseportal');
+    }
 
     console.log("rooms_in_SingleListRoomsBox:", rooms);
     function processingAllOption(rooms, rooms_data) {
@@ -138,7 +148,7 @@ import * as Falcons from "react-icons/fa";
         if (!map.has(roomId)) map.set(roomId, []);
         map.get(roomId).push(room);
       }
-
+      console.log("First_map:", map);
       const data = Array.from(map, ([roomId, roomSelection]) => {
         const base = roomSelection[0];
         return {
@@ -157,114 +167,195 @@ import * as Falcons from "react-icons/fa";
     
     console.log("Rooms_AllOptions:", Rooms_AllOptions);
 
+    function storeBookRoom(mainRoomInfo, offer, room_amount) {
+      const room_am = Number(room_amount);
+
+      setSaveHouse(prev => {
+        const currentOffArray = (prev.length === 0) ? prev : prev
+          .find(specRoom => specRoom.base_room_id === mainRoomInfo.room_id).base_select_room;
+
+        console.log("currentOffArray:", currentOffArray);
+
+        const baseOff = {
+          amount: room_am,
+          block_id: offer.block_id,
+          spec_room_data: offer,
+        };
+
+        const baseObject = {
+          base_room_id: mainRoomInfo.room_id,
+          base_room_name: mainRoomInfo.room_name,
+          base_select_room: [...currentOffArray, baseOff] 
+        }
+
+        const currentSpecOff = currentOffArray.find(dataOff => dataOff.block_id === baseOff.block_id);
+
+        if (currentOffArray.length === 0) {
+          const replacePrevObj = baseObject;
+
+          return [...prev, replacePrevObj];
+
+        } else if ((currentOffArray.length > 0) && (currentSpecOff.amount !== baseOff.amount)) {
+
+          const updatedPrev = prev.map(baseObject => { baseObject.base_select_room.map(currentOff => 
+              currentOff.block_id === baseOff.block_id ? { ...currentOff, amount: room_am } : currentOff )})
+
+          console.log("updatedPrev:", updatedPrev);
+
+          if (currentSpecOff.amount === 0) {
+            const removeSomeOff = currentOffArray.filter(specOff => specOff.block_id !== baseOff.block_id);
+            console.log("removeSomeOff", removeSomeOff);
+
+            if (removeSomeOff.length !== 0) {
+              // return { ...baseObject, base_select_room: [...removeSomeOff] }
+              return [...prev, { ...baseObject, base_select_room: [...removeSomeOff] }];
+
+            } else if (removeSomeOff.length === 0) {            
+              return [];
+            }
+          }
+          return [...updatedPrev];
+        }
+      });        
+    }
+
+    console.log("saveHouse:", saveHouse);
+    
+        // [
+        //   {
+        //     base_room_id: 234234,
+        //     base_room_name: salmia_deluxe_suite,
+        //     base_select_room: [
+        //       {
+        //         amount: 3,
+        //         block_id: 3233_3232_32321,
+        //         spec_room_data: {...},
+        //       },              
+        //       {
+        //         amount: 2,
+        //         block_id: 8929_2341_21244,
+        //         spec_room_data: {...},
+        //       },
+        //     ] 
+        //   }
+        // ] 
+
     return (
       <div className="border">
         <div className="ha-tablehead">
           <h3><strong>Room Type</strong></h3>
           <h3><strong>Purchase for</strong></h3>
         </div>
-        <div >
-          {Rooms_AllOptions.map((everyRoom, index) => 
-            (
-              <div key={index} className="ha">
-                <div className="hotelnreserveboxsec ha-hotelinfosec">
-                  <h4>{everyRoom.room_name}</h4>
-                  <div className="ct">
-                    <div className="ct-left">
-                      <img 
-                        className="ha-hoinsecimage"
-                        src={everyRoom?.room_data?.photos[0]?.url_original ?? []}
-                      />
-                      <div>
+        <div className="ha">
+          <div className="ha-hotelinfosec">
+            {Rooms_AllOptions.map((everyRoom, index) => 
+              (
+                <div key={index}>
+                  <div className="hotelnreserveboxsec">
+                    <h4>{everyRoom.room_name}</h4>
+                    <div className="ct">
+                      <div className="ct-left">
+                        <img 
+                          className="ha-hoinsecimage"
+                          src={everyRoom?.room_data?.photos[0]?.url_original ?? []}
+                        />
                         <div>
-                        {everyRoom?.room_data?.bed_configurations[0]?.bed_types.map((label, index) => (
-                          <div key={index}>
-                            <p><strong>{label.name_with_count}</strong></p>
+                          <div>
+                          {everyRoom?.room_data?.bed_configurations[0]?.bed_types.map((label, index) => (
+                            <div key={index}>
+                              <p><strong>{label.name_with_count}</strong></p>
+                            </div>
+                          ))}
                           </div>
-                        ))}
+                          <div className="my-3">
+                            {everyRoom?.room_data?.description}
+                          </div>
+                          <div className="my-3">
+                            {everyRoom?.room_data?.highlights?.map((label, index) => (
+                              <HighlightsPill key={index} iconKey={label.icon} label={label.translated_name} />
+                            ))}
+                          </div>
+                          <div className="my-3">
+                          {everyRoom?.room_data?.facilities?.map((label, index) => (
+                            <span key={index} className="facilities-pill">
+                              <Falcons.FaCheck />
+                              {label.name}
+                            </span>
+                          ))}
+                          </div>
                         </div>
-                        <div className="my-3">
-                          {everyRoom?.room_data?.description}
+                      </div>
+                      <div className="ct-right">
+                        <div className="inside-table-header">
+                          <p className="ith-guest">Number of Guests</p>
+                          <p className="ith-perks">Your Perks</p>
+                          <p className="ith-price">Price</p>
+                          <p className="ith-rooms">Select Rooms</p>
                         </div>
-                        <div className="my-3">
-                          {everyRoom?.room_data?.highlights?.map((label, index) => (
-                            <HighlightsPill key={index} iconKey={label.icon} label={label.translated_name} />
+                        <div className="">
+                          {everyRoom.offers.map((offer, index) => (
+                            <div key={index} className="inside-table">
+                              <div className="it-guest-co table-content-row">
+                                  <div>{offer?.nr_adults} Adult</div> 
+                                  {offer?.nr_children > 0 && '+'}
+                                  {offer?.nr_children > 0 ? <div>{offer?.nr_children} Children</div> : <div></div>}
+                              </div>
+                              <div className="it-perks-co table-content-row">
+                                <div>
+                                  {offer?.block_text.policies[2]?.content}
+                                </div>
+                                <div>
+                                  {offer?.policy_display_details?.cancellation?.title_details?.translation}
+                                </div>
+                              </div>
+                              <div className="it-price-co table-content-row">
+                                <p>Total Price</p>
+                                <h5 className="all-child">
+                                  {offer?.product_price_breakdown?.all_inclusive_amount?.amount_unrounded}
+                                </h5>
+                                <p>Per Night Price</p>
+                                <h5 className="all-child">
+                                  {offer?.product_price_breakdown?.gross_amount_per_night?.amount_unrounded}
+                                </h5>
+                              </div>
+                              <div className="it-rooms-co table-content-button">
+                                <select 
+                                  name="room_number" 
+                                  id="room_number" 
+                                  onChange={(e) => storeBookRoom(everyRoom, offer, e.target.value)}
+                                >
+                                  <option value="0">0</option>
+                                  <option value="1">1</option>
+                                  <option value="2">2</option>
+                                  <option value="3">3</option>
+                                  <option value="4">4</option>
+                                  <option value="5">5</option>
+                                  <option value="6">6</option>
+                                  <option value="7">7</option>
+                                  <option value="8">8</option>
+                                  <option value="9">9</option>
+                                  <option value="10">10</option>
+                                </select>
+                              </div>
+                            </div>
                           ))}
                         </div>
-                        <div className="my-3">
-                        {everyRoom?.room_data?.facilities?.map((label, index) => (
-                          <span key={index} className="facilities-pill">
-                            <Falcons.FaCheck />
-                            {label.name}
-                          </span>
-                        ))}
-                      </div>
-                      </div>
-                    </div>
-                    <div className="ct-right">
-                      <div className="inside-table-header">
-                        <p className="ith-guest">Number of Guests</p>
-                        <p className="ith-perks">Your Perks</p>
-                        <p className="ith-price">Price</p>
-                        <p className="ith-rooms">Select Rooms</p>
-                      </div>
-                      <div className="">
-                        {everyRoom.offers.map((offer, index) => (
-                          <div key={index} className="inside-table">
-                            <div className="it-guest-co table-content-row">
-                                <div>{offer?.nr_adults} Adult</div> 
-                                {offer?.nr_children > 0 && '+'}
-                                {offer?.nr_children > 0 ? <div>{offer?.nr_children} Children</div> : <div></div>}
-                            </div>
-                            <div className="it-perks-co table-content-row">
-                              <div>
-                                {offer?.block_text.policies[2]?.content}
-                              </div>
-                              <div>
-                                {offer?.policy_display_details?.cancellation?.title_details?.translation}
-                              </div>
-                            </div>
-                            <div className="it-price-co table-content-row">
-                              <p>Total Price</p>
-                              <h5 className="all-child">
-                                {offer?.product_price_breakdown?.all_inclusive_amount?.amount_unrounded}
-                              </h5>
-                              <p>Per Night Price</p>
-                              <h5 className="all-child">
-                                {offer?.product_price_breakdown?.gross_amount_per_night?.amount_unrounded}
-                              </h5>
-                            </div>
-                            <div className="it-rooms-co table-content-button">
-                              <select name="room_number" id="room_number">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                                <option value="10">10</option>
-                              </select>
-                            </div>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="hotelnreserveboxsec ha-reservesec">
-                  <div className="ct"> 
-                    <button>I'll reserve</button>
-                    {rooms_data?.[everyRoom.room_id]?.transactional_policy_objects?.map((label, index) => (
-                      <p key={index}>{label.text}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )
-          )}
+              )
+            )}
+          </div>
+          <div className="hotelnreserveboxsec ha-reservesec">
+            <div className="ct"> 
+              <button onClick={() => redirectPurchase()}>I'll reserve</button>
+              {/* {saveHouse && saveHouse.length > 0 ? 
+                saveHouse.map((label, index) => (
+                <p key={index}>{label.text}</p>
+              )) : ''} */}
+            </div>
+          </div>
         </div>
       </div>
     );  
@@ -286,7 +377,6 @@ export default function ViewHotel() {
   const adult_pax = useContext(BookedList).adultPax;
   const childAgeString = useContext(BookedList).childAgeString;
   const roomAmount = useContext(BookedList).roomAmount;
-  // const redirect = useNavigate();
   const { state } = useLocation();
 
   const hotelsData = state?.hotels;
@@ -346,7 +436,10 @@ export default function ViewHotel() {
           </Card>
         </Modal.Body>
       </Modal>
-      <Container>
+      <Container className="Shell">
+        <div className="SelectMenu-Resize">
+          <SelectMenu />
+        </div>
         <div>
           <h3>{hotelDetailsData?.data?.hotel_name ?? ''}</h3>
           <p>{hotelDetailsData?.data?.address ?? ''}</p>

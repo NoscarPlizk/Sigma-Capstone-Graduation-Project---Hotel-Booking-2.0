@@ -10,6 +10,7 @@ import UserPage from "./pages/UserPage";
 import Payment from "./pages/Payment";
 import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
+import PurchasePortal from "./pages/PurchasePortal";
 
 export default function App() {
   const [ token, setToken ] = useLocalStorage('token', null);
@@ -81,6 +82,7 @@ function AppInner({
         <Route path="userpage" element={<UserPage />} />
         <Route path="allbookedlist" element={<AllBookedList />} />
         <Route path="payment" element={<Payment />} />
+        <Route path="purchaseportal" element={<PurchasePortal />} />
       </Route>
     </Routes>
   );

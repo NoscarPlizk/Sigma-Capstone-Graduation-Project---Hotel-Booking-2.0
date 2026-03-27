@@ -1,3 +1,13 @@
+/* .Shell {
+  margin-left: 300px;
+  margin-right: 300px;
+} */
+
+.SelectMenu-Resize {
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
 .hg {
   display: grid;
   gap: 10px;
