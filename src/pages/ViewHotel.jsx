@@ -189,7 +189,9 @@ import * as Falcons from "react-icons/fa";
         }
 
         const currentSpecOff = currentOffArray.find(dataOff => dataOff.block_id === baseOff.block_id);
-
+        console.log("prev", prev);
+        console.log("currentSpecOff:", currentSpecOff);
+        
         if (currentOffArray.length === 0) {
           const replacePrevObj = baseObject;
 
@@ -197,21 +199,52 @@ import * as Falcons from "react-icons/fa";
 
         } else if ((currentOffArray.length > 0) && (currentSpecOff.amount !== baseOff.amount)) {
 
-          const updatedPrev = prev.map(baseObject => { baseObject.base_select_room.map(currentOff => 
-              currentOff.block_id === baseOff.block_id ? { ...currentOff, amount: room_am } : currentOff )})
+          const updatedPrev = prev.map(baseObj => {
+            if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
+
+            return {
+              ...baseObj,
+              base_select_room: baseObj.base_select_room.map(currentOff => 
+                currentOff.block_id === baseOff.block_id 
+                ? { ...currentOff, amount: baseOff.amount } 
+                : currentOff
+              )
+            };
+          });
 
           console.log("updatedPrev:", updatedPrev);
+          
+          const roomAmount = updatedPrev
+            .find(baseObj => baseObj.base_room_id === baseObject.base_room_id).base_select_room
+            .find(currentOff => currentOff.block_id === baseOff.block_id).amount;
 
-          if (currentSpecOff.amount === 0) {
-            const removeSomeOff = currentOffArray.filter(specOff => specOff.block_id !== baseOff.block_id);
-            console.log("removeSomeOff", removeSomeOff);
+          console.log('roomAmount:', roomAmount);
 
-            if (removeSomeOff.length !== 0) {
-              // return { ...baseObject, base_select_room: [...removeSomeOff] }
-              return [...prev, { ...baseObject, base_select_room: [...removeSomeOff] }];
+          if (roomAmount === 0) {
+            let updatedRemoveSpecOff = updatedPrev.map(baseObj => {
+              if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
+              
+              return { 
+                ...baseObj, 
+                base_select_room: baseObj.base_select_room.filter(specOff => 
+                  specOff.block_id !== baseOff.block_id
+                )
+              }
+            })            
+            
+              console.log("updatedRemoveSpecOff", updatedRemoveSpecOff);
 
-            } else if (removeSomeOff.length === 0) {            
-              return [];
+              const isOffZero = updatedRemoveSpecOff
+                .find(baseObj => baseObj.base_room_id === baseObject.base_room_id)
+                .base_select_room.length;
+
+            if (isOffZero !== 0) {
+              return updatedRemoveSpecOff;
+
+            } else if (isOffZero === 0) {      
+              return updatedRemoveSpecOff.filter(baseObj => 
+                baseObj.base_room_id !== baseObject.base_room_id
+              )
             }
           }
           return [...updatedPrev];
@@ -221,24 +254,24 @@ import * as Falcons from "react-icons/fa";
 
     console.log("saveHouse:", saveHouse);
     
-        // [
-        //   {
-        //     base_room_id: 234234,
-        //     base_room_name: salmia_deluxe_suite,
-        //     base_select_room: [
-        //       {
-        //         amount: 3,
-        //         block_id: 3233_3232_32321,
-        //         spec_room_data: {...},
-        //       },              
-        //       {
-        //         amount: 2,
-        //         block_id: 8929_2341_21244,
-        //         spec_room_data: {...},
-        //       },
-        //     ] 
-        //   }
-        // ] 
+      // [
+      //   {
+      //     base_room_id: 234234,
+      //     base_room_name: salmia_deluxe_suite,
+      //     base_select_room: [
+      //       {
+      //         amount: 3,
+      //         block_id: 3233_3232_32321,
+      //         spec_room_data: {...},
+      //       },              
+      //       {
+      //         amount: 2,
+      //         block_id: 8929_2341_21244,
+      //         spec_room_data: {...},
+      //       },
+      //     ] 
+      //   }
+      // ] 
 
     return (
       <div className="border">
