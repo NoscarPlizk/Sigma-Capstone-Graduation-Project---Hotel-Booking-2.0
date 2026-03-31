@@ -171,8 +171,11 @@ import * as Falcons from "react-icons/fa";
       const room_am = Number(room_amount);
 
       setSaveHouse(prev => {
-        const currentOffArray = (prev.length === 0) ? prev : prev
-          .find(specRoom => specRoom.base_room_id === mainRoomInfo.room_id).base_select_room;
+        const currentOffArray = (prev.length === 0) 
+          ? prev 
+          : prev.find(baseObj => 
+              baseObj.base_room_id === mainRoomInfo.room_id
+            ).base_select_room;
 
         console.log("currentOffArray:", currentOffArray);
 
@@ -188,16 +191,23 @@ import * as Falcons from "react-icons/fa";
           base_select_room: [...currentOffArray, baseOff] 
         }
 
-        const currentSpecOff = currentOffArray.find(dataOff => dataOff.block_id === baseOff.block_id);
+        const currentSpecOff = currentOffArray.find(currentOff => 
+          currentOff.block_id === baseOff.block_id
+        );
+
         console.log("prev", prev);
         console.log("currentSpecOff:", currentSpecOff);
+
         
         if (currentOffArray.length === 0) {
-          const replacePrevObj = baseObject;
+          const addNewMainObj = baseObject;
+          return [...prev, addNewMainObj];
 
-          return [...prev, replacePrevObj];
 
-        } else if ((currentOffArray.length > 0) && (currentSpecOff.amount !== baseOff.amount)) {
+        } else if (
+          (currentOffArray.length >= 1) && 
+          (currentSpecOff ? currentSpecOff.amount !== baseOff.amount : false)
+        ) {
 
           const updatedPrev = prev.map(baseObj => {
             if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
@@ -220,6 +230,8 @@ import * as Falcons from "react-icons/fa";
 
           console.log('roomAmount:', roomAmount);
 
+
+
           if (roomAmount === 0) {
             let updatedRemoveSpecOff = updatedPrev.map(baseObj => {
               if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
@@ -232,11 +244,11 @@ import * as Falcons from "react-icons/fa";
               }
             })            
             
-              console.log("updatedRemoveSpecOff", updatedRemoveSpecOff);
+            console.log("updatedRemoveSpecOff", updatedRemoveSpecOff);
 
-              const isOffZero = updatedRemoveSpecOff
-                .find(baseObj => baseObj.base_room_id === baseObject.base_room_id)
-                .base_select_room.length;
+            const isOffZero = updatedRemoveSpecOff
+              .find(baseObj => baseObj.base_room_id === baseObject.base_room_id)
+              .base_select_room.length;
 
             if (isOffZero !== 0) {
               return updatedRemoveSpecOff;
@@ -247,8 +259,31 @@ import * as Falcons from "react-icons/fa";
               )
             }
           }
+
           return [...updatedPrev];
+
+
+        } else if (currentOffArray.length >= 1 && !currentSpecOff) {
+
+          const updatedAddNewSpecOff = prev.map(baseObj => {
+            if (baseObj.base_room_id === baseObject.base_room_id) {
+              return {
+                ...baseObj,
+                base_select_room: [...baseObj.base_select_room, baseOff]
+              }
+            }
+
+            return;
+          });
+          
+          return [...updatedAddNewSpecOff];
+
+
         }
+        
+        // if ((currentOffArray.length >= 1) && (currentSpecOff.amount === baseOff.amount)) {
+        //   return; 
+        // }
       });        
     }
 
