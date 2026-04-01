@@ -171,12 +171,17 @@ import * as Falcons from "react-icons/fa";
       const room_am = Number(room_amount);
 
       setSaveHouse(prev => {
+        const specExistObj = prev?.find(baseObj => 
+          baseObj.base_room_id === mainRoomInfo.room_id
+        );
+
         const currentOffArray = (prev.length === 0) 
           ? prev 
-          : prev.find(baseObj => 
-              baseObj.base_room_id === mainRoomInfo.room_id
-            ).base_select_room;
+          : (specExistObj 
+            ? specExistObj?.base_select_room 
+            : [])
 
+        console.log("prev", prev);
         console.log("currentOffArray:", currentOffArray);
 
         const baseOff = {
@@ -195,19 +200,18 @@ import * as Falcons from "react-icons/fa";
           currentOff.block_id === baseOff.block_id
         );
 
-        console.log("prev", prev);
+
         console.log("currentSpecOff:", currentSpecOff);
 
         
-        if (currentOffArray.length === 0) {
+        if (!specExistObj) {
           const addNewMainObj = baseObject;
           return [...prev, addNewMainObj];
 
 
         } else if (
           (currentOffArray.length >= 1) && 
-          (currentSpecOff ? currentSpecOff.amount !== baseOff.amount : false)
-        ) {
+          (currentSpecOff ? currentSpecOff.amount !== baseOff.amount : false)) {
 
           const updatedPrev = prev.map(baseObj => {
             if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
@@ -242,8 +246,8 @@ import * as Falcons from "react-icons/fa";
                   specOff.block_id !== baseOff.block_id
                 )
               }
-            })            
-            
+            })     
+          
             console.log("updatedRemoveSpecOff", updatedRemoveSpecOff);
 
             const isOffZero = updatedRemoveSpecOff
@@ -273,7 +277,7 @@ import * as Falcons from "react-icons/fa";
               }
             }
 
-            return;
+            return baseObj;
           });
           
           return [...updatedAddNewSpecOff];
