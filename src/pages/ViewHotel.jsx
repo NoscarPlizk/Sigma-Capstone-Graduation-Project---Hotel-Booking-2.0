@@ -125,6 +125,41 @@ import * as Falcons from "react-icons/fa";
     )
   }
 
+  function PurchaseEndPoint({ saveHouse, redirectPurchase }) {
+
+    console.log("EndPoint:", saveHouse);
+    
+    return (
+      <>
+        <div>
+          <h5 id="amount_of_rooms">
+            <strong>
+            {saveHouse.length} rooms for 
+            </strong>
+          </h5>
+          <div>
+            <div id="currency">{}</div>
+            <div id="totalprice">{}</div>
+          </div>
+          <button onClick={() => redirectPurchase()}>I'll reserve</button>
+          <div>
+            {saveHouse.length > 0 
+            ? saveHouse.map((baseObj, index) => (
+                <div key={index}>
+                  <div>{}</div>
+                </div>
+              ))
+            : ''}
+          </div>
+        </div>
+        {/* {saveHouse && saveHouse.length > 0 ? 
+          saveHouse.map((label, index) => (
+          <p key={index}>{label.text}</p>
+        )) : ''} */}
+      </>
+    )
+  }
+
   function HotelRoomType({ roomList }) {
     const [ saveHouse, setSaveHouse ] = useState([]);
     const redirect = useNavigate();
@@ -193,6 +228,8 @@ import * as Falcons from "react-icons/fa";
         const baseObject = {
           base_room_id: mainRoomInfo.room_id,
           base_room_name: mainRoomInfo.room_name,
+          base_room_surface_m2: mainRoomInfo.room_surface_in_m2,
+          base_main_photos: mainRoomInfo.room_data.photos[0].url_square60,
           base_select_room: [...currentOffArray, baseOff] 
         }
 
@@ -284,15 +321,14 @@ import * as Falcons from "react-icons/fa";
 
 
         }
-        
-        // if ((currentOffArray.length >= 1) && (currentSpecOff.amount === baseOff.amount)) {
-        //   return; 
-        // }
       });        
     }
 
     console.log("saveHouse:", saveHouse);
     
+
+
+
       // [
       //   {
       //     base_room_id: 234234,
@@ -364,7 +400,7 @@ import * as Falcons from "react-icons/fa";
                           <p className="ith-price">Price</p>
                           <p className="ith-rooms">Select Rooms</p>
                         </div>
-                        <div className="">
+                        <div>
                           {everyRoom.offers.map((offer, index) => (
                             <div key={index} className="inside-table">
                               <div className="it-guest-co table-content-row">
@@ -383,11 +419,11 @@ import * as Falcons from "react-icons/fa";
                               <div className="it-price-co table-content-row">
                                 <p>Total Price</p>
                                 <h5 className="all-child">
-                                  {offer?.product_price_breakdown?.all_inclusive_amount?.amount_unrounded}
+                                  {offer?.product_price_breakdown?.all_inclusive_amount?.value.toFixed(2)}
                                 </h5>
                                 <p>Per Night Price</p>
                                 <h5 className="all-child">
-                                  {offer?.product_price_breakdown?.gross_amount_per_night?.amount_unrounded}
+                                  {offer?.product_price_breakdown?.gross_amount_per_night?.value.toFixed(2)}
                                 </h5>
                               </div>
                               <div className="it-rooms-co table-content-button">
@@ -421,11 +457,10 @@ import * as Falcons from "react-icons/fa";
           </div>
           <div className="hotelnreserveboxsec ha-reservesec">
             <div className="ct"> 
-              <button onClick={() => redirectPurchase()}>I'll reserve</button>
-              {/* {saveHouse && saveHouse.length > 0 ? 
-                saveHouse.map((label, index) => (
-                <p key={index}>{label.text}</p>
-              )) : ''} */}
+              <PurchaseEndPoint 
+                saveHouse={saveHouse} 
+                redirectPurchase={redirectPurchase} 
+              />
             </div>
           </div>
         </div>
