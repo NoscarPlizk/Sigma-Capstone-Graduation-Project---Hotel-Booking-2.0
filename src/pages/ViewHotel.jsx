@@ -58,11 +58,11 @@ import * as Falcons from "react-icons/fa";
 
   function convertToFarKey(iconKey) {
     const newWord = 
-    "Fa" + iconKey
-    .toLowerCase()
-    .split(/[_\-\s]+/)
-    .map(string => string ? string[0].toUpperCase() + string.slice(1) : "" )
-    .join("");
+      "Fa" + iconKey
+      .toLowerCase()
+      .split(/[_\-\s]+/)
+      .map(string => string ? string[0].toUpperCase() + string.slice(1) : "" )
+      .join("");
     return newWord;
   }
 
@@ -129,33 +129,108 @@ import * as Falcons from "react-icons/fa";
 
     console.log("EndPoint:", saveHouse);
     
+    function SumAllSelRoomAmtNPrc() {
+      let cal_allamount = 0;
+      let cal_totalprice = 0;
+
+      saveHouse.forEach(baseObj => {        
+        baseObj.base_select_room.forEach(baseOff => {
+          cal_allamount += baseOff.amount;
+        });
+      });
+
+      saveHouse.forEach(baseObj => {        
+        baseObj.base_select_room.forEach(baseOff => {
+          const valueofPrice = baseOff.amount * Number(
+            baseOff?.
+            spec_room_data?.
+            product_price_breakdown?.
+            all_inclusive_amount?.
+            value?.
+            toFixed(2)
+          );
+
+          cal_totalprice += valueofPrice;
+        });
+      });
+
+      const nested_object = {
+        cal_allamount: cal_allamount,
+        cal_totalprice: cal_totalprice
+      }
+
+      console.log("nested_object:", nested_object);
+
+      return nested_object;
+    }
+
+    const SumedAmountnPrc = SumAllSelRoomAmtNPrc();
+    
     return (
       <>
         <div>
           <h5 id="amount_of_rooms">
             <strong>
-            {saveHouse.length} rooms for 
+            {SumedAmountnPrc.cal_allamount} rooms for 
             </strong>
           </h5>
           <div>
             <div id="currency">{}</div>
-            <div id="totalprice">{}</div>
+            <div id="totalprice">{SumedAmountnPrc.cal_totalprice.toFixed(2)}</div>
           </div>
-          <button onClick={() => redirectPurchase()}>I'll reserve</button>
-          <div>
-            {saveHouse.length > 0 
-            ? saveHouse.map((baseObj, index) => (
-                <div key={index}>
-                  <div>{}</div>
-                </div>
-              ))
-            : ''}
-          </div>
+          <button 
+            className="finalpurchase_Button"
+            onClick={() => redirectPurchase()}
+          >
+            I'll reserve
+          </button>
         </div>
-        {/* {saveHouse && saveHouse.length > 0 ? 
-          saveHouse.map((label, index) => (
-          <p key={index}>{label.text}</p>
-        )) : ''} */}
+        <div>
+          {saveHouse.length > 0 
+          ? saveHouse.map((baseObj, index) => (
+              <div key={index} className="ep-mainroomframe">
+                <div className="ep-offroomtitle">
+                  <img 
+                    src={baseObj?.base_main_photos ?? ''} 
+                    alt={`image of ${baseObj?.base_room_name ?? 'n/a'}`}
+                    width='60' height='60'
+                  />
+                  <h5>{baseObj?.base_room_name ?? 'n/a'}</h5>
+                </div>
+                <div>
+                  {baseObj.base_select_room.map((baseOff, index) => 
+                    <div key={index} className="ep-offroomlist">
+                      <div className="pax-co">
+                        {baseOff?.spec_room_data?.nr_adults 
+                          ? <div>{baseOff?.spec_room_data?.nr_adults} Adult</div>
+                          : <div>n/a</div>
+                        }
+                        {baseOff?.spec_room_data?.nr_children > 0 
+                          ? <div>
+                              <div>'+'</div>
+                              <div>{baseOff?.spec_room_data?.nr_children} Children</div> 
+                            </div>
+                          : <div></div>
+                        }
+                      </div>
+                      <div className="room_amt-co">
+                        {baseOff?.amount} X rooms
+                      </div>  
+                      <div className="price-co">
+                        { baseOff.amount > 1 
+                          ? baseOff?.spec_room_data?.product_price_breakdown?.
+                            all_inclusive_amount?.value?.toFixed(2) * baseOff.amount
+                          : baseOff?.spec_room_data?.product_price_breakdown?.
+                            all_inclusive_amount?.value?.toFixed(2) 
+                        }
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          : ''}
+        </div>  
       </>
     )
   }
@@ -327,26 +402,75 @@ import * as Falcons from "react-icons/fa";
     console.log("saveHouse:", saveHouse);
     
 
-
-
-      // [
-      //   {
-      //     base_room_id: 234234,
-      //     base_room_name: salmia_deluxe_suite,
-      //     base_select_room: [
-      //       {
-      //         amount: 3,
-      //         block_id: 3233_3232_32321,
-      //         spec_room_data: {...},
-      //       },              
-      //       {
-      //         amount: 2,
-      //         block_id: 8929_2341_21244,
-      //         spec_room_data: {...},
-      //       },
-      //     ] 
-      //   }
-      // ] 
+    // const HotelSelectDataExample = 
+    //   [
+    //     {
+    //       base_room_id: 234234,
+    //       base_room_name: salmia_deluxe_suite,
+    //       base_select_room: [
+    //         {
+    //           amount: 3,
+    //           block_id: 3233_3232_32321,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ]
+    //         },              
+    //         {
+    //           amount: 2,
+    //           block_id: 8929_2341_21244,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ],
+    //         },
+    //       ] 
+    //     },
+    //     {
+    //       base_room_id: 422341,
+    //       base_room_name: salmia_royal_suite,
+    //       base_select_room: [
+    //         {
+    //           amount: 1,
+    //           block_id: 7912_8312_2212,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ]
+    //         },              
+    //         {
+    //           amount: 2,
+    //           block_id: 6123_1233_8999,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ],
+    //         },
+    //       ] 
+    //     }
+    //   ] 
 
     return (
       <div className="border">
@@ -404,16 +528,21 @@ import * as Falcons from "react-icons/fa";
                           {everyRoom.offers.map((offer, index) => (
                             <div key={index} className="inside-table">
                               <div className="it-guest-co table-content-row">
-                                  <div>{offer?.nr_adults} Adult</div> 
-                                  {offer?.nr_children > 0 && '+'}
-                                  {offer?.nr_children > 0 ? <div>{offer?.nr_children} Children</div> : <div></div>}
+                                  {offer?.nr_adults ? <div>{offer?.nr_adults} Adult</div> : <div>n/a</div>} 
+                                  {offer?.nr_children > 0  
+                                    ? <div>
+                                        <div>+</div>
+                                        <div>{offer?.nr_children} Children</div> 
+                                      </div>
+                                    : <div></div>
+                                  }
                               </div>
                               <div className="it-perks-co table-content-row">
                                 <div>
                                   {offer?.block_text.policies[2]?.content}
                                 </div>
                                 <div>
-                                  {offer?.policy_display_details?.cancellation?.title_details?.translation}
+                                  <p>{offer?.policy_display_details?.cancellation?.title_details?.translation}</p>
                                 </div>
                               </div>
                               <div className="it-price-co table-content-row">
@@ -456,12 +585,10 @@ import * as Falcons from "react-icons/fa";
             )}
           </div>
           <div className="hotelnreserveboxsec ha-reservesec">
-            <div className="ct"> 
-              <PurchaseEndPoint 
-                saveHouse={saveHouse} 
-                redirectPurchase={redirectPurchase} 
-              />
-            </div>
+            <PurchaseEndPoint 
+              saveHouse={saveHouse} 
+              redirectPurchase={redirectPurchase} 
+            />
           </div>
         </div>
       </div>

@@ -90,6 +90,7 @@
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 20px;
+  gap: 10px
 }
 
 .ha-hoinsecimage {
@@ -194,4 +195,38 @@
   padding-left: 3px;
   padding-right: 3px;
   gap: 5px;
+}
+
+.finalpurchase_Button {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+}
+
+.ep-mainroomframe {
+  border: 1px solid;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.ep-offroomtitle {
+  display: flex;
+}
+
+.ep-offroomlist {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: 
+    "pax room_amt price"
+    "totalprice totalprice totalprice";
+  border: 1px solid;
+}
+
+.pax-co { grid-area: pax; }
+.room_amt-co { grid-area: room_amt; }
+.price-co { grid-area: price; }
+.totalprice-row { 
+  grid-area: totalprice; 
+  display: flex; 
 }
