@@ -9,6 +9,8 @@ import getDescriptionAndInfo from "../content/api/GetDescriptionAndInfo";
 import SelectMenu from "../component/SelectMenu/SelectMenu";
 import "./ViewHotel.css";
 import * as Falcons from "react-icons/fa";
+import { FaPerson } from "react-icons/fa6";
+import { FaChild } from "react-icons/fa";
 
 
 
@@ -111,6 +113,25 @@ import * as Falcons from "react-icons/fa";
       </span>
     )
   };
+
+  function AdultorChildIcon({ amount_adults, amount_child }) {
+    return (
+      <div>
+        {amount_adults > 0 
+          ? <div>
+              {amount_adults} <FaPerson />
+            </div> 
+          : <div>n/a</div>
+        }
+        {amount_child > 0
+          ? <div>
+              + {amount_child} <FaChild />
+            </div>
+          : <div></div>
+        }
+      </div>
+    )
+  }
 
   function DescriptionDetails({ hotelDescriptionData }) {
     return (
@@ -504,7 +525,11 @@ import * as Falcons from "react-icons/fa";
                           </div>
                           <div className="my-3">
                             {everyRoom?.room_data?.highlights?.map((label, index) => (
-                              <HighlightsPill key={index} iconKey={label.icon} label={label.translated_name} />
+                              <HighlightsPill 
+                                key={index} 
+                                iconKey={label.icon} 
+                                label={label.translated_name}
+                              />
                             ))}
                           </div>
                           <div className="my-3">
@@ -528,14 +553,10 @@ import * as Falcons from "react-icons/fa";
                           {everyRoom.offers.map((offer, index) => (
                             <div key={index} className="inside-table">
                               <div className="it-guest-co table-content-row">
-                                  {offer?.nr_adults ? <div>{offer?.nr_adults} Adult</div> : <div>n/a</div>} 
-                                  {offer?.nr_children > 0  
-                                    ? <div>
-                                        <div>+</div>
-                                        <div>{offer?.nr_children} Children</div> 
-                                      </div>
-                                    : <div></div>
-                                  }
+                                  <AdultorChildIcon 
+                                    amount_adults={offer?.nr_adults}
+                                    amount_child={offer?.nr_children}
+                                  />
                               </div>
                               <div className="it-perks-co table-content-row">
                                 <div>
