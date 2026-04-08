@@ -9,7 +9,7 @@ import getDescriptionAndInfo from "../content/api/GetDescriptionAndInfo";
 import SelectMenu from "../component/SelectMenu/SelectMenu";
 import "./ViewHotel.css";
 import * as Falcons from "react-icons/fa";
-import { FaPerson } from "react-icons/fa6";
+import { FaChair, FaCheck, FaMoneyBill1Wave, FaPerson } from "react-icons/fa6";
 import { FaChild } from "react-icons/fa";
 
 
@@ -115,19 +115,31 @@ import { FaChild } from "react-icons/fa";
   };
 
   function AdultorChildIcon({ amount_adults, amount_child }) {
+    const AdultIcon = FaPerson;
+    const ChildIcon = FaChild;
+
+    const AdultLength = Array.from({ length: amount_adults });
+    const ChildLength = Array.from({ length: amount_child });
+    
     return (
-      <div>
+      <div className="d-flex flex-wrap">
         {amount_adults > 0 
           ? <div>
-              {amount_adults} <FaPerson />
-            </div> 
-          : <div>n/a</div>
-        }
-        {amount_child > 0
-          ? <div>
-              + {amount_child} <FaChild />
+              {AdultLength.map((_, index) => (
+                <AdultIcon key={index} />
+              ))}
             </div>
-          : <div></div>
+          : <div>n/a</div>
+        } 
+        {amount_child > 0 
+          && <div className="d-flex">
+              <div>+</div>
+              <div>
+                {ChildLength.map((_, index) => (
+                  <ChildIcon key={index} />
+                ))}
+              </div>
+            </div>
         }
       </div>
     )
@@ -143,6 +155,158 @@ import { FaChild } from "react-icons/fa";
             <p key={script.descriptiontype_id}>{script.description}</p>
         ))}
       </div>
+    )
+  }
+
+
+  function PerksListColumn({ offer, childAgeString }) {
+
+    const breakfastword = offer?.block_text.policies[2]?.content; 
+    // Enjoy a convenient breakfast at the property for EUR 37 per person, per night. 
+    // Enjoy a convenient lunch at the property for EUR 81 per person, per night. 
+    // Enjoy a convenient dinner at the property for EUR 135 per person, per night.
+    // Breakfast EUR 55
+    // console.log("breakfastword:", breakfastword);
+    function HaveChargeBreakfast(breakfastword) {
+        if (breakfastword === "Breakfast included") {
+          return breakfastword;
+        } else if (!breakfastword.includes(`Enjoy a convenient`)) {
+          return breakfastword;
+        }
+
+        const WordArray = breakfastword.split('. ');
+
+        const BreakfastString = WordArray[0];
+        const LunchString = WordArray[1];
+        const DinnerString = WordArray[2];
+
+        function MealReformation(StringText) {
+          const CurrencyNPrice = StringText.split(' for ')[1].split(' per person')[0].split(' ');
+          const Currency = CurrencyNPrice[0];
+          const Price = CurrencyNPrice[1];
+
+          const Meals = StringText.split(' ').find(element => 
+            element === 'breakfast' || element === 'lunch' || element === 'dinner'
+          );
+
+          return (
+            `${Meals} ${Currency} ${Price}`
+          )
+        }
+
+        const BreakfastPrice = MealReformation(BreakfastString);
+        const LunchPrice = MealReformation(LunchString);
+        const DinnerPrice = MealReformation(DinnerString);
+
+        const MealsObject = {
+          BreakfastPrice: BreakfastPrice,
+          LunchPrice: LunchPrice,
+          DinnerPrice: DinnerPrice
+        }
+
+        return MealsObject;
+    }
+
+    const MealsData = HaveChargeBreakfast(breakfastword);
+    const BreakfastIcon = Falcons.FaCoffee;
+
+    const originalcancelationword = offer?.policy_display_details?.
+    cancellation?.title_details?.translation;    
+    function CheckOrSplitForBoldText(originalcancelationword) {
+      if (!originalcancelationword) { 
+        return;
+      } else if (originalcancelationword === "Non-refundable") {
+        return originalcancelationword;
+      } else if (originalcancelationword.includes('<b>Free cancellation</b>')) {
+        return originalcancelationword.split(/<\/?b>/);
+      } else if (originalcancelationword.includes('Costs first night to cancel')) {
+        return originalcancelationword;
+      } else {
+        return originalcancelationword;
+      }
+    };
+
+    const splitCanceltext = CheckOrSplitForBoldText(originalcancelationword);
+    const CancelationValidIcon = 
+      originalcancelationword === 'Non-refundable'
+      ? Falcons.FaTimes 
+      : originalcancelationword === 'Costs first night to cancel'
+      ? FaMoneyBill1Wave
+      : Falcons.FaCheck
+    ;
+    
+    const ChildIcon = FaChild;
+    function ChildAgeFreePolicy(childAgeString, offer) {
+      if (!childAgeString) return;
+      const checkChildAge = childAgeString.split(',');
+      const fromYoungtoOldAge = checkChildAge.sort((a, b) =>  a - b);
+      // console.log("fromYoungtoOldAge", fromYoungtoOldAge);
+
+      const offerMaxAgeForFree = offer.max_children_free_age;
+      const offerChildFreeSlot = offer.nr_children;
+
+      if ((fromYoungtoOldAge[0] <= offerMaxAgeForFree) && (offerChildFreeSlot === 1)) {
+        return `Free Charge for ${offerChildFreeSlot} of your children 
+        (${fromYoungtoOldAge[0]} years old)` 
+      } else if ((fromYoungtoOldAge.some(childElement => childElement <= offerMaxAgeForFree)) && 
+        (offerChildFreeSlot === 2)
+      ) {
+        return `Free Charge for ${offerChildFreeSlot} for your children 
+        (${fromYoungtoOldAge[0]} and ${fromYoungtoOldAge[1]} years old)`
+      } else if (offerChildFreeSlot) {
+        return `Free stay for ${offerChildFreeSlot} of your children`
+      }
+    };
+    const childAgeFreeText = ChildAgeFreePolicy(childAgeString, offer);
+    
+    const ExtraPerks = offer?.bundle_extras?.highlighted_text ?? '';
+    const TruePerks = Falcons.FaCheck;
+
+    return (
+      <>
+        <div id='breakfast'>
+          {MealsData === "Breakfast included" 
+            ? <span style={{ color: 'green' }}>
+                <BreakfastIcon /> {MealsData}
+              </span> 
+            : !MealsData.includes(`Enjoy a convenient`)
+            ? <span>
+                <BreakfastIcon /> {MealsData} (Per Person Per Night)
+              </span> 
+            : <span>
+                <BreakfastIcon /> {MealsData.BreakfastPrice} (Per Person Per Night)
+              </span> 
+            }
+        </div>
+        <div id='Cancelation Policies' >
+          {(splitCanceltext === "Non-refundable")
+            ? <div>
+                <CancelationValidIcon/>{' '}{splitCanceltext}
+              </div>
+            : ((splitCanceltext) && (originalcancelationword.includes('<b>Free cancellation</b>')))
+            ? <span style={{ color: 'green' }}>
+                <CancelationValidIcon/>{' '}<b>{splitCanceltext[1]}</b>{splitCanceltext[2]}
+              </span>
+            : ((splitCanceltext) && (originalcancelationword === 'Costs first night to cancel')) 
+            ? <div>
+                <CancelationValidIcon/>{' '}{splitCanceltext}
+              </div>
+            : <div>
+                <CancelationValidIcon/>{' '}{splitCanceltext}
+              </div>
+          }
+        </div>
+        <div id="ChildAgeFreePolicy">
+          {childAgeFreeText 
+            ? <span style={{ color: 'green' }}>
+                <ChildIcon /> {childAgeFreeText} 
+              </span> 
+            : ''}
+        </div>
+        <div id="ExtraBundle">
+          <TruePerks /> {ExtraPerks}
+        </div>
+      </>
     )
   }
 
@@ -222,17 +386,10 @@ import { FaChild } from "react-icons/fa";
                   {baseObj.base_select_room.map((baseOff, index) => 
                     <div key={index} className="ep-offroomlist">
                       <div className="pax-co">
-                        {baseOff?.spec_room_data?.nr_adults 
-                          ? <div>{baseOff?.spec_room_data?.nr_adults} Adult</div>
-                          : <div>n/a</div>
-                        }
-                        {baseOff?.spec_room_data?.nr_children > 0 
-                          ? <div>
-                              <div>'+'</div>
-                              <div>{baseOff?.spec_room_data?.nr_children} Children</div> 
-                            </div>
-                          : <div></div>
-                        }
+                        <AdultorChildIcon
+                          amount_adults={baseOff.spec_room_data?.nr_adults}
+                          amount_child={baseOff.spec_room_data?.nr_children}
+                        />
                       </div>
                       <div className="room_amt-co">
                         {baseOff?.amount} X rooms
@@ -256,7 +413,7 @@ import { FaChild } from "react-icons/fa";
     )
   }
 
-  function HotelRoomType({ roomList }) {
+  function HotelRoomType({ roomList, childAgeString }) {
     const [ saveHouse, setSaveHouse ] = useState([]);
     const redirect = useNavigate();
 
@@ -559,12 +716,10 @@ import { FaChild } from "react-icons/fa";
                                   />
                               </div>
                               <div className="it-perks-co table-content-row">
-                                <div>
-                                  {offer?.block_text.policies[2]?.content}
-                                </div>
-                                <div>
-                                  <p>{offer?.policy_display_details?.cancellation?.title_details?.translation}</p>
-                                </div>
+                                <PerksListColumn 
+                                  offer={offer} 
+                                  childAgeString={childAgeString} 
+                                />
                               </div>
                               <div className="it-price-co table-content-row">
                                 <p>Total Price</p>
@@ -704,7 +859,7 @@ export default function ViewHotel() {
         <DescriptionDetails hotelDescriptionData={hotelDescriptionData} />
         <Row>
           <h3>Avalibility</h3>
-          <HotelRoomType roomList={roomList} />
+          <HotelRoomType roomList={roomList} childAgeString={childAgeString}/>
         </Row>
         <HouseRules />
       </Container>
