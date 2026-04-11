@@ -10,6 +10,7 @@ import searchHotels from "../../content/api/SearchHotel";
 export default function SelectMenu() {
   const search = useContext(BookedList).search;
   const setSearch = useContext(BookedList).setSearch;
+  const currency = useContext(BookedList).currency;
   const initialDate = useContext(BookedList).initialDate;
   const setInitialDate = useContext(BookedList).setInitialDate;
   const dueDate = useContext(BookedList).dueDate;
@@ -45,7 +46,8 @@ export default function SelectMenu() {
       childAgeString, 
       initialDate, 
       dueDate, 
-      roomAmount, 
+      roomAmount,
+      currency 
     )
     console.log({ selectMenu_seahot: seahot })
     setSearchFetchData(seahot);

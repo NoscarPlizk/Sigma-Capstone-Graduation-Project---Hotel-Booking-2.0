@@ -4,7 +4,7 @@ const key = import.meta.env.VITE_RAPIDAPI_KEY;
 const host = import.meta.env.VITE_RAPIDAPI_HOST;
 
 export default async function searchHotels( 
-  hotdesdata, adultPax, childAge, initialDate, dueDate, roomAmount,
+  hotdesdata, adultPax, childAge, initialDate, dueDate, roomAmount, currency
 ) {
   console.log({ hotdesdata: hotdesdata });
   
@@ -27,7 +27,7 @@ export default async function searchHotels(
       units: 'metric',
       temperature_unit: 'c',
       languagecode: 'en-us',
-      currency_code: 'AED',
+      currency_code: currency,
       location: 'US'
     },
     headers: {

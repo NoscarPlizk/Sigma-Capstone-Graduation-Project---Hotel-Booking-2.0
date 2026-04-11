@@ -1,101 +1,30 @@
 import { Row, Col, Container, Button, Modal, Card } from "react-bootstrap";
-import { useNavigate, useLocation, redirect } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import { BookedList } from '../content/data transfer/bookedListContent';
-import getHotelDetails from '../content/api/GetHotelDetails';
-import getHotelPhoto from '../content/api/GetHotelPhoto';
-import getRoomList from "../content/api/GetRoomList";
-import getDescriptionAndInfo from "../content/api/GetDescriptionAndInfo";
-import SelectMenu from "../component/SelectMenu/SelectMenu";
+
 import "./ViewHotel.css";
+import { BookedList } from '../../content/data transfer/bookedListContent';
+import getHotelDetails from '../../content/api/GetHotelDetails';
+import getHotelPhoto from '../../content/api/GetHotelPhoto';
+import getRoomList from "../../content/api/GetRoomList";
+import getDescriptionAndInfo from "../../content/api/GetDescriptionAndInfo";
+
 import * as Falcons from "react-icons/fa";
 import { FaChair, FaCheck, FaMoneyBill1Wave, FaPerson } from "react-icons/fa6";
 import { FaChild } from "react-icons/fa";
 
+import AvaliableFacilitiesLabel from './component/AvaliableFacilitiesLabel.jsx'
+import ConvertToFarKey from './component/Sub-Function/ConvertToFarKey.js';
+import SelectMenu from '../../component/SelectMenu/SelectMenu.jsx';
+import DescriptionDetails from './component/DescriptionDetails.jsx';
+import HotelGallery from './component/HotelGallery.jsx';
 
-
-  function HotelGallery({ hotelPhotoData }) {
-    
-    const firstIMG = hotelPhotoData?.data[0]?.url;
-    const secondIMG = hotelPhotoData?.data[1]?.url;
-    const thirdIMG = hotelPhotoData?.data[2]?.url;
-
-    const maxthumshow = 8;
-    const thumbIMG = hotelPhotoData?.data?.slice(3, 3 + maxthumshow) ?? [];
-
-    return (
-      <>
-        <div className="hg">
-          <img 
-            width="600" height="450" 
-            className="hg-title hg-main"
-            src={firstIMG ?? []} 
-          />
-          <img 
-            width="300" height="225"
-            className="hg-title hg-rt"
-            src={secondIMG ?? []}
-          />
-          <img 
-            width="300" height="225"
-            className="hg-title hg-rb"
-            src={thirdIMG ?? []}
-          />
-          <div className="hg-thumbs" >
-            {thumbIMG.map((everyPhoto, index) => {
-              return (
-                <img 
-                  className="hg-thumb"
-                  key={index}
-                  src={everyPhoto.url}
-                />
-              )
-            })
-            }
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  function convertToFarKey(iconKey) {
-    const newWord = 
-      "Fa" + iconKey
-      .toLowerCase()
-      .split(/[_\-\s]+/)
-      .map(string => string ? string[0].toUpperCase() + string.slice(1) : "" )
-      .join("");
-    return newWord;
-  }
-
-  function LabelTag({ facilities }) {
-    return (
-      <div>
-        <h4>Avaliable Facilities</h4>
-        <div className="lg-container">
-          {facilities.map((label, index) => {
-          const farKey = convertToFarKey(label.icon); 
-          const Icon = Falcons[farKey] ?? 'div';
-          return (
-            <div key={index} className="lg-child">
-              <div>
-                <Icon aria-hidden="true" />
-              </div>
-              <div>
-                <p>{label.name}</p>
-              </div>
-            </div>
-          )})}
-        </div>
-      </div>
-    );
-  }
 
   function HighlightsPill({ iconKey, label }) {
     // console.log({iconKey: iconKey});
     // console.log({label: label});
 
-    const farKey = convertToFarKey(iconKey); 
+    const farKey = ConvertToFarKey(iconKey); 
     // console.log({farKey: farKey});
     const Icon = Falcons[farKey];
     // console.log({Icon: Icon});
@@ -145,34 +74,25 @@ import { FaChild } from "react-icons/fa";
     )
   }
 
-  function DescriptionDetails({ hotelDescriptionData }) {
-    return (
-      <div>
-        <h5>Descriptions</h5>
-        {hotelDescriptionData?.data
-          .filter(element => element.descriptiontype_id === 6)
-          .map((script) => (
-            <p key={script.descriptiontype_id}>{script.description}</p>
-        ))}
-      </div>
-    )
-  }
-
-
   function PerksListColumn({ offer, childAgeString }) {
 
     const breakfastword = offer?.block_text.policies[2]?.content; 
     // Enjoy a convenient breakfast at the property for EUR 37 per person, per night. 
     // Enjoy a convenient lunch at the property for EUR 81 per person, per night. 
     // Enjoy a convenient dinner at the property for EUR 135 per person, per night.
-    // Breakfast EUR 55
+    // Breakfast EUR 999 // length: 17-20
+    // Breakfast included Lunch EUR 46 Dinner EUR 62
     // console.log("breakfastword:", breakfastword);
     function HaveChargeBreakfast(breakfastword) {
         if (breakfastword === "Breakfast included") {
           return breakfastword;
+        } else if (breakfastword.includes(`Breakfast included`)) {
+          const SplitedString = breakfastword.split(/\s+/);
+          // console.log("SplitedString:", SplitedString);
+          return `${SplitedString[0]} ${SplitedString[1]} (Except Other Meals)`; 
         } else if (!breakfastword.includes(`Enjoy a convenient`)) {
           return breakfastword;
-        }
+        } 
 
         const WordArray = breakfastword.split('. ');
 
@@ -303,9 +223,11 @@ import { FaChild } from "react-icons/fa";
               </span> 
             : ''}
         </div>
-        <div id="ExtraBundle">
-          <TruePerks /> {ExtraPerks}
-        </div>
+        {ExtraPerks 
+          && <div id="ExtraBundle">
+              <TruePerks /> {ExtraPerks}
+             </div>
+        }
       </>
     )
   }
@@ -344,13 +266,12 @@ import { FaChild } from "react-icons/fa";
         cal_totalprice: cal_totalprice
       }
 
-      console.log("nested_object:", nested_object);
-
       return nested_object;
     }
 
     const SumedAmountnPrc = SumAllSelRoomAmtNPrc();
-    
+    console.log("SumedAmountnPrc:", SumedAmountnPrc);
+
     return (
       <>
         <div>
@@ -724,10 +645,14 @@ import { FaChild } from "react-icons/fa";
                               <div className="it-price-co table-content-row">
                                 <p>Total Price</p>
                                 <h5 className="all-child">
+                                  {offer?.product_price_breakdown?.all_inclusive_amount?.currency ?? ''}
+                                  {' '}
                                   {offer?.product_price_breakdown?.all_inclusive_amount?.value.toFixed(2)}
                                 </h5>
                                 <p>Per Night Price</p>
                                 <h5 className="all-child">
+                                  {offer?.product_price_breakdown?.gross_amount_per_night?.currency ?? ''}
+                                  {' '}
                                   {offer?.product_price_breakdown?.gross_amount_per_night?.value.toFixed(2)}
                                 </h5>
                               </div>
@@ -782,6 +707,7 @@ export default function ViewHotel() {
   const [ showModal, setShowModal ] = useState(false);
   const APIurl = useContext(BookedList).APIurl;
   // const token = useContext(BookedList).token;
+  const currency = useContext(BookedList).currency;
   const start_date = useContext(BookedList).initialDate;
   const end_date = useContext(BookedList).dueDate;
   const adult_pax = useContext(BookedList).adultPax;
@@ -811,8 +737,8 @@ export default function ViewHotel() {
       const [ photos, details, roomlists, description ] = await Promise.all(
         [
           getHotelPhoto(hotelsData),
-          getHotelDetails(hotelsData, start_date, end_date, adult_pax, childAgeString, roomAmount),
-          getRoomList(hotelsData, start_date, end_date, adult_pax, childAgeString, roomAmount),
+          getHotelDetails(hotelsData, start_date, end_date, adult_pax, childAgeString, roomAmount, currency),
+          getRoomList(hotelsData, start_date, end_date, adult_pax, childAgeString, roomAmount, currency),
           getDescriptionAndInfo(hotelId)
         ]
       );
@@ -855,7 +781,7 @@ export default function ViewHotel() {
           <p>{hotelDetailsData?.data?.address ?? ''}</p>
         </div>
         <HotelGallery hotelPhotoData={hotelPhotoData} />
-        <LabelTag facilities={facilities} />
+        <AvaliableFacilitiesLabel facilities={facilities} />
         <DescriptionDetails hotelDescriptionData={hotelDescriptionData} />
         <Row>
           <h3>Avalibility</h3>

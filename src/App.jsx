@@ -5,15 +5,17 @@ import useLocalStorage from "use-local-storage";
 import AuthPages from "./pages/AuthPages";
 import Layout from "./layout/Layout";
 import SearchToHotelList from "./pages/SearchToHotelList";
-import ViewHotel from "./pages/ViewHotel";
+import ViewHotel from "./pages/ViewHotel/ViewHotel";
 import UserPage from "./pages/UserPage";
 import Payment from "./pages/Payment";
 import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
 import PurchasePortal from "./pages/PurchasePortal";
+import GetCurrency from "./content/api/GetCurrency";
 
 export default function App() {
   const [ token, setToken ] = useLocalStorage('token', null);
+  const [ currency, setCurrency ] = useLocalStorage('currency', );
   const [ search, setSearch ] = useLocalStorage('search','');
   const [ initialDate, setInitialDate ] = useLocalStorage('initialDate', '');
   const [ dueDate, setDueDate ] = useLocalStorage('dueDate','');
@@ -24,11 +26,12 @@ export default function App() {
   const [ roomAmount, setRoomAmount ] = useLocalStorage('roomAmount', 1);  
   const [ searchFetchData, setSearchFetchData ] = useLocalStorage('searchFetchData', {}); // prepare bulid a railway to map
   console.log("token:", token);
-  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAgeString, roomAmount });
+  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAgeString, roomAmount, currency });
 
   return (
     <BookedList.Provider value={{ 
-      token, setToken, 
+      token, setToken,
+      currency, setCurrency,
       search, setSearch, 
       initialDate, setInitialDate,
       dueDate, setDueDate,
@@ -48,6 +51,7 @@ export default function App() {
           setChildPax={setChildPax}
           setChildAge={setChildAge}
           setRoomAmount={setRoomAmount}
+          setCurrency={setCurrency}
         />
       </BrowserRouter>
     </BookedList.Provider>
@@ -56,7 +60,7 @@ export default function App() {
 
 function AppInner({
   setSearch, setInitialDate, setDueDate, setAdultPax, 
-  setChildPax, setChildAge, setRoomAmount
+  setChildPax, setChildAge, setRoomAmount, setCurrency
 }) {
   const location = useLocation();
 
@@ -68,7 +72,8 @@ function AppInner({
       setAdultPax(1);
       setChildPax(0);
       setChildAge([]);
-      setRoomAmount(1)
+      setRoomAmount(1);
+      setCurrency('MYR');
     }
   }, [location.pathname]);
 

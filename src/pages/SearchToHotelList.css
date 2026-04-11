@@ -1,0 +1,60 @@
+.HotelMenuBoxBody {
+  display: grid;
+  border: 1px solid;
+  grid-template-columns: 3fr 6fr 2fr;
+  grid-template-rows: 200px;
+  grid-template-areas: 
+    "img title rank"
+    "img description button";
+  width: 1000px;
+  gap: 15px;
+  padding: 15px;
+  margin-bottom: 30px;
+  border-radius: 10px;
+}
+
+.HMBB-img { 
+  grid-area: img; 
+  width: 270px;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.HMBB-title { grid-area: title; }
+
+.HMBB-rank { 
+  grid-area: rank; 
+  justify-items: end;
+}
+
+.HMBB-rank-box-reviewScore {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid;
+  border-radius: 10px;
+  width: 50px;
+  height: 50px;
+  background-color: blue;
+  font-weight: bold;
+  color: white;
+
+}
+
+.HMBB-description { grid-area: description; }
+
+.HMBB-button { 
+  grid-area: button; 
+  justify-items: end;
+}
+
+.HMBB-button-text {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.HMBB-button-itself {
+  width: 170px;
+  height: 50px;
+}

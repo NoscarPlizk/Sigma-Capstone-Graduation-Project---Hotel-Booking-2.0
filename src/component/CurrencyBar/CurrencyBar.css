@@ -1,0 +1,25 @@
+.currencywindows {
+  max-width: 1200px;
+  /* width: 700px; */
+}
+
+.currencyMainBox {
+  display: flex;
+  justify-content: space-between;
+}
+
+.buttonofcurrency {
+  border-radius: 10px;
+}
+
+.boxofcurrency {
+  display: grid;
+  justify-items: start;
+  padding: 10px;
+  width: 260px;
+}
+
+.boxoftitle{
+  display: flex;
+  justify-content: space-between;
+}

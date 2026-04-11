@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import SelectMenu from "../component/SelectMenu/SelectMenu";
 import { BookedList } from "../content/data transfer/bookedListContent";
-// import Posts from "../component/SearchToHotelList/RightSectors/Posts";
+import "./SearchToHotelList.css";
 
 function LeftBar() {
   return (
@@ -25,33 +25,57 @@ function LeftBar() {
 
 
 function Posts({ hotels }) {
+  const hotelProperty = hotels?.property ?? '';
   const redirect = useNavigate();
   
+
   const redirected = () => {
     redirect("/viewhotel", { state: { hotels }}); 
   };
 
   return (
-    <Card style={{ width: 1000 }} className="py-1 mb-3">
-      <Card.Body>
-        <Row> 
-          <Col md={4}> 
-            <img src={hotels?.property?.photoUrls ?? []} width="300" height="250" />
-          </Col>
-          <Col md={6}>
-            <h3>{hotels?.property?.name ?? ''}</h3>
-            <p>{hotels?.property?.wishlistName ?? ''}</p>
-          </Col>
-          <Col md={2} className="d-flex flex-column">
-            <h3><strong>RM {hotels?.property?.strikethroughPrice?.value}</strong></h3>
-            <p>per room per night</p>
-            <Button className="p-3 mt-auto" onClick={redirected}>
-              See avaliability
-            </Button>
-          </Col>
-        </Row> 
-      </Card.Body>
-    </Card>
+    <div className="HotelMenuBoxBody">
+      <div> 
+        <img 
+          className="HMBB-img"
+          src={hotelProperty?.photoUrls ?? []} 
+        />
+      </div>
+      <div className="HMBB-title">
+        <h3>{hotelProperty?.name ?? ''}</h3>
+        <p>{hotelProperty?.wishlistName ?? ''}</p>
+      </div>
+      <div className="HMBB-rank">
+        <div className="mb-2">
+          {hotelProperty?.accuratePropertyClass 
+            &&  Array.from({ length: hotels?.property?.accuratePropertyClass },
+                (_, index) => (
+                  <span key={index}>⭐</span>
+                ))
+          }
+        </div>
+        <div className="d-flex justify-content-center align-items-center">
+          <h5 className="me-2">{hotelProperty?.reviewScoreWord}</h5>
+          <div className="HMBB-rank-box-reviewScore">
+            {hotelProperty?.reviewScore}
+          </div>
+        </div>
+      </div>
+      <div className="HMBB-description">
+
+      </div>
+      <div className="HMBB-button">
+        <div className="HMBB-button-text">
+          {hotelProperty?.priceBreakdown?.grossPrice?.currency}
+          {' '}{hotelProperty?.priceBreakdown?.grossPrice?.value.toFixed(2)}
+        </div>
+        <div>
+          <Button className="HMBB-button-itself" onClick={redirected}>
+            See avaliability
+          </Button>
+        </div>
+      </div>
+    </div> 
   );
 }
 

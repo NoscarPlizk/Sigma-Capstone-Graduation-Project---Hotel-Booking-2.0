@@ -4,7 +4,7 @@ const key = import.meta.env.VITE_RAPIDAPI_KEY;
 const host = import.meta.env.VITE_RAPIDAPI_HOST;
 
 export default async function getHotelDetails(
-  hotelsData, start_date, end_date, adult_pax, childAge, roomAmount
+  hotelsData, start_date, end_date, adult_pax, childAge, roomAmount, currency
 ) {
   const options = {
     method: 'GET',
@@ -19,7 +19,7 @@ export default async function getHotelDetails(
       units: 'metric',
       temperature_unit: 'c',
       languagecode: 'en-us',
-      currency_code: 'EUR'
+      currency_code: currency
     },
     headers: {
       'x-rapidapi-key': key,
