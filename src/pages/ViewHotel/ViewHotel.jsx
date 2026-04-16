@@ -10,14 +10,20 @@ import getRoomList from "../../content/api/GetRoomList";
 import getDescriptionAndInfo from "../../content/api/GetDescriptionAndInfo";
 
 import * as Falcons from "react-icons/fa";
-import { FaChair, FaCheck, FaMoneyBill1Wave, FaPerson } from "react-icons/fa6";
+import { FaChair, FaCheck, FaHeart, FaMoneyBill1Wave, FaPerson, FaPlane, FaShare, FaWifi } from "react-icons/fa6";
 import { FaChild } from "react-icons/fa";
 
 import AvaliableFacilitiesLabel from './component/AvaliableFacilitiesLabel.jsx'
-import ConvertToFarKey from './component/Sub-Function/ConvertToFarKey.js';
 import SelectMenu from '../../component/SelectMenu/SelectMenu.jsx';
 import DescriptionDetails from './component/DescriptionDetails.jsx';
 import HotelGallery from './component/HotelGallery.jsx';
+import PerksListColumn from "./component/PerksListRelatedFunction/PerksListColumn.jsx";
+
+import ConvertToFarKey from './component/Sub-Function/ConvertToFarKey.js';
+import HaveChargeBreakfast from "./component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast.jsx";
+import SplitCancelationBoldText from "./component/PerksListRelatedFunction/SubComponent/SplitCancelationBoldText.jsx";
+import ChildAgeFreePolicy from "./component/PerksListRelatedFunction/SubComponent/ChildAgeFreePolicy.jsx";
+import SplitNoPaymentBoldText from "./component/PerksListRelatedFunction/SubComponent/SplitNoPaymentBoldText.jsx";
 
 
   function HighlightsPill({ iconKey, label }) {
@@ -74,165 +80,155 @@ import HotelGallery from './component/HotelGallery.jsx';
     )
   }
 
-  function PerksListColumn({ offer, childAgeString }) {
+  // function PerksListColumn({ offer, childAgeString }) {
 
-    const breakfastword = offer?.block_text.policies[2]?.content; 
-    // Enjoy a convenient breakfast at the property for EUR 37 per person, per night. 
-    // Enjoy a convenient lunch at the property for EUR 81 per person, per night. 
-    // Enjoy a convenient dinner at the property for EUR 135 per person, per night.
-    // Breakfast EUR 999 // length: 17-20
-    // Breakfast included Lunch EUR 46 Dinner EUR 62
-    // console.log("breakfastword:", breakfastword);
-    function HaveChargeBreakfast(breakfastword) {
-        if (breakfastword === "Breakfast included") {
-          return breakfastword;
-        } else if (breakfastword.includes(`Breakfast included`)) {
-          const SplitedString = breakfastword.split(/\s+/);
-          // console.log("SplitedString:", SplitedString);
-          return `${SplitedString[0]} ${SplitedString[1]} (Except Other Meals)`; 
-        } else if (!breakfastword.includes(`Enjoy a convenient`)) {
-          return breakfastword;
-        } 
+  //   // success sample
 
-        const WordArray = breakfastword.split('. ');
+  //   //  Breakfast included
+  //   //  Costs first night to cancel
+  //   //  Free Charge for 2 for your children (0 and 1 years old)
+  //   //  No prepayment needed – pay at the property
+  //   //  250.00 SGD food/drink credit
+  //   //  One-way airport shuttle
+  //   //  High-speed internet
 
-        const BreakfastString = WordArray[0];
-        const LunchString = WordArray[1];
-        const DinnerString = WordArray[2];
 
-        function MealReformation(StringText) {
-          const CurrencyNPrice = StringText.split(' for ')[1].split(' per person')[0].split(' ');
-          const Currency = CurrencyNPrice[0];
-          const Price = CurrencyNPrice[1];
-
-          const Meals = StringText.split(' ').find(element => 
-            element === 'breakfast' || element === 'lunch' || element === 'dinner'
-          );
-
-          return (
-            `${Meals} ${Currency} ${Price}`
-          )
-        }
-
-        const BreakfastPrice = MealReformation(BreakfastString);
-        const LunchPrice = MealReformation(LunchString);
-        const DinnerPrice = MealReformation(DinnerString);
-
-        const MealsObject = {
-          BreakfastPrice: BreakfastPrice,
-          LunchPrice: LunchPrice,
-          DinnerPrice: DinnerPrice
-        }
-
-        return MealsObject;
-    }
-
-    const MealsData = HaveChargeBreakfast(breakfastword);
-    const BreakfastIcon = Falcons.FaCoffee;
-
-    const originalcancelationword = offer?.policy_display_details?.
-    cancellation?.title_details?.translation;    
-    function CheckOrSplitForBoldText(originalcancelationword) {
-      if (!originalcancelationword) { 
-        return;
-      } else if (originalcancelationword === "Non-refundable") {
-        return originalcancelationword;
-      } else if (originalcancelationword.includes('<b>Free cancellation</b>')) {
-        return originalcancelationword.split(/<\/?b>/);
-      } else if (originalcancelationword.includes('Costs first night to cancel')) {
-        return originalcancelationword;
-      } else {
-        return originalcancelationword;
-      }
-    };
-
-    const splitCanceltext = CheckOrSplitForBoldText(originalcancelationword);
-    const CancelationValidIcon = 
-      originalcancelationword === 'Non-refundable'
-      ? Falcons.FaTimes 
-      : originalcancelationword === 'Costs first night to cancel'
-      ? FaMoneyBill1Wave
-      : Falcons.FaCheck
-    ;
+  //   const isbreakfastincluded = offer?.breakfast_included > 0 ? true : false;
+  //   const breakfastword = offer?.mealplan ?? '';
+  //   console.log("breakfastword:", breakfastword); 
     
-    const ChildIcon = FaChild;
-    function ChildAgeFreePolicy(childAgeString, offer) {
-      if (!childAgeString) return;
-      const checkChildAge = childAgeString.split(',');
-      const fromYoungtoOldAge = checkChildAge.sort((a, b) =>  a - b);
-      // console.log("fromYoungtoOldAge", fromYoungtoOldAge);
-
-      const offerMaxAgeForFree = offer.max_children_free_age;
-      const offerChildFreeSlot = offer.nr_children;
-
-      if ((fromYoungtoOldAge[0] <= offerMaxAgeForFree) && (offerChildFreeSlot === 1)) {
-        return `Free Charge for ${offerChildFreeSlot} of your children 
-        (${fromYoungtoOldAge[0]} years old)` 
-      } else if ((fromYoungtoOldAge.some(childElement => childElement <= offerMaxAgeForFree)) && 
-        (offerChildFreeSlot === 2)
-      ) {
-        return `Free Charge for ${offerChildFreeSlot} for your children 
-        (${fromYoungtoOldAge[0]} and ${fromYoungtoOldAge[1]} years old)`
-      } else if (offerChildFreeSlot) {
-        return `Free stay for ${offerChildFreeSlot} of your children`
-      }
-    };
-    const childAgeFreeText = ChildAgeFreePolicy(childAgeString, offer);
+  //   // Breakfast included
     
-    const ExtraPerks = offer?.bundle_extras?.highlighted_text ?? '';
-    const TruePerks = Falcons.FaCheck;
+  //   // Enjoy a convenient breakfast at the property for MYR 100 per person, per night.
 
-    return (
-      <>
-        <div id='breakfast'>
-          {MealsData === "Breakfast included" 
-            ? <span style={{ color: 'green' }}>
-                <BreakfastIcon /> {MealsData}
-              </span> 
-            : !MealsData.includes(`Enjoy a convenient`)
-            ? <span>
-                <BreakfastIcon /> {MealsData} (Per Person Per Night)
-              </span> 
-            : <span>
-                <BreakfastIcon /> {MealsData.BreakfastPrice} (Per Person Per Night)
-              </span> 
-            }
-        </div>
-        <div id='Cancelation Policies' >
-          {(splitCanceltext === "Non-refundable")
-            ? <div>
-                <CancelationValidIcon/>{' '}{splitCanceltext}
-              </div>
-            : ((splitCanceltext) && (originalcancelationword.includes('<b>Free cancellation</b>')))
-            ? <span style={{ color: 'green' }}>
-                <CancelationValidIcon/>{' '}<b>{splitCanceltext[1]}</b>{splitCanceltext[2]}
-              </span>
-            : ((splitCanceltext) && (originalcancelationword === 'Costs first night to cancel')) 
-            ? <div>
-                <CancelationValidIcon/>{' '}{splitCanceltext}
-              </div>
-            : <div>
-                <CancelationValidIcon/>{' '}{splitCanceltext}
-              </div>
-          }
-        </div>
-        <div id="ChildAgeFreePolicy">
-          {childAgeFreeText 
-            ? <span style={{ color: 'green' }}>
-                <ChildIcon /> {childAgeFreeText} 
-              </span> 
-            : ''}
-        </div>
-        {ExtraPerks 
-          && <div id="ExtraBundle">
-              <TruePerks /> {ExtraPerks}
-             </div>
-        }
-      </>
-    )
-  }
+  //   // Enjoy a convenient breakfast at the property for EUR 37 per person, per night. 
+  //   // Enjoy a convenient lunch at the property for EUR 81 per person, per night. 
+  //   // Enjoy a convenient dinner at the property for EUR 135 per person, per night.
 
-  function PurchaseEndPoint({ saveHouse, redirectPurchase }) {
+  //   // Breakfast EUR 999 // length: 17-20
+
+  //   // Breakfast EUR 999 Lunch EUR 46 Dinner EUR 62 // length: 9
+  //   // Breakfast included Lunch EUR 46 Dinner EUR 62 // length: 8
+
+
+  //   // console.log("breakfastword:", breakfastword);
+
+  //   const MealsData = breakfastword ? HaveChargeBreakfast(breakfastword, isbreakfastincluded) : null;
+  //   console.log("MealsData:", MealsData);
+  //   const BreakfastIcon = Falcons.FaCoffee;
+  //   const CheckisMealswithPrice = (MealsData) => {
+  //     const string = MealsData.split(' ');
+  //     const mealstype = 'Breakfast';
+
+  //     if (
+  //       string.length === 3 
+  //       && string[0] === mealstype
+  //       && /^[A-Z]{3}$/.test(string[1])
+  //       && /^\d+$/.test(string[2])
+  //     ) {
+  //       console.log("CheckisMealswithPrice:", "true");
+  //       return true;
+  //     }
+  //   }
+
+
+  //   const originalcancelationword = offer?.policy_display_details?.
+  //   cancellation?.title_details?.translation;    
+  //   const splitCanceltext = SplitCancelationBoldText(originalcancelationword);
+  //   const CancelationValidIcon = 
+  //     originalcancelationword === 'Non-refundable'
+  //     ? Falcons.FaTimes 
+  //     : originalcancelationword === 'Costs first night to cancel'
+  //     ? FaMoneyBill1Wave
+  //     : Falcons.FaCheck;
+
+
+  //   const childAgeFreeText = ChildAgeFreePolicy(childAgeString, offer);
+  //   const ChildIcon = FaChild;
+    
+
+  //   const NoPaymentPolicy = offer?.policy_display_details?.prepayment?.title_details?.translation ?? '';
+  //   const splitNoPaymentText = SplitNoPaymentBoldText(NoPaymentPolicy);
+  //   const ValidIcon = Falcons.FaTimes;
+  //   console.log("splitNoPaymentText:", splitNoPaymentText);
+
+    
+  //   const ExtraPerks = offer?.bundle_extras?.benefits ?? [];
+
+
+
+
+  //   return (
+  //     <div className="d-flex flex-column gap-1">
+  //       <div id='breakfast'>
+  //         {
+  //           MealsData === "Breakfast included" 
+  //           ? <span style={{ color: 'green' }}>
+  //               <BreakfastIcon /> {MealsData}
+  //             </span> 
+  //           // : !MealsData.includes(`Enjoy a convenient`)
+  //           : CheckisMealswithPrice(MealsData)
+  //           ? <span>
+  //               <BreakfastIcon /> {MealsData} (Per Person Per Night)
+  //             </span> 
+  //           : <span>
+  //               <BreakfastIcon /> {MealsData.BreakfastPrice} (Per Person Per Night 2)
+  //             </span> 
+  //           }
+  //       </div>
+  //       <div id='Cancelation Policies' >
+  //         {(splitCanceltext === "Non-refundable")
+  //           ? <div>
+  //               <CancelationValidIcon/>{' '}{splitCanceltext}
+  //             </div>
+  //           : ((splitCanceltext) && (originalcancelationword.includes('<b>Free cancellation</b>')))
+  //           ? <span style={{ color: 'green' }}>
+  //               <CancelationValidIcon/>{' '}<b>{splitCanceltext[1]}</b>{splitCanceltext[2]}
+  //             </span>
+  //           : ((splitCanceltext) && (originalcancelationword === 'Costs first night to cancel')) 
+  //           ? <div>
+  //               <CancelationValidIcon/>{' '}{splitCanceltext}
+  //             </div>
+  //           : <div>
+  //               <CancelationValidIcon/>{' '}{splitCanceltext}
+  //             </div>
+  //         }
+  //       </div>
+  //       <div id="ChildAgeFreePolicy">
+  //         {childAgeFreeText 
+  //           ? <span style={{ color: 'green' }}>
+  //               <ChildIcon /> {childAgeFreeText} 
+  //             </span> 
+  //           : ''}
+  //       </div>
+  //       <div id="No prepayment needed">
+  //         {splitNoPaymentText ? 
+  //           <span style={{ color: 'green' }}>
+  //             <div>
+  //               <ValidIcon /> <b>{splitNoPaymentText[1]}</b> {splitNoPaymentText[2]}
+  //             </div>
+  //           </span>
+  //         : ''}
+  //       </div>
+  //       {ExtraPerks && ExtraPerks.map((perks, index) =>
+  //         {const TruePerks = perks?.category === "airport"
+  //           ? FaPlane
+  //           : perks?.category === "internet"
+  //           ? FaWifi
+  //           : Falcons.FaCheck ;
+          
+  //           return (
+  //             <div key={index} id="ExtraBundle">
+  //               <TruePerks /> {perks?.title ?? ''}
+  //             </div>
+  //           )
+  //         }
+  //       )}
+  //     </div>
+  //   )
+  // }
+
+  function PurchaseEndPoint({ saveHouse, redirectPurchase, currency }) {
 
     console.log("EndPoint:", saveHouse);
     
@@ -275,21 +271,28 @@ import HotelGallery from './component/HotelGallery.jsx';
     return (
       <>
         <div>
-          <h5 id="amount_of_rooms">
-            <strong>
-            {SumedAmountnPrc.cal_allamount} rooms for 
-            </strong>
-          </h5>
-          <div>
-            <div id="currency">{}</div>
-            <div id="totalprice">{SumedAmountnPrc.cal_totalprice.toFixed(2)}</div>
-          </div>
-          <button 
-            className="finalpurchase_Button"
-            onClick={() => redirectPurchase()}
-          >
-            I'll reserve
-          </button>
+          {SumedAmountnPrc.cal_allamount 
+            ? <div>            
+                <h5 id="amount_of_rooms">
+                  <strong>
+                  {SumedAmountnPrc.cal_allamount} rooms for 
+                  </strong>
+                </h5>
+                <div className="ep-TotalPricePurchase">
+                  {currency}{' '}{SumedAmountnPrc.cal_totalprice.toFixed(2)}
+                </div>
+              <button 
+                className="finalpurchase_Button"
+                onClick={() => redirectPurchase()}
+              >
+                  I'll reserve
+                </button>
+              </div>
+            : <div>
+                <h5>Please select the rooms to book.</h5>
+              </div>
+          }
+
         </div>
         <div>
           {saveHouse.length > 0 
@@ -316,6 +319,9 @@ import HotelGallery from './component/HotelGallery.jsx';
                         {baseOff?.amount} X rooms
                       </div>  
                       <div className="price-co">
+                        {baseOff?.spec_room_data?.product_price_breakdown?.
+                            all_inclusive_amount?.currency ?? ''}
+                        {' '}
                         { baseOff.amount > 1 
                           ? baseOff?.spec_room_data?.product_price_breakdown?.
                             all_inclusive_amount?.value?.toFixed(2) * baseOff.amount
@@ -334,7 +340,7 @@ import HotelGallery from './component/HotelGallery.jsx';
     )
   }
 
-  function HotelRoomType({ roomList, childAgeString }) {
+  function HotelRoomType({ hotelDetailsData, hotelPhotoData, roomList, childAgeString, currency }) {
     const [ saveHouse, setSaveHouse ] = useState([]);
     const redirect = useNavigate();
 
@@ -345,7 +351,12 @@ import HotelGallery from './component/HotelGallery.jsx';
     const rooms_data = roomList?.data?.rooms;
 
     const redirectPurchase = () => {
-      redirect('/purchaseportal');
+      const BookedHotelNMainInfo = {
+        hotelDetailsData: hotelDetailsData.data,
+        hotelPhotoData: hotelPhotoData.data,
+        saveHouse: saveHouse
+      }
+      redirect('/purchaseportal', { state: BookedHotelNMainInfo });
     }
 
     console.log("rooms_in_SingleListRoomsBox:", rooms);
@@ -611,12 +622,12 @@ import HotelGallery from './component/HotelGallery.jsx';
                             ))}
                           </div>
                           <div className="my-3">
-                          {everyRoom?.room_data?.facilities?.map((label, index) => (
-                            <span key={index} className="facilities-pill">
-                              <Falcons.FaCheck />
-                              {label.name}
-                            </span>
-                          ))}
+                            {everyRoom?.room_data?.facilities?.map((label, index) => (
+                              <span key={index} className="facilities-pill">
+                                <Falcons.FaCheck />
+                                {label.name}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -643,18 +654,20 @@ import HotelGallery from './component/HotelGallery.jsx';
                                 />
                               </div>
                               <div className="it-price-co table-content-row">
-                                <p>Total Price</p>
-                                <h5 className="all-child">
-                                  {offer?.product_price_breakdown?.all_inclusive_amount?.currency ?? ''}
-                                  {' '}
-                                  {offer?.product_price_breakdown?.all_inclusive_amount?.value.toFixed(2)}
-                                </h5>
-                                <p>Per Night Price</p>
-                                <h5 className="all-child">
+                                <div>
+                                  <p>Total Price</p>
+                                  {offer?.product_price_breakdown?.all_inclusive_amount?.currency ?? ''}                
+                                  <h5>
+                                    {offer?.product_price_breakdown?.all_inclusive_amount?.value.toFixed(2)}
+                                  </h5>  
+                                </div>
+                                <div>
+                                  <p>Per Night Price</p>
                                   {offer?.product_price_breakdown?.gross_amount_per_night?.currency ?? ''}
-                                  {' '}
-                                  {offer?.product_price_breakdown?.gross_amount_per_night?.value.toFixed(2)}
-                                </h5>
+                                  <h5>
+                                    {offer?.product_price_breakdown?.gross_amount_per_night?.value.toFixed(2)}
+                                  </h5>
+                                </div>
                               </div>
                               <div className="it-rooms-co table-content-button">
                                 <select 
@@ -688,7 +701,8 @@ import HotelGallery from './component/HotelGallery.jsx';
           <div className="hotelnreserveboxsec ha-reservesec">
             <PurchaseEndPoint 
               saveHouse={saveHouse} 
-              redirectPurchase={redirectPurchase} 
+              redirectPurchase={redirectPurchase}
+              currency={currency}
             />
           </div>
         </div>
@@ -776,16 +790,44 @@ export default function ViewHotel() {
         <div className="SelectMenu-Resize">
           <SelectMenu />
         </div>
-        <div>
-          <h3>{hotelDetailsData?.data?.hotel_name ?? ''}</h3>
-          <p>{hotelDetailsData?.data?.address ?? ''}</p>
+        <div className="d-flex justify-content-between">
+          <div>
+            <div className="mt-2 mb-2">
+              {hotelDetailsData?.data?.rawData?.accuratePropertyClass
+                &&  Array.from({ length: hotelDetailsData?.data?.rawData?.accuratePropertyClass },
+                    (_, index) => (
+                      <span key={index}>⭐</span>
+                    ))
+              }
+            </div>
+            <h3>{hotelDetailsData?.data?.hotel_name ?? ''}</h3>
+            <p>{hotelDetailsData?.data?.address ?? ''}</p>
+          </div>
+          <div>
+            <div>
+              <FaHeart />
+              <FaShare />
+            </div>
+            <div className="d-flex justify-content-center align-items-center">
+              <h5 className="me-2">{hotelDetailsData?.data?.rawData?.reviewScoreWord}</h5>
+              <div className="">
+                {hotelDetailsData?.data?.rawData?.reviewScore}
+              </div>
+            </div>
+          </div>
         </div>
         <HotelGallery hotelPhotoData={hotelPhotoData} />
         <AvaliableFacilitiesLabel facilities={facilities} />
         <DescriptionDetails hotelDescriptionData={hotelDescriptionData} />
         <Row>
           <h3>Avalibility</h3>
-          <HotelRoomType roomList={roomList} childAgeString={childAgeString}/>
+          <HotelRoomType
+            hotelDetailsData={hotelDetailsData}
+            hotelPhotoData={hotelPhotoData}
+            roomList={roomList} 
+            childAgeString={childAgeString} 
+            currency={currency} 
+          />
         </Row>
         <HouseRules />
       </Container>

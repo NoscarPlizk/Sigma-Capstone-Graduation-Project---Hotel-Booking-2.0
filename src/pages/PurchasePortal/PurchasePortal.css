@@ -1,0 +1,63 @@
+.FormNInfomationFrame {
+  display: grid;
+  grid-template-columns: 6fr 5fr;
+  grid-template-rows: max-content max-content;
+  grid-template-areas: 
+    "PurchaseInfoForm MainHotelInfomation";
+}
+
+.LeftPurchaseInfoForm { grid-area: PurchaseInfoForm; }
+.RightMainHotelInfomation { grid-area: MainHotelInfomation; }
+
+.PurchaseInfoForm {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 15px;
+  gap: 10px;
+  width: 650px;
+}
+
+.GuestDetailsGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.CountryRegion {
+  max-width: 250px;
+  border-radius: 5px;
+  height: 38px;
+}
+
+.CountryTeleCode {
+  max-width: 80px;
+  border-radius: 5px;
+  height: 38px;
+}
+
+.MainHotelInfomation {
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+.MainHotelImg {
+  object-fit: cover;
+  border-radius: 5px 5px 0 0;
+  width: 600px;
+  height: 270px;
+}
+
+.SelectedRoomBox {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 10px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+.SelectedRoomBox-InnerBox {
+  display: flex;
+  border: 1px solid;
+  border-radius: 10px;
+  height: 150px;
+  padding: 10px;
+}

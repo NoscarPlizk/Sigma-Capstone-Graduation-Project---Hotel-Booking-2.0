@@ -93,7 +93,7 @@ export default function Payment() {
         <Container>
           <Card className="mb-3">
             <Card.Body>
-              <Form>
+              <Form>  
                 <Form.Group className="mb-3">
                   <Form.Label>
                     Guest Details

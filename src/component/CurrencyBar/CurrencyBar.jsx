@@ -18,7 +18,7 @@ export default function CurrencyBar({
     LoadCurrency();
   }, []);
 
-  console.log("SaveCurrencyData:", SaveCurrencyData);
+  // console.log("SaveCurrencyData:", SaveCurrencyData);
 
   const updateCurrency = (selectCurrency) => {
     setCurrency(selectCurrency.code);

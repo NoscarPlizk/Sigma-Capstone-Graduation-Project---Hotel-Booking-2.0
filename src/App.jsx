@@ -10,8 +10,7 @@ import UserPage from "./pages/UserPage";
 import Payment from "./pages/Payment";
 import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
-import PurchasePortal from "./pages/PurchasePortal";
-import GetCurrency from "./content/api/GetCurrency";
+import PurchasePortal from "./pages/PurchasePortal/PurchasePortal";
 
 export default function App() {
   const [ token, setToken ] = useLocalStorage('token', null);
