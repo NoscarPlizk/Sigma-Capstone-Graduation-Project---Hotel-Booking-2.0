@@ -9,13 +9,35 @@ import { countryRegionOptions } from "../../content/countryRegionOptions";
 import HaveChargeBreakfast from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast";
 import SplitCancelationBoldText from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/SplitCancelationBoldText";
 import ChildAgeFreePolicy from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/ChildAgeFreePolicy";
+import PerksListColumn from "../ViewHotel/component/PerksListRelatedFunction/PerksListColumn";
 
 function PurchaseInfoForm() {
   return (
     <div className="PurchaseInfoForm">
       <div className="mb-3">
         <Form>
-          <h5>Guest Details</h5>
+          <h5>Booking Guest Details</h5>
+          <div>
+            <p>
+              <strong>
+                Are you Booking for?
+              </strong>
+            </p>
+            <div className="d-flex gap-3">
+              <div className="d-flex">
+                <input type="checkbox" checked/>
+                <p>I'm the main guest</p>
+              </div>            
+              <div className="d-flex">
+                <input type="checkbox" />
+                <p>I'm booking for someone else</p>
+              </div>            
+              <div className="d-flex">
+                <input type="checkbox" />
+                <p>Under Company / Business</p>
+              </div>
+            </div>
+          </div>
           <Form.Group className="GuestDetailsGroup">
             <div>
               <Form.Label>First Name</Form.Label>
@@ -43,7 +65,7 @@ function PurchaseInfoForm() {
       </div>
       <div className="mb-3">
         <Form>
-          <h5>Booking Contact</h5>
+          <h5>Contact</h5>
           <Form.Group className="GuestDetailsGroup">
             <div>
               <Form.Label>Email Address</Form.Label>
@@ -69,17 +91,6 @@ function PurchaseInfoForm() {
         </Form>
           {/* <p>Input phone number exclude initial digit 0 like 0/13-323-1323</p> */}
       </div>
-      <div>
-        <div>
-          <h5>Who are you Booking for?</h5>
-          <p>I'm the main guest</p>
-          <p>I'm booking for someone else</p>
-          <p>Special Request Description</p>
-          <p></p>
-          <p></p>
-          <p></p>
-        </div>
-      </div>
     </div>
   )
 }
@@ -95,6 +106,17 @@ function MainHotelInfomation({
   const MainIMG = AllImageStore[0].url;
 
   const BookedRooms = PuchaseHotelRoomNMainInfo?.saveHouse;
+
+  function getOrdinal(n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
 
   return (
     <div className="MainHotelInfomation">
@@ -143,42 +165,76 @@ function MainHotelInfomation({
           <div className="border rounded-2 p-3">
             <h4>Selected Rooms</h4>
             <div className="border rounded-3">
-              {BookedRooms.length > 0 
-                ? BookedRooms.map((MainRoom, index) => (
-                  <div key={index} className="SelectedRoomBox">
-                    <h5>{MainRoom.base_room_name ?? ''}: {}</h5>
-                    <div className="d-flex flex-column gap-2">
-                      {MainRoom.base_select_room.map((offers, index) => {
-                        console.log("offers:", offers);
-                        const OfferSpecRoomData = offers?.spec_room_data;
+            {BookedRooms.length > 0 
+              && BookedRooms.map((MainRoom, index) => {
 
-                        const BreakfastString = OfferSpecRoomData?.block_text.policies[2]?.content;
-                        const CancelationString = OfferSpecRoomData?.policy_display_details?.cancellation?.title_details?.translation
+                const ContinueSequenceRoom = MainRoom.base_select_room.flatMap((offer) =>
+                  Array.from({ length: offer.amount }, (_, repeatIndex) => ({
+                    offer,
+                    repeatIndex,
+                    uniqueKey: `${offer.block_id}-${repeatIndex}`
+                  }))
+                );
+                
+                console.log("ContinueSequenceRoom:", ContinueSequenceRoom);
+                
+                return (
+                  <div key={index} className="SelectedRoomBox">
+                    <h5>{MainRoom.base_room_name ?? ''}</h5>
+                    <div className="d-flex flex-column gap-2">
+                      {ContinueSequenceRoom.map(({ offer, uniqueKey }, index) => {
                         
+                        // console.log("offers:", offers);
+
+                        // const RoomAmount = offers?.amount;
+
+                        const OfferSpecRoomData = offer?.spec_room_data;
+                        console.log("OfferSpecRoomData", OfferSpecRoomData);
+
+                        const BreakfastString = OfferSpecRoomData?.
+                          block_text.policies[2]?.content ?? '';
+                        const CancelationString = OfferSpecRoomData?.policy_display_details?.
+                          cancellation?.title_details?.translation ?? '';
+                        
+                        const amount_adults = OfferSpecRoomData?.nr_adults;
+                        const amount_childs = OfferSpecRoomData?.nr_children;
+
+                        const OfferPriceCurrency = OfferSpecRoomData?.
+                          product_price_breakdown?.all_inclusive_amount?.currency ?? 'N/A';
+
+                        const OfferPriceTaxInclude = OfferSpecRoomData?.
+                          product_price_breakdown?.all_inclusive_amount?.value?.toFixed(2) ?? '';
+
                         return (
-                          <div key={index} className="SelectedRoomBox-InnerBox">
+                          <div key={uniqueKey} className="SelectedRoomBox-InnerBox">
                             <div>
-                              <div>
-                                {HaveChargeBreakfast(BreakfastString)}
-                              </div>
-                              <div>
-                                {SplitCancelationBoldText(CancelationString)}
-                              </div>
-                              <div>
-                                {ChildAgeFreePolicy(childAgeString, offers) ?? ''}
-                              </div>
+                              <div>{getOrdinal(index + 1)}</div>
                             </div>
-                            <div className="d-flex flex-column">
-                              <div></div>
-                              <div></div>
+                            <div className="d-flex flex-column w-100 gap-3">
+                              <div className="">
+                                <PerksListColumn 
+                                  offer={OfferSpecRoomData} 
+                                  childAgeString={childAgeString}
+                                />
+                              </div>
+                              <div className="">
+                                <div id="guest" className="d-flex gap-1">
+                                  <div>Guest: </div>
+                                  <div>{amount_adults} Adult </div>
+                                  <div>{amount_childs > 0 && amount_childs} Child</div>
+                                </div>
+                                <div>Main Guest: </div>
+                              </div>
+                              <div className="d-flex justify-content-end">
+                                <h2>{OfferPriceCurrency} {OfferPriceTaxInclude}</h2>
+                              </div>
                             </div>
                           </div>
                         )})}
                     </div>
                   </div>
-                )) 
-                : null
-              }
+                )}) 
+            }
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { FaChild } from "react-icons/fa";
 
 export default function ChildAgeFreePolicy({ childAgeString, offer }) {
+  // console.log(`ChildAgeFreePolicy is Running: `, childAgeString, offer)
   const ChildIcon = FaChild;
 
   if (!childAgeString) return;
@@ -11,6 +12,8 @@ export default function ChildAgeFreePolicy({ childAgeString, offer }) {
 
   const offerMaxAgeForFree = offer.max_children_free_age;
   const offerChildFreeSlot = offer.max_children_free;
+
+  const offerActualChildSlot = Number(offer.nr_children);
 
   let ReturningString = '';
 
@@ -27,6 +30,8 @@ export default function ChildAgeFreePolicy({ childAgeString, offer }) {
     
   } else if (offerChildFreeSlot) {
     ReturningString = `Free stay for ${offerChildFreeSlot} of your children`;
+  } else if (offerActualChildSlot === 0) {
+    return;
   }
 
   return (

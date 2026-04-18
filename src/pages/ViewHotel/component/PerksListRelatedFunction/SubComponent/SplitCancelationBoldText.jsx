@@ -2,6 +2,9 @@ import * as Falcons from "react-icons/fa";
 import { FaMoneyBill1Wave } from "react-icons/fa6";
 
 export default function SplitCancelationBoldText({ originalcancelationword }) {
+  // console.log(`SplitCancelationBoldText is Running:`, originalcancelationword);
+
+  
   const CancelationValidIcon = 
     originalcancelationword === 'Non-refundable'
     ? Falcons.FaTimes 

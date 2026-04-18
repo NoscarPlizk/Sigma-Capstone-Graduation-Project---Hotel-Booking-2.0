@@ -2,7 +2,8 @@ import * as Falcons from "react-icons/fa";
 
 
 export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded }) {
-  if (!breakfastword || !isbreakfastincluded) return;
+  if (!breakfastword || isbreakfastincluded === null) return;
+  // console.log(`HaveChargeBreakfast is Running:`, breakfastword, isbreakfastincluded);
 
   const BreakfastIcon = Falcons.FaCoffee;
 

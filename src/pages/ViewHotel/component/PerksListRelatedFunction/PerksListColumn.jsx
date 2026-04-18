@@ -54,7 +54,7 @@ export default function PerksListColumn({ offer, childAgeString }) {
                 breakfastword={breakfastword} 
                 isbreakfastincluded={isbreakfastincluded}
               /> 
-            : null
+            : `SplitCancelationBoldText no show`
           }
         </div>
         <div id='Cancelation Policies' >
@@ -62,7 +62,7 @@ export default function PerksListColumn({ offer, childAgeString }) {
             ? <SplitCancelationBoldText 
                 originalcancelationword={originalcancelationword}
               />
-            : null
+            : `SplitCancelationBoldText no show`
           }
         </div>
         <div id="ChildAgeFreePolicy">
@@ -71,13 +71,13 @@ export default function PerksListColumn({ offer, childAgeString }) {
                 childAgeString={childAgeString} 
                 offer={offer}
               /> 
-            : null
+            : `ChildAgeFreePolicy no show`
           }
         </div>
         <div id="No prepayment needed">
           {NoPaymentPolicy 
             ? <SplitNoPaymentBoldText NoPaymentPolicy={NoPaymentPolicy} />
-            : ''
+            : 'SplitNoPaymentBoldText no show'
           }
         </div>
         {ExtraPerks && ExtraPerks.map((perks, index) =>

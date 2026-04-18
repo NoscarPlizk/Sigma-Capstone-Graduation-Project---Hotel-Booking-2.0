@@ -46,6 +46,10 @@
   height: 270px;
 }
 
+
+
+
+
 .SelectedRoomBox {
   border: 1px solid;
   border-radius: 10px;
@@ -58,6 +62,9 @@
   display: flex;
   border: 1px solid;
   border-radius: 10px;
-  height: 150px;
+  min-height: 200px;
+  height: auto;
   padding: 10px;
+  gap: 10px;
 }
+
