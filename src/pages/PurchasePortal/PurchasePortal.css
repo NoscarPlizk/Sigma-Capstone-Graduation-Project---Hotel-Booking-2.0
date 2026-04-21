@@ -1,12 +1,15 @@
 .FormNInfomationFrame {
   display: grid;
-  grid-template-columns: 6fr 5fr;
+  grid-template-columns: 7fr 4fr;
   grid-template-rows: max-content max-content;
   grid-template-areas: 
-    "PurchaseInfoForm MainHotelInfomation";
+    "PurchaseInfoForm MainHotelInfomation"
+    "HotelRoomList MainHotelInfomation";
+  gap: 20px;
 }
 
 .LeftPurchaseInfoForm { grid-area: PurchaseInfoForm; }
+.LeftHotelRoomList { grid-area: HotelRoomList; }
 .RightMainHotelInfomation { grid-area: MainHotelInfomation; }
 
 .PurchaseInfoForm {
@@ -14,7 +17,18 @@
   border-radius: 10px;
   padding: 15px;
   gap: 10px;
-  width: 650px;
+  width: auto;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+.theCheckBoxStyle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .GuestDetailsGroup {
@@ -37,13 +51,14 @@
 .MainHotelInfomation {
   border: 1px solid;
   border-radius: 10px;
-}
+} 
 
 .MainHotelImg {
   object-fit: cover;
   border-radius: 5px 5px 0 0;
-  width: 600px;
+  width: max-content;
   height: 270px;
+  width: 100%;
 }
 
 
@@ -53,7 +68,7 @@
 .SelectedRoomBox {
   border: 1px solid;
   border-radius: 10px;
-  padding: 10px;
+  padding: 15px;
   height: auto;
   margin-bottom: 15px;
 }
@@ -65,6 +80,13 @@
   min-height: 200px;
   height: auto;
   padding: 10px;
-  gap: 10px;
+  gap: 15px;
 }
 
+
+
+.HotelRoomList {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 10px;
+}

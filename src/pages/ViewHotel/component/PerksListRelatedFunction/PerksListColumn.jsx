@@ -21,7 +21,7 @@ export default function PerksListColumn({ offer, childAgeString }) {
 
     const breakfastword = offer?.mealplan ?? '';
     const isbreakfastincluded = offer?.breakfast_included > 0 ? true : false;
-    console.log("breakfastword:", breakfastword); 
+    // console.log("breakfastword:", breakfastword); 
     
     // Breakfast included
     

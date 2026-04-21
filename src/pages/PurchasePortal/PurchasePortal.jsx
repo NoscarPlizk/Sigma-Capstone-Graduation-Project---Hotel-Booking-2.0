@@ -18,23 +18,19 @@ function PurchaseInfoForm() {
         <Form>
           <h5>Booking Guest Details</h5>
           <div>
-            <p>
-              <strong>
-                Are you Booking for?
-              </strong>
-            </p>
-            <div className="d-flex gap-3">
-              <div className="d-flex">
+            <label className="mb-1"><strong>Are you Booking for?</strong></label>
+            <div className="d-flex mb-3 gap-3">
+              <div className="theCheckBoxStyle">
                 <input type="checkbox" checked/>
-                <p>I'm the main guest</p>
+                <label>I'm the main guest</label>
               </div>            
-              <div className="d-flex">
+              <div className="theCheckBoxStyle">
                 <input type="checkbox" />
-                <p>I'm booking for someone else</p>
+                <label>I'm booking for someone else</label>
               </div>            
-              <div className="d-flex">
+              <div className="theCheckBoxStyle">
                 <input type="checkbox" />
-                <p>Under Company / Business</p>
+                <label>Under Company / Business</label>
               </div>
             </div>
           </div>
@@ -96,10 +92,13 @@ function PurchaseInfoForm() {
 }
 
 function MainHotelInfomation({ 
-  PuchaseHotelRoomNMainInfo, dateObject, StarttoEndDateCalculate 
+  PuchaseHotelRoomNMainInfo, RemakeDate, StarttoEndDateCalculate 
 }) {
-  const childAgeString = useContext(BookedList).childAgeString;
-  // console.log("childAgeString:", childAgeString);
+
+  const { start_date, end_date } = RemakeDate;
+
+  const adultPax = useContext(BookedList).adultPax;
+  const childPax = useContext(BookedList).childPax;
   
   const hotelDetailsData = PuchaseHotelRoomNMainInfo?.hotelDetailsData;
   const AllImageStore = PuchaseHotelRoomNMainInfo?.hotelPhotoData;
@@ -107,16 +106,43 @@ function MainHotelInfomation({
 
   const BookedRooms = PuchaseHotelRoomNMainInfo?.saveHouse;
 
-  function getOrdinal(n) {
-  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+  function CountTotalPrice() {
+    let all_price_room = 0;
+    let currency = '';
 
-  switch (n % 10) {
-    case 1: return `${n}st`;
-    case 2: return `${n}nd`;
-    case 3: return `${n}rd`;
-    default: return `${n}th`;
+    BookedRooms.forEach(baseObj => {
+      baseObj.base_select_room.forEach(baseOff => {
+        const valueofPrice = baseOff.amount * Number(
+          baseOff?.
+          spec_room_data?.
+          product_price_breakdown?.
+          all_inclusive_amount?.
+          value?.
+          toFixed(2));
+
+        const thecurrency = 
+          baseOff?.
+          spec_room_data?.
+          product_price_breakdown?.
+          all_inclusive_amount?.currency
+
+          
+        currency = thecurrency;
+        all_price_room += valueofPrice;
+      });
+    });
+
+    const object = {
+      currency: currency,
+      all_price_room: all_price_room
+    }
+
+    return object;
   }
-}
+
+  const RoomNPrice = CountTotalPrice();
+
+  console.log('RoomNPrice:', RoomNPrice);
 
   return (
     <div className="MainHotelInfomation">
@@ -140,101 +166,61 @@ function MainHotelInfomation({
         </div>
         <div className="d-flex flex-column gap-2">
           <div className="border rounded-2 p-3">
-            <h4>Total Days Lengths</h4>
+            <h5>The Booking Details</h5>
             <div className="d-flex gap-5">
               <div>
                 <p>Check In</p>
-                {dateObject.start_date}
+                {start_date}
               </div>
               <div>
-                <p>Check In</p>
-                {dateObject.end_date}         
+                <p>Check Out</p>
+                {end_date}         
               </div>
               <div>
                 <p>Total Day</p>
                 {StarttoEndDateCalculate()} Days
               </div>
             </div>
-          </div>
-          <div className="border rounded-2 p-3">
-            <h4>Total Price Summary</h4>
-            <div>
-
-            </div>
-          </div>
-          <div className="border rounded-2 p-3">
-            <h4>Selected Rooms</h4>
-            <div className="border rounded-3">
-            {BookedRooms.length > 0 
-              && BookedRooms.map((MainRoom, index) => {
-
-                const ContinueSequenceRoom = MainRoom.base_select_room.flatMap((offer) =>
-                  Array.from({ length: offer.amount }, (_, repeatIndex) => ({
-                    offer,
-                    repeatIndex,
-                    uniqueKey: `${offer.block_id}-${repeatIndex}`
-                  }))
-                );
-                
-                console.log("ContinueSequenceRoom:", ContinueSequenceRoom);
-                
-                return (
-                  <div key={index} className="SelectedRoomBox">
-                    <h5>{MainRoom.base_room_name ?? ''}</h5>
-                    <div className="d-flex flex-column gap-2">
-                      {ContinueSequenceRoom.map(({ offer, uniqueKey }, index) => {
-                        
-                        // console.log("offers:", offers);
-
-                        // const RoomAmount = offers?.amount;
-
-                        const OfferSpecRoomData = offer?.spec_room_data;
-                        console.log("OfferSpecRoomData", OfferSpecRoomData);
-
-                        const BreakfastString = OfferSpecRoomData?.
-                          block_text.policies[2]?.content ?? '';
-                        const CancelationString = OfferSpecRoomData?.policy_display_details?.
-                          cancellation?.title_details?.translation ?? '';
-                        
-                        const amount_adults = OfferSpecRoomData?.nr_adults;
-                        const amount_childs = OfferSpecRoomData?.nr_children;
-
-                        const OfferPriceCurrency = OfferSpecRoomData?.
-                          product_price_breakdown?.all_inclusive_amount?.currency ?? 'N/A';
-
-                        const OfferPriceTaxInclude = OfferSpecRoomData?.
-                          product_price_breakdown?.all_inclusive_amount?.value?.toFixed(2) ?? '';
-
-                        return (
-                          <div key={uniqueKey} className="SelectedRoomBox-InnerBox">
-                            <div>
-                              <div>{getOrdinal(index + 1)}</div>
-                            </div>
-                            <div className="d-flex flex-column w-100 gap-3">
-                              <div className="">
-                                <PerksListColumn 
-                                  offer={OfferSpecRoomData} 
-                                  childAgeString={childAgeString}
-                                />
-                              </div>
-                              <div className="">
-                                <div id="guest" className="d-flex gap-1">
-                                  <div>Guest: </div>
-                                  <div>{amount_adults} Adult </div>
-                                  <div>{amount_childs > 0 && amount_childs} Child</div>
-                                </div>
-                                <div>Main Guest: </div>
-                              </div>
-                              <div className="d-flex justify-content-end">
-                                <h2>{OfferPriceCurrency} {OfferPriceTaxInclude}</h2>
-                              </div>
-                            </div>
-                          </div>
-                        )})}
-                    </div>
+            <hr/>
+              <div>
+                <p>Living Guest For:</p>
+                <div className="d-flex gap-2">
+                  <div>
+                    {adultPax} Adults
                   </div>
-                )}) 
-            }
+                  <div>
+                    {childPax} Childs
+                  </div>
+                </div>    
+              </div>
+            <hr/>
+            <div>
+              <p><strong>Our Selected Plan for {StarttoEndDateCalculate()} Days</strong></p>
+              {BookedRooms.map((baseObj, index) => {
+                const MainRoomName = baseObj.base_room_name;
+                const TotalRoomAmount = baseObj.base_select_room.reduce(
+                  (sum, room) => sum + room.amount, 0
+                );
+
+                return (
+                  <div key={index} className="d-flex gap-2">
+                    <div>{TotalRoomAmount}</div>
+                    <div>X</div>
+                    <div>{MainRoomName}</div>
+                  </div>
+                )
+                })
+              }
+            </div>
+            <hr/>
+            <div>
+              <p><strong>The Price Summary</strong></p>
+              <div className="d-flex justify-content-between">
+                  <h3>Price: </h3>
+                <h3>{RoomNPrice.currency} {RoomNPrice.all_price_room}</h3>
+              </div>
+              <div>
+              </div>
             </div>
           </div>
         </div>
@@ -242,6 +228,122 @@ function MainHotelInfomation({
     </div>
   )
 }
+
+function HotelRoomList({ PuchaseHotelRoomNMainInfo }) {
+
+  const childAgeString = useContext(BookedList).childAgeString;
+  const BookedRooms = PuchaseHotelRoomNMainInfo?.saveHouse;
+
+  
+  function CountTotalRooms() {
+    let all_amount_room = 0;
+
+    BookedRooms.forEach(baseObj => {
+      baseObj.base_select_room.forEach(MainRoom => {
+        all_amount_room += MainRoom.amount;
+      });
+    });
+
+    return all_amount_room;
+  }
+
+  function getOrdinal(n) {
+    if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+
+    switch (n % 10) {
+      case 1: return `${n}st`;
+      case 2: return `${n}nd`;
+      case 3: return `${n}rd`;
+      default: return `${n}th`;
+    }
+  }
+  
+  return (
+    <div className="HotelRoomList">
+      <h4>Selected Rooms: {CountTotalRooms()}</h4>
+      <div className="border rounded-3">
+      {BookedRooms.length > 0 
+        && BookedRooms.map((MainRoom, index) => {
+
+          const ContinueSequenceRoom = MainRoom.base_select_room.flatMap((offer) =>
+            Array.from({ length: offer.amount }, (_, repeatIndex) => ({
+              offer,
+              repeatIndex,
+              uniqueKey: `${offer.block_id}-${repeatIndex}`
+            }))
+          );
+          
+          console.log("ContinueSequenceRoom:", ContinueSequenceRoom);
+          
+          return (
+            <div key={index} className="SelectedRoomBox">
+              <h5 className="">{MainRoom.base_room_name ?? ''}</h5>
+              <div className="d-flex flex-column gap-3">
+                {ContinueSequenceRoom.map(({ offer, uniqueKey }, index) => {
+                  
+                  // console.log("offers:", offers);
+
+                  // const RoomAmount = offers?.amount;
+
+                  const OfferSpecRoomData = offer?.spec_room_data;
+                  // console.log("OfferSpecRoomData", OfferSpecRoomData);
+
+                  const BreakfastString = OfferSpecRoomData?.
+                    block_text.policies[2]?.content ?? '';
+                  const CancelationString = OfferSpecRoomData?.policy_display_details?.
+                    cancellation?.title_details?.translation ?? '';
+                  
+                  const amount_adults = OfferSpecRoomData?.nr_adults;
+                  const amount_childs = OfferSpecRoomData?.nr_children;
+
+                  const OfferPriceCurrency = OfferSpecRoomData?.
+                    product_price_breakdown?.all_inclusive_amount?.currency ?? 'N/A';
+
+                  const OfferPriceTaxInclude = OfferSpecRoomData?.
+                    product_price_breakdown?.all_inclusive_amount?.value?.toFixed(2) ?? '';
+
+                  return (
+                    <div key={uniqueKey} className="SelectedRoomBox-InnerBox">
+                      <div>
+                        <div>{getOrdinal(index + 1)}</div>
+                      </div>
+                      <div className="d-flex flex-column w-100 gap-3">
+                        <div className="">
+                          <PerksListColumn 
+                            offer={OfferSpecRoomData} 
+                            childAgeString={childAgeString}
+                          />
+                        </div>
+                        <div className="d-flex justify-content-between">
+                          <div>
+                            <div id="guest" className="d-flex gap-1">
+                              <label>Guest: </label>
+                              <label>{amount_adults} Adult </label>
+                              <label>{amount_childs > 0 && amount_childs} Child</label>
+                            </div>
+                            <div className="d-flex gap-1">
+                              <label>Main Guest: </label>
+                              <div>
+                                <button>Type Name</button>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <h4>{OfferPriceCurrency} {OfferPriceTaxInclude}</h4>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )})}
+              </div>
+            </div>
+          )}) 
+      }
+      </div>
+    </div>
+  )
+}
+
 
 export default function PurchasePortal() {
   const { state } = useLocation();
@@ -257,9 +359,23 @@ export default function PurchasePortal() {
   const start_date = useContext(BookedList).initialDate;
   const end_date = useContext(BookedList).dueDate;
   
+  function RemakeDate() {
+    const processing = (date) => {
+      return new Date(date).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
 
-  const dateObject = {
-    start_date: start_date, end_date: end_date
+    const StartDate = processing(start_date);
+    const EndDate = processing(end_date);
+
+    const dateObject = {
+      start_date: StartDate, end_date: EndDate
+    }
+
+    return dateObject;
   }
 
   const StarttoEndDateCalculate = () => {
@@ -278,10 +394,13 @@ export default function PurchasePortal() {
           <div className="LeftPurchaseInfoForm">
             <PurchaseInfoForm />
           </div>
+          <div className="LeftHotelRoomList">
+            <HotelRoomList PuchaseHotelRoomNMainInfo={PuchaseHotelRoomNMainInfo} />
+          </div>
           <div className="RightMainHotelInfomation">
             <MainHotelInfomation 
               PuchaseHotelRoomNMainInfo={PuchaseHotelRoomNMainInfo}
-              dateObject={dateObject} 
+              RemakeDate={RemakeDate()} 
               StarttoEndDateCalculate={StarttoEndDateCalculate}
             />  
           </div>

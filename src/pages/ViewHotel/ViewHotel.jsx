@@ -51,7 +51,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
 
   function PurchaseEndPoint({ saveHouse, redirectPurchase, currency }) {
 
-    console.log("EndPoint:", saveHouse);
+    // console.log("EndPoint:", saveHouse);
     
     function SumAllSelRoomAmtNPrc() {
       let cal_allamount = 0;
@@ -172,6 +172,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     const rooms_data = roomList?.data?.rooms;
 
     const redirectPurchase = () => {
+      // console.log("redirectPurchase CALLED");
       const BookedHotelNMainInfo = {
         hotelDetailsData: hotelDetailsData.data,
         hotelPhotoData: hotelPhotoData.data,
