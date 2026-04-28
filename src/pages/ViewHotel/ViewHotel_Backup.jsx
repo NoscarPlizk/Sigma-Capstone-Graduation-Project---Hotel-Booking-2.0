@@ -2,10 +2,6 @@ import { Row, Col, Container, Button, Modal, Card } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 
-import { useDispatch, useSelector } from "react-redux";
-import { storeBookRoom } from "./Redux/StoreBookingRoom/BookingSlice_ViewHotel.js";
-import { openModal, closeModal } from './Redux/ShowModal/ModalShowSlice.js'
-
 import "./ViewHotel.css";
 import { BookedList } from '../../content/data transfer/bookedListContent';
 import getHotelDetails from '../../content/api/GetHotelDetails';
@@ -16,8 +12,6 @@ import getDescriptionAndInfo from "../../content/api/GetDescriptionAndInfo";
 import * as Falcons from "react-icons/fa";
 import { FaChair, FaCheck, FaHeart, FaMoneyBill1Wave, FaPerson, FaPlane, FaShare, FaWifi } from "react-icons/fa6";
 import { FaChild } from "react-icons/fa";
-
-import PurchasePortal from "../PurchasePortal/PurchasePortal.jsx";
 
 import AvaliableFacilitiesLabel from './component/AvaliableFacilitiesLabel.jsx'
 import SelectMenu from '../../component/SelectMenu/SelectMenu.jsx';
@@ -55,8 +49,8 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     )
   };
 
-  function PurchaseEndPoint({ saveHouse, currency }) {
-    const dispatch = useDispatch(); 
+  function PurchaseEndPoint({ saveHouse, redirectPurchase, currency }) {
+
     // console.log("EndPoint:", saveHouse);
     
     function SumAllSelRoomAmtNPrc() {
@@ -93,7 +87,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     }
 
     const SumedAmountnPrc = SumAllSelRoomAmtNPrc();
-    // console.log("SumedAmountnPrc:", SumedAmountnPrc);
+    console.log("SumedAmountnPrc:", SumedAmountnPrc);
 
     return (
       <>
@@ -110,10 +104,10 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
                 </div>
               <button 
                 className="finalpurchase_Button"
-                onClick={() => dispatch(openModal())}
+                onClick={() => redirectPurchase()}
               >
-                I'll reserve
-              </button>
+                  I'll reserve
+                </button>
               </div>
             : <div>
                 <h5>Please select the rooms to book.</h5>
@@ -167,16 +161,25 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     )
   }
 
-  function HotelRoomType({ roomList, childAgeString, currency }) {
-
-    const dispatch = useDispatch();
-    const saveHouse = useSelector(state => state.booking.saveHouse);
+  function HotelRoomType({ hotelDetailsData, hotelPhotoData, roomList, childAgeString, currency }) {
+    const [ saveHouse, setSaveHouse ] = useState([]);
+    const redirect = useNavigate();
 
     if (!roomList) return <div>Loading....</div>;
     console.log("roomList", roomList);
     console.log({ room_photo: roomList?.data?.rooms });
     const rooms = roomList?.data?.block;
     const rooms_data = roomList?.data?.rooms;
+
+    const redirectPurchase = () => {
+      // console.log("redirectPurchase CALLED");
+      const BookedHotelNMainInfo = {
+        hotelDetailsData: hotelDetailsData.data,
+        hotelPhotoData: hotelPhotoData.data,
+        saveHouse: saveHouse
+      }
+      redirect('/purchaseportal', { state: BookedHotelNMainInfo });
+    }
 
     console.log("rooms_in_SingleListRoomsBox:", rooms);
     function processingAllOption(rooms, rooms_data) {
@@ -206,7 +209,200 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     
     console.log("Rooms_AllOptions:", Rooms_AllOptions);
 
+    function storeBookRoom(mainRoomInfo, offer, room_amount) {
+      const room_am = Number(room_amount);
+
+      setSaveHouse(prev => {
+        const specExistObj = prev?.find(baseObj => 
+          baseObj.base_room_id === mainRoomInfo.room_id
+        );
+
+        const currentOffArray = (prev.length === 0) 
+          ? prev 
+          : (specExistObj 
+            ? specExistObj?.base_select_room 
+            : [])
+
+        console.log("prev", prev);
+        console.log("currentOffArray:", currentOffArray);
+
+        const baseOff = {
+          amount: room_am,
+          block_id: offer.block_id,
+          spec_room_data: offer,
+        };
+
+        const baseObject = {
+          base_room_id: mainRoomInfo.room_id,
+          base_room_name: mainRoomInfo.room_name,
+          base_room_surface_m2: mainRoomInfo.room_surface_in_m2,
+          base_main_photos: mainRoomInfo.room_data.photos[0].url_square60,
+          base_select_room: [...currentOffArray, baseOff] 
+        }
+
+        const currentSpecOff = currentOffArray.find(currentOff => 
+          currentOff.block_id === baseOff.block_id
+        );
+
+
+        console.log("currentSpecOff:", currentSpecOff);
+
+        
+        if (!specExistObj) {
+          const addNewMainObj = baseObject;
+          return [...prev, addNewMainObj];
+
+
+        } else if (
+          (currentOffArray.length >= 1) && 
+          (currentSpecOff ? currentSpecOff.amount !== baseOff.amount : false)) {
+
+          const updatedPrev = prev.map(baseObj => {
+            if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
+
+            return {
+              ...baseObj,
+              base_select_room: baseObj.base_select_room.map(currentOff => 
+                currentOff.block_id === baseOff.block_id 
+                ? { ...currentOff, amount: baseOff.amount } 
+                : currentOff
+              )
+            };
+          });
+
+          console.log("updatedPrev:", updatedPrev);
+          
+          const roomAmount = updatedPrev
+            .find(baseObj => baseObj.base_room_id === baseObject.base_room_id).base_select_room
+            .find(currentOff => currentOff.block_id === baseOff.block_id).amount;
+
+          console.log('roomAmount:', roomAmount);
+
+
+
+          if (roomAmount === 0) {
+            let updatedRemoveSpecOff = updatedPrev.map(baseObj => {
+              if (baseObj.base_room_id !== baseObject.base_room_id) return baseObj;
+              
+              return { 
+                ...baseObj, 
+                base_select_room: baseObj.base_select_room.filter(specOff => 
+                  specOff.block_id !== baseOff.block_id
+                )
+              }
+            })     
+          
+            console.log("updatedRemoveSpecOff", updatedRemoveSpecOff);
+
+            const isOffZero = updatedRemoveSpecOff
+              .find(baseObj => baseObj.base_room_id === baseObject.base_room_id)
+              .base_select_room.length;
+
+            if (isOffZero !== 0) {
+              return updatedRemoveSpecOff;
+
+            } else if (isOffZero === 0) {      
+              return updatedRemoveSpecOff.filter(baseObj => 
+                baseObj.base_room_id !== baseObject.base_room_id
+              )
+            }
+          }
+
+          return [...updatedPrev];
+
+
+        } else if (currentOffArray.length >= 1 && !currentSpecOff) {
+
+          const updatedAddNewSpecOff = prev.map(baseObj => {
+            if (baseObj.base_room_id === baseObject.base_room_id) {
+              return {
+                ...baseObj,
+                base_select_room: [...baseObj.base_select_room, baseOff]
+              }
+            }
+
+            return baseObj;
+          });
+          
+          return [...updatedAddNewSpecOff];
+
+
+        }
+      });        
+    }
+
     console.log("saveHouse:", saveHouse);
+    
+
+    // const HotelSelectDataExample = 
+    //   [
+    //     {
+    //       base_room_id: 234234,
+    //       base_room_name: salmia_deluxe_suite,
+    //       base_select_room: [
+    //         {
+    //           amount: 3,
+    //           block_id: 3233_3232_32321,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ]
+    //         },              
+    //         {
+    //           amount: 2,
+    //           block_id: 8929_2341_21244,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ],
+    //         },
+    //       ] 
+    //     },
+    //     {
+    //       base_room_id: 422341,
+    //       base_room_name: salmia_royal_suite,
+    //       base_select_room: [
+    //         {
+    //           amount: 1,
+    //           block_id: 7912_8312_2212,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ]
+    //         },              
+    //         {
+    //           amount: 2,
+    //           block_id: 6123_1233_8999,
+    //           spec_room_data: [
+    //             {
+    //               amount: room_am,
+    //               block_id: offer.block_id,
+    //               spec_room_data: offer,
+    //             },
+    //           ],
+    //         },
+    //       ] 
+    //     }
+    //   ] 
 
     return (
       <div className="border">
@@ -299,14 +495,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
                                 <select 
                                   name="room_number" 
                                   id="room_number" 
-                                  onChange={(e) => 
-                                    dispatch(
-                                      storeBookRoom({
-                                        mainRoomInfo: everyRoom, 
-                                        offer, 
-                                        roomAmount: e.target.value,
-                                      })
-                                  )}
+                                  onChange={(e) => storeBookRoom(everyRoom, offer, e.target.value)}
                                 >
                                   <option value="0">0</option>
                                   <option value="1">1</option>
@@ -334,6 +523,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
           <div className="hotelnreserveboxsec ha-reservesec">
             <PurchaseEndPoint 
               saveHouse={saveHouse} 
+              redirectPurchase={redirectPurchase}
               currency={currency}
             />
           </div>
@@ -342,8 +532,15 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     );  
   }
 
-  
+  function HouseRules() {
+    return (
+      <>
+      </>
+    )
+  }
+
 export default function ViewHotel() {
+  const [ showModal, setShowModal ] = useState(false);
   const APIurl = useContext(BookedList).APIurl;
   // const token = useContext(BookedList).token;
   const currency = useContext(BookedList).currency;
@@ -360,9 +557,6 @@ export default function ViewHotel() {
   // const checkToken = () => {
   //   if (token.length === null) redirect('/userauth');
   // }
-
-  const dispatch = useDispatch(); 
-  const OpenStatus = useSelector(state => state.modal.OpenStatus);
 
   const [ hotelPhotoData, setHotelPhotoData ] = useState(null);
   const [ hotelDetailsData, setHotelDetailsData ] = useState(null);
@@ -400,26 +594,18 @@ export default function ViewHotel() {
   console.log("roomList:", roomList);
   console.log("hotelDescriptionData:", hotelDescriptionData);
 
-  const BookedHotelNMainInfo = {
-    hotelDetailsData: hotelDetailsData?.data,
-    hotelPhotoData: hotelPhotoData?.data,
-    selectedRooms: useSelector(state => state.booking.saveHouse),
-    start_date: start_date,
-    end_date: end_date
-  }
-    
   return (
     <>        
-      <Modal 
-        dialogClassName="ModalPurchasePortal"
-        show={OpenStatus} 
-        onHide={() => dispatch(closeModal())}
-      >
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Body>
-          <div className="d-flex justify-content-end">
-            <button onClick={() => dispatch(closeModal())}> x </button>
-          </div>
-          <PurchasePortal BookedHotelNMainInfo={BookedHotelNMainInfo} />
+          <Card>
+            <Card.Body>
+              <h2>You haven't choose your Date or Room Amount Yet.</h2>
+              <Button onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+            </Card.Body>
+          </Card>
         </Modal.Body>
       </Modal>
       <Container className="Shell">
@@ -458,11 +644,14 @@ export default function ViewHotel() {
         <Row>
           <h3>Avalibility</h3>
           <HotelRoomType
+            hotelDetailsData={hotelDetailsData}
+            hotelPhotoData={hotelPhotoData}
             roomList={roomList} 
             childAgeString={childAgeString} 
             currency={currency} 
           />
         </Row>
+        <HouseRules />
       </Container>
     </>
   );

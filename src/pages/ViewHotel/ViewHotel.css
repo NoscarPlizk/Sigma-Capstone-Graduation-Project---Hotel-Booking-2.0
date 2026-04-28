@@ -8,6 +8,10 @@
   margin-right: 30px;
 }
 
+.ModalPurchasePortal {
+  max-width: 1600px;
+}
+
 .hg {
   display: grid;
   gap: 10px;

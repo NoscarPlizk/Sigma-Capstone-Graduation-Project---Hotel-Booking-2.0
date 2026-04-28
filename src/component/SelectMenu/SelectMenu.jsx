@@ -1,5 +1,5 @@
 import { Button, Card, Row, Col } from "react-bootstrap";
-import { useContext, useRef } from "react";
+import { useContext, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookedList } from "../../content/data transfer/bookedListContent";
 import "./SelectMenu.css";
@@ -8,34 +8,27 @@ import searchHotelDestination from "../../content/api/SearchHotelDestination";
 import searchHotels from "../../content/api/SearchHotel";
 
 export default function SelectMenu() {
-  const search = useContext(BookedList).search;
-  const setSearch = useContext(BookedList).setSearch;
-  const currency = useContext(BookedList).currency;
-  const initialDate = useContext(BookedList).initialDate;
-  const setInitialDate = useContext(BookedList).setInitialDate;
-  const dueDate = useContext(BookedList).dueDate;
-  const setDueDate = useContext(BookedList).setDueDate;
-  const adultPax = useContext(BookedList).adultPax;
-  const setAdultPax = useContext(BookedList).setAdultPax;
-  const childPax = useContext(BookedList).childPax;
-  const setChildPax = useContext(BookedList).setChildPax;
-  const childAge = useContext(BookedList).childAge;
-  const setChildAge = useContext(BookedList).setChildAge;
-  const childAgeString = useContext(BookedList).childAgeString;
-  const setChildAgeString = useContext(BookedList).setChildAgeString;
-  const roomAmount = useContext(BookedList).roomAmount;
-  const setRoomAmount = useContext(BookedList).setRoomAmount;
-  const setSearchFetchData = useContext(BookedList).setSearchFetchData;
+  const {
+    search, setSearch,
+    currency,
+    initialDate, setInitialDate,
+    dueDate, setDueDate,
+    adultPax, setAdultPax,
+    childPax, setChildPax,
+    childAge, setChildAge,
+    childAgeString, setChildAgeString,
+    roomAmount, setRoomAmount,
+    setSearchFetchData
+  } = useContext(BookedList);
+
   const redirect = useNavigate();
   const PeopleRef = useRef(null);
-  
-  function joinChildAgetoString(childAge, setChildAgeString) {
-    const stringifcation = Array.isArray(childAge) ? childAge.join(',') : '' ;
-    setChildAgeString(stringifcation);
-  }
 
-  joinChildAgetoString(childAge, setChildAgeString);
-  console.log("childAgeString:", childAgeString);
+  useEffect(() => {
+    const stringification = Array.isArray(childAge) ? childAge.join(',') : '';
+    setChildAgeString(stringification);
+  }, [childAge, setChildAgeString]);
+
 
   async function startQuery() {
     const hotdesdata = await searchHotelDestination(search);

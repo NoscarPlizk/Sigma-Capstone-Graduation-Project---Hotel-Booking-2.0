@@ -5,12 +5,14 @@ import { useContext, useState } from 'react';
 import { BookedList } from '../content/data transfer/bookedListContent';
 import CurrencyBar from '../component/CurrencyBar/CurrencyBar';
 import GetCurrency from '../content/api/GetCurrency';
+import { useAuth } from '../content/Firebase/AuthContext';
+
 
 export default function Layout() {
   const [ showCurrencyModal, setShowCurrencyModal ] = useState(false);
+  const { isLoggedIn } = useAuth();
   const setCurrency = useContext(BookedList).setCurrency;
   const currency = useContext(BookedList).currency;
-  const token = useContext(BookedList).token;
 
   return (
     <>
@@ -19,10 +21,10 @@ export default function Layout() {
           <Navbar.Brand href='/'><strong>Placesota</strong></Navbar.Brand>
           <Nav>
             <Nav.Link href='/userauth'>
-              {!token && <Button>Login or Signup</Button>}
+              {!isLoggedIn && <Button>Login or Signup</Button>}
             </Nav.Link>
             <Nav.Link href='/allbookedlist'>
-              {token && <Button>Check Booked Hotel List</Button>}
+              {isLoggedIn && <Button>Check Booked Hotel List</Button>}
             </Nav.Link>
             <Button onClick={() => setShowCurrencyModal(true)}>
               Currency: 
@@ -31,7 +33,7 @@ export default function Layout() {
                 </strong>
             </Button>
             <Nav.Link href='/userpage'>
-              {token && <Image 
+              {isLoggedIn && <Image 
                 src='https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg'
                 roundedCircle
                 style={{ width: 40, height: 40 }}

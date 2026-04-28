@@ -92,11 +92,7 @@ function PurchaseInfoForm() {
 }
 
 function MainHotelInfomation({ 
-  hotelDetailsData, 
-  hotelPhotoData, 
-  selectedRooms, 
-  RemakeDate, 
-  StarttoEndDateCalculate 
+  PuchaseHotelRoomNMainInfo, RemakeDate, StarttoEndDateCalculate 
 }) {
 
   const { start_date, end_date } = RemakeDate;
@@ -104,9 +100,11 @@ function MainHotelInfomation({
   const adultPax = useContext(BookedList).adultPax;
   const childPax = useContext(BookedList).childPax;
   
-  const MainIMG = hotelPhotoData[0].url;
+  const hotelDetailsData = PuchaseHotelRoomNMainInfo?.hotelDetailsData;
+  const AllImageStore = PuchaseHotelRoomNMainInfo?.hotelPhotoData;
+  const MainIMG = AllImageStore[0].url;
 
-  const BookedRooms = selectedRooms;
+  const BookedRooms = PuchaseHotelRoomNMainInfo?.saveHouse;
 
   function CountTotalPrice() {
     let all_price_room = 0;
@@ -231,11 +229,12 @@ function MainHotelInfomation({
   )
 }
 
-function HotelRoomList({ selectedRooms }) {
+function HotelRoomList({ PuchaseHotelRoomNMainInfo }) {
 
   const childAgeString = useContext(BookedList).childAgeString;
-  const BookedRooms = selectedRooms;
+  const BookedRooms = PuchaseHotelRoomNMainInfo?.saveHouse;
 
+  
   function CountTotalRooms() {
     let all_amount_room = 0;
 
@@ -346,18 +345,20 @@ function HotelRoomList({ selectedRooms }) {
 }
 
 
-export default function PurchasePortal({ BookedHotelNMainInfo }) {
+export default function PurchasePortal() {
+  const { state } = useLocation();
+  const PuchaseHotelRoomNMainInfo = state;
 
-  const { 
-    hotelDetailsData, 
-    hotelPhotoData, 
-    selectedRooms, 
-    start_date, 
-    end_date
-  } = BookedHotelNMainInfo;
+  // {
+  //   hotelDetailsData: hotelDetailsData.data,
+  //   hotelPhotoData: hotelPhotoData.data,
+  //   saveHouse: saveHouse
+  // }
       
-  console.log("BookedHotelNMainInfo:", BookedHotelNMainInfo);
-
+  console.log("PuchaseHotelRoomNMainInfo:", PuchaseHotelRoomNMainInfo);
+  const start_date = useContext(BookedList).initialDate;
+  const end_date = useContext(BookedList).dueDate;
+  
   function RemakeDate() {
     const processing = (date) => {
       return new Date(date).toLocaleDateString('en-GB', {
@@ -394,13 +395,11 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
             <PurchaseInfoForm />
           </div>
           <div className="LeftHotelRoomList">
-            <HotelRoomList selectedRooms={selectedRooms} />
+            <HotelRoomList PuchaseHotelRoomNMainInfo={PuchaseHotelRoomNMainInfo} />
           </div>
           <div className="RightMainHotelInfomation">
             <MainHotelInfomation 
-              hotelDetailsData={hotelDetailsData}
-              hotelPhotoData={hotelPhotoData}
-              selectedRooms={selectedRooms}
+              PuchaseHotelRoomNMainInfo={PuchaseHotelRoomNMainInfo}
               RemakeDate={RemakeDate()} 
               StarttoEndDateCalculate={StarttoEndDateCalculate}
             />  

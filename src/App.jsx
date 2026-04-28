@@ -1,12 +1,18 @@
 import { useLocation, BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from 'react';
 import { BookedList } from "./content/data transfer/bookedListContent"; 
+
+import { AuthProvider } from "./content/Firebase/AuthContext"; 
+import { Provider } from "react-redux";
+const ReduxProvider = Provider;
+import { MasterReduxStore } from './content/data transfer/MasterReduxStore'
+
 import useLocalStorage from "use-local-storage";
 import AuthPages from "./pages/AuthPages";
 import Layout from "./layout/Layout";
 import SearchToHotelList from "./pages/SearchToHotelList";
 import ViewHotel from "./pages/ViewHotel/ViewHotel";
-import UserPage from "./pages/UserPage";
+import UserPage from "./pages/UserSettingPage/UserSettingPage";
 import Payment from "./pages/Payment";
 import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
@@ -24,36 +30,51 @@ export default function App() {
   const [ childAgeString, setChildAgeString ] = useLocalStorage('childAgeString', null);
   const [ roomAmount, setRoomAmount ] = useLocalStorage('roomAmount', 1);  
   const [ searchFetchData, setSearchFetchData ] = useLocalStorage('searchFetchData', {}); // prepare bulid a railway to map
-  console.log("token:", token);
-  console.log("SelectMenu:", { search, initialDate, dueDate, adultPax, childPax, childAgeString, roomAmount, currency });
+
+  useEffect(() => {
+    console.log("SelectMenu:", {
+      search,
+      initialDate,
+      dueDate,
+      adultPax,
+      childPax,
+      childAgeString,
+      roomAmount,
+      currency
+    });
+  }, [search, initialDate, dueDate, adultPax, childPax, childAgeString, roomAmount, currency])
 
   return (
-    <BookedList.Provider value={{ 
-      token, setToken,
-      currency, setCurrency,
-      search, setSearch, 
-      initialDate, setInitialDate,
-      dueDate, setDueDate,
-      adultPax, setAdultPax, 
-      childPax, setChildPax, 
-      childAge, setChildAge,
-      childAgeString, setChildAgeString,
-      roomAmount, setRoomAmount,
-      searchFetchData, setSearchFetchData
-    }}>
-      <BrowserRouter>
-        <AppInner 
-          setSearch={setSearch}
-          setInitialDate={setInitialDate}
-          setDueDate={setDueDate}
-          setAdultPax={setAdultPax}
-          setChildPax={setChildPax}
-          setChildAge={setChildAge}
-          setRoomAmount={setRoomAmount}
-          setCurrency={setCurrency}
-        />
-      </BrowserRouter>
-    </BookedList.Provider>
+    <AuthProvider>
+      <BookedList.Provider value={{ 
+        token, setToken,
+        currency, setCurrency,
+        search, setSearch, 
+        initialDate, setInitialDate,
+        dueDate, setDueDate,
+        adultPax, setAdultPax, 
+        childPax, setChildPax, 
+        childAge, setChildAge,
+        childAgeString, setChildAgeString,
+        roomAmount, setRoomAmount,
+        searchFetchData, setSearchFetchData
+      }}>
+        <ReduxProvider store={MasterReduxStore}>
+          <BrowserRouter>
+            <AppInner 
+              setSearch={setSearch}
+              setInitialDate={setInitialDate}
+              setDueDate={setDueDate}
+              setAdultPax={setAdultPax}
+              setChildPax={setChildPax}
+              setChildAge={setChildAge}
+              setRoomAmount={setRoomAmount}
+              setCurrency={setCurrency}
+            />
+          </BrowserRouter>
+        </ReduxProvider>
+      </BookedList.Provider>
+    </AuthProvider>
   );
 }
 
@@ -86,7 +107,7 @@ function AppInner({
         <Route path="userpage" element={<UserPage />} />
         <Route path="allbookedlist" element={<AllBookedList />} />
         <Route path="payment" element={<Payment />} />
-        <Route path="purchaseportal" element={<PurchasePortal />} />
+        {/* <Route path="purchaseportal" element={<PurchasePortal />} /> */}
       </Route>
     </Routes>
   );

@@ -5,7 +5,7 @@ export default function ChildAgeFreePolicy({ childAgeString, offer }) {
   const ChildIcon = FaChild;
 
   if (!childAgeString) return;
-  console.log("childAgeString in ChildAgeFreePolicy:", childAgeString);
+  // console.log("childAgeString in ChildAgeFreePolicy:", childAgeString);
   const checkChildAge = childAgeString.split(',');
   const fromYoungtoOldAge = checkChildAge.sort((a, b) =>  a - b);
   // console.log("fromYoungtoOldAge", fromYoungtoOldAge);

@@ -17,10 +17,10 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
       && /^[A-Z]{3}$/.test(string[1])
       && /^\d+$/.test(string[2])
     ) {
-      console.log("CheckisMealsFree:", "true, is charge");
+      // console.log("CheckisMealsFree:", "true, is charge");
       return true;
     } else {
-      console.log("CheckisMealsFree:", "false, is free");
+      // console.log("CheckisMealsFree:", "false, is free");
       return false;
     }
   }

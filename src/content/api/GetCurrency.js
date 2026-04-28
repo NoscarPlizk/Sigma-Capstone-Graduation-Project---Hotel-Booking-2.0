@@ -16,10 +16,9 @@ export default async function GetCurrency() {
 
   try {
     const response = await axios.request(options);
-    console.log("GetCurrency:", response.data);
+    // console.log("GetCurrency:", response.data);
     
-    const returning = response.data;
-    return returning;
+    return response.data;
   } catch (error) {
     console.error(error);
   }

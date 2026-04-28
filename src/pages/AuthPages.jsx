@@ -1,61 +1,39 @@
-import { useState, useEffect, useContext } from "react";
+import { useState } from "react";
 import { Modal, Button, Form, Container, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { BookedList } from "../content/data transfer/bookedListContent";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword 
-} from "firebase/auth";
-import { auth } from "../content/firebase";
+import { loginUser, registerUser } from "../content/Firebase/authService";
 
 export default function AuthPages() {
   const [ show, setShow ] = useState(false);
   const [ username, setUsername ] = useState('');
+  const [ email, setEmail ] = useState("");
   const [ password, setPassword ] = useState('');
   const redirect = useNavigate();
-  const APIurl = useContext(BookedList).APIurl;
-  const token = useContext(BookedList).token;
-  const setToken = useContext(BookedList).setToken;
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setToken(user);
-      console.log("token_Auth:", token);
-
-      if (user) {
-        redirect('/');
-      }
-    });
-
-    return unsubscribe;
-  }, [token]);
-
-  const handleShowRegister = () => {
-    setShow(true);
-  }
-
-  const handleCloseRegister = () => {
-    setShow(false);
-  }
+  const handleShowRegister = () => { setShow(true); }
+  const handleCloseRegister = () => { setShow(false); }
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, username, password);
+      await loginUser(email, password);
+      console.log("GOCHA LOGIN");
+      redirect("/");
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error.message);
+      alert("Login failed.");
     }
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      const res = await createUserWithEmailAndPassword(
-        auth, username, password
-      );
-      console.log(res.user);
+      await registerUser(email, password, name);
+      setShow(false);
+      redirect("/");
     } catch (error) {
-      console.error(error);
+      console.error("Register error:", error.message);
+      alert("Register failed.");
     }
   };
 
@@ -96,7 +74,7 @@ export default function AuthPages() {
       <Container>
         <Modal show={show} onHide={handleCloseRegister}>
           <Modal.Body>
-            <Form>
+            <Form onSubmit={handleSignUp}>
               <Form.Label>Insert Your Email and Password for Register</Form.Label>
               <Form.Group>
                 <Form.Control 
@@ -106,6 +84,13 @@ export default function AuthPages() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
+                <Form.Control
+                  className="mb-3"
+                  placeholder="Insert Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <Form.Control 
                   placeholder="Insert Password" 
                   type="password"
@@ -113,7 +98,7 @@ export default function AuthPages() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Form.Group>
-              <Button className="mt-3" onClick={handleSignUp}>Register</Button>
+              <Button className="mt-3" type="submit">Register</Button>
             </Form>
           </Modal.Body>
         </Modal>
@@ -122,13 +107,15 @@ export default function AuthPages() {
             <Row>
               <Col>
                 <Container>
-                  <Form.Label className="py-2"><h3>Hi Welcome back!</h3></Form.Label>
+                  <Form.Label className="py-2">
+                    <h3>Hi Welcome back!</h3>
+                  </Form.Label>
                   <Form.Control 
                     className="mb-3"
-                    placeholder="Insert Username" 
-                    type="text" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Insert Email" 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                   <Form.Control 
                     className="mb-3"
@@ -141,9 +128,13 @@ export default function AuthPages() {
               </Col>
               <Col>
                 <Container className="mt-3">
-                  <Button onClick={handleLogin}>Login</Button>
+                  <Button type="submit">
+                    Login
+                  </Button>
                   <p className="mt-3">Or</p>
-                  <Button onClick={handleShowRegister}>New Register</Button>
+                  <Button type="button" onClick={handleShowRegister}>
+                    New Register
+                  </Button>
                 </Container>
               </Col>
             </Row>
