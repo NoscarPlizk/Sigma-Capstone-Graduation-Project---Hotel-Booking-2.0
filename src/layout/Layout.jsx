@@ -2,6 +2,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Nav, Navbar, Button, Image, Modal } from "react-bootstrap";
 import { Outlet } from "react-router-dom";
 import { useContext, useState } from 'react';
+import SettingPopover from './SettingPopover';
+
 import { BookedList } from '../content/data transfer/bookedListContent';
 import CurrencyBar from '../component/CurrencyBar/CurrencyBar';
 import GetCurrency from '../content/api/GetCurrency';
@@ -32,13 +34,9 @@ export default function Layout() {
                   {' '}{currency !== "hotel_currency" ? currency : "Hotel Local Currency"}
                 </strong>
             </Button>
-            <Nav.Link href='/userpage'>
-              {isLoggedIn && <Image 
-                src='https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg'
-                roundedCircle
-                style={{ width: 40, height: 40 }}
-              />}
-            </Nav.Link>
+            {/* <Nav.Link href='/userpage'> */}
+            {/* </Nav.Link> */}
+            {isLoggedIn && <SettingPopover />}
           </Nav>
         </Container>
       </Navbar>

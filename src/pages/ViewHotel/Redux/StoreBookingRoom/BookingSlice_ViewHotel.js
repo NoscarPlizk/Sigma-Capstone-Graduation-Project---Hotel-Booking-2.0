@@ -1,12 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
-  saveHouse: [],
-};
-
 const bookingSlice = createSlice({
   name: 'booking',
-  initialState,
+  initialState: { saveHouse: [] },
   reducers: {
     storeBookRoom(state, action) {
       const { mainRoomInfo, offer, roomAmount } = action.payload;

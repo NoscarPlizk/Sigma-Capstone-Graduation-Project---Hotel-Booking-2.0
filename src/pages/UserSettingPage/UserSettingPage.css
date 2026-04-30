@@ -1,10 +1,29 @@
 .MainPageStructure {
   display: grid;
-  grid-template-rows: auto;
+  grid-template-rows: 100vh;
   grid-template-columns: 1fr 3fr;
   grid-template-areas: 
     "LeftBar RightSubPage";
+  padding: 20px;
+  border: 1px solid;
+  gap: 30px
 }
 
-.LeftBar { grid-area: LeftBar; }
-.RightSubPage { grid-area: RightSubPage; }
+.LeftBarFrame { 
+  grid-area: LeftBar; 
+  border: 1px solid;
+}
+.RightSubPageFrame { 
+  grid-area: RightSubPage; 
+  padding: 20px;
+  border: 1px solid;
+}
+
+.LeftBar {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid;
+  padding: 20px;
+  height: 300px;
+  gap: 10px;
+}

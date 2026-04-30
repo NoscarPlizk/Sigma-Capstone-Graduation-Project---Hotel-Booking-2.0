@@ -1,31 +1,65 @@
-import { Col, Image, Row, Button, Container } from "react-bootstrap";
+import { Col, Image, Row, Container } from "react-bootstrap";
 import { useEffect } from "react";
-import { BookedList } from "../../content/data transfer/bookedListContent";
 import { useNavigate } from "react-router-dom";
+import './UserSettingPage.css';
+
+import { BookedList } from "../../content/data transfer/bookedListContent";
+
+import UserProfilePage from "./SubPage/UserProfilePage";
+import PaymentMethodPage from "./SubPage/PaymentMethodPage";
+
 import { logoutUser } from "../../content/Firebase/authservice";
 import { auth } from "../../content/Firebase/firebase";
 import { useAuth } from "../../content/Firebase/AuthContext";
+// import { doc, getDoc, setDoc } from "firebase/firestore";
 
-function ButtonBox({ children }) {
+import { useDispatch, useSelector } from "react-redux";
+import { selectSubPage } from "./Redux/SubPageSlice";
+
+const subPageComponents = {
+  profile: UserProfilePage, 
+  payment: PaymentMethodPage
+};
+
+function ButtonBox({ SubPageLink, name }) {
+  const dispatch = useDispatch();
+
   return (
     <div>
-      { children }
+      <button onClick={() => dispatch(selectSubPage(SubPageLink))}>  
+        {name}
+      </button>
     </div>
   )
 }
 
-function LeftBar() {
+function LeftBar({ SignOutProcess }) {
   return (
-    <div className="border">
-      <ButtonBox></ButtonBox>
+    <div className="LeftBar">
+      <h3>Setting</h3>
+      <ButtonBox 
+        SubPageLink={'profile'} 
+        name={'User Profile'}
+      />
+      <ButtonBox 
+        SubPageLink={'payment'} 
+        name={'Payment Method'} 
+      />
+      <button onClick={() => SignOutProcess()}>
+        Log Out
+      </button>
     </div>
   )
 }
 
 function RightSubPage() {
+  const SelectState = useSelector(state => state.SubPage.SelectState);
+
+  const DisplayComponent = subPageComponents[SelectState] ?? UserProfilePage;
+
   return (
     <div>
-      
+      <DisplayComponent />
     </div>
   )
 }
@@ -34,10 +68,11 @@ export default function UserSettingPage() {
   const { isLoggedIn } = useAuth();
   const redirect = useNavigate();
 
-  if (!isLoggedIn) console.log("isLoggedIn?:", isLoggedIn);
-
   useEffect(() => {
-    if (!isLoggedIn) redirect('/userauth');
+    if (!isLoggedIn) {
+      console.log("isLoggedIn?:", isLoggedIn);
+      redirect('/userauth');
+    }
   }, [isLoggedIn])
 
   const SignOutProcess = async () => {
@@ -50,11 +85,11 @@ export default function UserSettingPage() {
   }
 
   return (
-    <Container>
-      <div className="LeftBar">
-        <LeftBar />
+    <Container className="MainPageStructure">
+      <div className="LeftBarFrame">
+        <LeftBar SignOutProcess={SignOutProcess} />
       </div>
-      <div className="RightSubPage">
+      <div className="RightSubPageFrame">
         <RightSubPage />
       </div>
     </Container>
