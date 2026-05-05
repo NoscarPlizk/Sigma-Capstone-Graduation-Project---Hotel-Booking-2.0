@@ -1,9 +1,12 @@
-import { useLocation } from "react-router-dom";
+import { useContext, useEffect, useState, useRef } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
-import './PurchasePortal.css';
+import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useContext } from 'react';
+
+import './PurchasePortal.css';
 import { BookedList } from "../../content/data transfer/bookedListContent";
+
+import { useAuth } from '../../content/Firebase/AuthContext';
 
 import { countryRegionOptions } from "../../content/countryRegionOptions";
 import HaveChargeBreakfast from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast";
@@ -11,40 +14,118 @@ import SplitCancelationBoldText from "../ViewHotel/component/PerksListRelatedFun
 import ChildAgeFreePolicy from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/ChildAgeFreePolicy";
 import PerksListColumn from "../ViewHotel/component/PerksListRelatedFunction/PerksListColumn";
 
-function PurchaseInfoForm() {
+
+function OneCheckedOnly({ selectedType, setSelectedType }) {
+
+  return (
+    <div>
+      <label className="mb-1"><strong>Are you Booking for?</strong></label>
+      <div className="d-flex mb-3 gap-3">
+        <div className="theCheckBoxStyle">
+          <label>
+            <input 
+              type="radio" 
+              value='mainGuest' 
+              checked={selectedType === 'mainGuest'}
+              onChange={(e) => setSelectedType(e.target.value)}
+            />
+            I'm the main guest
+          </label>
+        </div>            
+        <div className="theCheckBoxStyle">
+          <label>
+            <input 
+              type="radio" 
+              value='someoneElse'
+              checked={selectedType === 'someoneElse'}
+              onChange={(e) => setSelectedType(e.target.value)}
+            />
+            I'm booking for someone else
+          </label>
+        </div>            
+        <div className="theCheckBoxStyle">
+          <label>
+            <input 
+              type="radio" 
+              value='company'
+              checked={selectedType === 'company'}
+              onChange={(e) => setSelectedType(e.target.value)}
+            />
+            Under Company / Business
+          </label>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+function PurchaseInfoForm({ userProfile }) {
+  const [ selectedType, setSelectedType ] = useState('mainGuest');
+  const [ profileFirstName, setProfileFirstName ] = useState('');
+  const [ profileLastName, setProfileLastName ] = useState('');
+  const [ profileEmail, setProfileEmail ] = useState('');
+  const [ profileTelRegCode, setProfileTelRegCode ] = useState('');
+  const [ profileTelephone, setProfileTelephone ] = useState('');
+
+  const InputCompanyName = useRef(null);
+  const InputCompanyRegNum = useRef(null);
+
+
+  const { firebaseUser } = useAuth();
+
+  useEffect(() => {
+    if (userProfile) {
+      setProfileFirstName(userProfile.name.first_name);
+      setProfileLastName(userProfile.name.last_name);
+      setProfileEmail(userProfile.email);
+      setProfileTelRegCode(userProfile.phone.region_code);
+      setProfileTelephone(userProfile.phone.telephone_number);
+    }
+  }, [])
+
   return (
     <div className="PurchaseInfoForm">
       <div className="mb-3">
-        <Form>
+        <div className='d-flex justify-content-between'>
           <h5>Booking Guest Details</h5>
           <div>
-            <label className="mb-1"><strong>Are you Booking for?</strong></label>
-            <div className="d-flex mb-3 gap-3">
-              <div className="theCheckBoxStyle">
-                <input type="checkbox" checked/>
-                <label>I'm the main guest</label>
-              </div>            
-              <div className="theCheckBoxStyle">
-                <input type="checkbox" />
-                <label>I'm booking for someone else</label>
-              </div>            
-              <div className="theCheckBoxStyle">
-                <input type="checkbox" />
-                <label>Under Company / Business</label>
+            {!!firebaseUser && 
+              <div className='border'>
+                You Had Signed In:
+                <strong>
+                  {firebaseUser.email}
+                </strong>
               </div>
-            </div>
+            }
           </div>
-          <Form.Group className="GuestDetailsGroup">
-            <div>
-              <Form.Label>First Name</Form.Label>
-              <Form.Control />
-            </div>
-            <div>
-              <Form.Label>Last Name</Form.Label>
-              <Form.Control />
-            </div>
-            <div>
-              <Form.Label>Country / Region</Form.Label>
+        </div>
+        <OneCheckedOnly 
+          selectedType={selectedType} 
+          setSelectedType={setSelectedType}
+        />
+        <div className="GuestDetailsGroup">
+          <div>
+            <label>
+              First Name 
+              <input 
+                value={profileFirstName ?? ''} 
+                onChange={(e) => setProfileFirstName(e.target.value)}
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Last Name 
+              <input 
+                value={profileLastName ?? ''} 
+                onChange={(e) => setProfileLastName(e.target.value)}
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Country / Region
               <select className="CountryRegion" defaultValue="">
                 <option value="" disabled>
                   Select country/region
@@ -55,22 +136,46 @@ function PurchaseInfoForm() {
                   </option>
                 ))}
               </select>
+            </label>
+          </div>
+        </div>
+        { selectedType === 'company' &&
+          <div className='d-flex'>
+            <div>
+              <div>Company Name</div>                
+              <div>
+                <input type='text' ref={InputCompanyName} />
+              </div>
             </div>
-          </Form.Group>
-        </Form>
+            <div>
+              <div>Company Registration Number</div>
+              <label>
+                <input type='text' ref={InputCompanyRegNum} />
+              </label>
+            </div>
+          </div>
+        }
       </div>
       <div className="mb-3">
-        <Form>
+        <div>
           <h5>Contact</h5>
-          <Form.Group className="GuestDetailsGroup">
+          <div className="GuestDetailsGroup">
             <div>
-              <Form.Label>Email Address</Form.Label>
-              <Form.Control />
+              <div>Email Address</div>
+              <input 
+                type="text" 
+                value={profileEmail ?? ''}
+                onChange={(e) => setProfileEmail(e.target.value)}
+              />
             </div>
             <div>
-              <Form.Label>Phone</Form.Label>
+              <div>Phone</div>
               <div className="d-flex me-3">
-                <select className="CountryTeleCode" defaultValue="">
+                <select 
+                  className="CountryTeleCode" 
+                  value={profileTelRegCode ?? ''}
+                  onChange={(e) => setProfileTelRegCode(e.target.value)}
+                >
                   <option value="" disabled>
                     Phone
                   </option>
@@ -80,11 +185,15 @@ function PurchaseInfoForm() {
                     </option>
                   ))}
                 </select>
-                <Form.Control />
+                <input 
+                  type="text" 
+                  value={profileTelephone}
+                  onChange={(e) => setProfileTelephone(e.target.value)}
+                />
               </div>
             </div>
-          </Form.Group>
-        </Form>
+          </div>
+        </div>
           {/* <p>Input phone number exclude initial digit 0 like 0/13-323-1323</p> */}
       </div>
     </div>
@@ -347,7 +456,8 @@ function HotelRoomList({ selectedRooms }) {
 
 
 export default function PurchasePortal({ BookedHotelNMainInfo }) {
-
+  const { userProfile } = useAuth();
+  
   const { 
     hotelDetailsData, 
     hotelPhotoData, 
@@ -391,7 +501,7 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
       <Container className="mt-4">
         <div className="FormNInfomationFrame">
           <div className="LeftPurchaseInfoForm">
-            <PurchaseInfoForm />
+            <PurchaseInfoForm userProfile={userProfile} />
           </div>
           <div className="LeftHotelRoomList">
             <HotelRoomList selectedRooms={selectedRooms} />

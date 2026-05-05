@@ -3,12 +3,13 @@ import useLocalStorage from "use-local-storage";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import isEqual from 'fast-deep-equal';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [ firebaseUser, setFirebaseUser ] = useLocalStorage("firebaseUser", null);
-  const [ userProfile, setUserProfile ] = useState(null);
+  const [ userProfile, setUserProfile ] = useLocalStorage("userProfile", null);
   const [ authLoading, setAuthLoading ] = useState(true);
 
   useEffect(() => {
@@ -43,13 +44,32 @@ export function AuthProvider({ children }) {
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
+        function normalizeUserProfile(firestoreProfile) {
+          if (!firestoreProfile) return null;
+
+          const { createdAt, updatedAt, ...cleanProfile  } = firestoreProfile;
+          return cleanProfile;
+        }
+
+        const actualUserProfile = normalizeUserProfile(userProfile);
+        const actualFirestoreData = normalizeUserProfile(userDocSnap.data());
         // if exsting user details, else detected is new user without info, generate blank info
         if (userDocSnap.exists()) {
-          console.log("Have Firestore Profile:", userDocSnap.data());
-          setUserProfile({
-            id: userDocSnap.id,
-            ...userDocSnap.data()
-          });
+
+          
+          if (!userProfile) {
+            console.log("Login Firestore Profile:", userDocSnap.data());
+            setUserProfile({
+              // id: userDocSnap.id,
+              ...userDocSnap.data()
+            });
+          } else if (userProfile && !isEqual(actualUserProfile, actualFirestoreData)) {
+            console.log("Update Latest Firestore Profile:", userDocSnap.data());
+            setUserProfile({
+              ...userDocSnap.data()
+            });
+          }
+
         } else {
           // if account is new, generate general blank infomation.
           console.log("No Firestore profile found for this user. Generate General Blank Infomation");
@@ -57,6 +77,7 @@ export function AuthProvider({ children }) {
           const blankProfile = {
             uid: user.uid,
             name: user.displayName || "",
+            display_name: "",
             email: user.email,
             phone: "",
             address: "",
@@ -79,11 +100,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function SaveSpecDocFirestore(updatedProfile) {
+  
+    if (!firebaseUser?.uid) {
+      throw new Error("No logged-in user.");
+    }
+
+    if (!updatedProfile || typeof updatedProfile !== 'object') {
+      throw new Error("updatedProfile must be an object, example: { displayName: 'Mike' }");
+    }
+
+    const userRef = doc(db, "users", firebaseUser.uid);
+
     await setDoc(
-      doc(db, "users", firebaseUser.uid), 
-      updatedProfile, 
+      userRef, 
+      {
+        ...updatedProfile,
+         updatedAt: serverTimestamp()
+      }, 
       { merge: true }
     );
+
+    console.log('SaveSpecDocFirestore Success');
   }
 
   return (
