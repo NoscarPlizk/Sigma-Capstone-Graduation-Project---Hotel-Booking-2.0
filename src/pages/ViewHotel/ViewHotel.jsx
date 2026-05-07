@@ -1,10 +1,10 @@
 import { Row, Col, Container, Button, Modal, Card } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { storeBookRoom } from "./Redux/StoreBookingRoom/BookingSlice_ViewHotel.js";
-import { openModal, closeModal } from './Redux/ShowModal/ModalShowSlice.js'
+// import { openModal, closeModal } from './Redux/ShowModal/ModalShowSlice.js'
 
 import "./ViewHotel.css";
 import { BookedList } from '../../content/data transfer/bookedListContent';
@@ -55,8 +55,8 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     )
   };
 
-  function PurchaseEndPoint({ saveHouse, currency }) {
-    const dispatch = useDispatch(); 
+  function PurchaseEndPoint({ saveHouse, currency, setOpenModalPurchasePortal }) {
+    // const dispatch = useDispatch(); 
     // console.log("EndPoint:", saveHouse);
     
     function SumAllSelRoomAmtNPrc() {
@@ -110,7 +110,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
                 </div>
               <button 
                 className="finalpurchase_Button"
-                onClick={() => dispatch(openModal())}
+                onClick={() => setOpenModalPurchasePortal(true)}
               >
                 I'll reserve
               </button>
@@ -167,10 +167,10 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     )
   }
 
-  function HotelRoomType({ roomList, childAgeString, currency }) {
+  function HotelRoomType({ roomList, childAgeString, currency, setOpenModalPurchasePortal }) {
 
     const dispatch = useDispatch();
-    const saveHouse = useSelector(state => state.booking.saveHouse);
+    const saveHouse = useSelector(state => state.viewhotel_selectbooking.saveHouse);
 
     if (!roomList) return <div>Loading....</div>;
     console.log("roomList", roomList);
@@ -335,6 +335,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
             <PurchaseEndPoint 
               saveHouse={saveHouse} 
               currency={currency}
+              setOpenModalPurchasePortal={setOpenModalPurchasePortal}
             />
           </div>
         </div>
@@ -361,8 +362,7 @@ export default function ViewHotel() {
   //   if (token.length === null) redirect('/userauth');
   // }
 
-  const dispatch = useDispatch(); 
-  const OpenStatus = useSelector(state => state.modal.OpenStatus);
+  const [ openModalPurchasePortal, setOpenModalPurchasePortal ] = useState(false);
 
   const [ hotelPhotoData, setHotelPhotoData ] = useState(null);
   const [ hotelDetailsData, setHotelDetailsData ] = useState(null);
@@ -403,7 +403,7 @@ export default function ViewHotel() {
   const BookedHotelNMainInfo = {
     hotelDetailsData: hotelDetailsData?.data,
     hotelPhotoData: hotelPhotoData?.data,
-    selectedRooms: useSelector(state => state.booking.saveHouse),
+    selectedRooms: useSelector(state => state.viewhotel_selectbooking.saveHouse),
     start_date: start_date,
     end_date: end_date
   }
@@ -412,12 +412,12 @@ export default function ViewHotel() {
     <>        
       <Modal 
         dialogClassName="ModalPurchasePortal"
-        show={OpenStatus} 
-        onHide={() => dispatch(closeModal())}
+        show={openModalPurchasePortal} 
+        onHide={() => setOpenModalPurchasePortal(false)}
       >
         <Modal.Body>
           <div className="d-flex justify-content-end">
-            <button onClick={() => dispatch(closeModal())}> x </button>
+            <button onClick={() => setOpenModalPurchasePortal(false)}> x </button>
           </div>
           <PurchasePortal BookedHotelNMainInfo={BookedHotelNMainInfo} />
         </Modal.Body>
@@ -461,6 +461,7 @@ export default function ViewHotel() {
             roomList={roomList} 
             childAgeString={childAgeString} 
             currency={currency} 
+            setOpenModalPurchasePortal={setOpenModalPurchasePortal}
           />
         </Row>
       </Container>

@@ -53,7 +53,7 @@ function LeftBar({ SignOutProcess }) {
 }
 
 function RightSubPage() {
-  const SelectState = useSelector(state => state.SubPage.SelectState);
+  const SelectState = useSelector(state => state.UserSettingPage_SubPage.SelectState);
 
   const DisplayComponent = subPageComponents[SelectState] ?? UserProfilePage;
 

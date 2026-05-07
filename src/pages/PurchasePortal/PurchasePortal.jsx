@@ -1,7 +1,19 @@
-import { useContext, useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
-import { useLocation } from "react-router-dom";
+// import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+
+import {
+  setBookingForType,
+  setProfileFirstName, 
+  setProfileLastName,
+  setProfileCountryRegion,
+  setCompanyName,
+  setCompanyRegNum,
+  setProfileEmail,
+  setProfileTelRegCode,
+  setProfileTelephone
+} from './Redux/FinalBookingDataSlice';
 
 import './PurchasePortal.css';
 import { BookedList } from "../../content/data transfer/bookedListContent";
@@ -15,7 +27,8 @@ import ChildAgeFreePolicy from "../ViewHotel/component/PerksListRelatedFunction/
 import PerksListColumn from "../ViewHotel/component/PerksListRelatedFunction/PerksListColumn";
 
 
-function OneCheckedOnly({ selectedType, setSelectedType }) {
+function OneCheckedOnly({ bookingForTypeReg }) {
+  const dispatch = useDispatch();
 
   return (
     <div>
@@ -26,8 +39,8 @@ function OneCheckedOnly({ selectedType, setSelectedType }) {
             <input 
               type="radio" 
               value='mainGuest' 
-              checked={selectedType === 'mainGuest'}
-              onChange={(e) => setSelectedType(e.target.value)}
+              checked={bookingForTypeReg === 'mainGuest'}
+              onChange={(e) => dispatch(setBookingForType(e.target.value))}
             />
             I'm the main guest
           </label>
@@ -37,8 +50,8 @@ function OneCheckedOnly({ selectedType, setSelectedType }) {
             <input 
               type="radio" 
               value='someoneElse'
-              checked={selectedType === 'someoneElse'}
-              onChange={(e) => setSelectedType(e.target.value)}
+              checked={bookingForTypeReg === 'someoneElse'}
+              onChange={(e) => dispatch(setBookingForType(e.target.value))}
             />
             I'm booking for someone else
           </label>
@@ -48,8 +61,8 @@ function OneCheckedOnly({ selectedType, setSelectedType }) {
             <input 
               type="radio" 
               value='company'
-              checked={selectedType === 'company'}
-              onChange={(e) => setSelectedType(e.target.value)}
+              checked={bookingForTypeReg === 'company'}
+              onChange={(e) => dispatch(setBookingForType(e.target.value))}
             />
             Under Company / Business
           </label>
@@ -61,26 +74,35 @@ function OneCheckedOnly({ selectedType, setSelectedType }) {
 
 
 function PurchaseInfoForm({ userProfile }) {
-  const [ selectedType, setSelectedType ] = useState('mainGuest');
-  const [ profileFirstName, setProfileFirstName ] = useState('');
-  const [ profileLastName, setProfileLastName ] = useState('');
-  const [ profileEmail, setProfileEmail ] = useState('');
-  const [ profileTelRegCode, setProfileTelRegCode ] = useState('');
-  const [ profileTelephone, setProfileTelephone ] = useState('');
+  const dispatch = useDispatch();
+  
+  const bookingRegistry = useSelector(state => state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData);
+  console.log("bookingRegistry:", bookingRegistry);
+  const bookingForTypeReg = bookingRegistry?.main_guest_name?.guest_booking_for_type ?? 'mainGuest';
+  const firstNameReg = bookingRegistry?.main_guest_name?.first_name ?? '';
+  const lastNameReg = bookingRegistry?.main_guest_name?.last_name ?? '';
+  const isUnderCompanyBusinessReg = bookingRegistry?.company?.is_Company_Business ?? '';
+  const companyNameReg = bookingRegistry?.company?.company_data.company_name ?? '';
+  const companyRegNumReg = bookingRegistry?.company?.company_data.company_reg_num ?? '';
+  const emailReg = bookingRegistry?.email ?? '';
+  const telephoneRegionCodeReg = bookingRegistry?.phone?.country_region ?? '';
+  const telephoneNumberReg = bookingRegistry?.phone?.phone_number ?? '';
 
   const InputCompanyName = useRef(null);
   const InputCompanyRegNum = useRef(null);
 
-
   const { firebaseUser } = useAuth();
+
+
+
 
   useEffect(() => {
     if (userProfile) {
-      setProfileFirstName(userProfile.name.first_name);
-      setProfileLastName(userProfile.name.last_name);
-      setProfileEmail(userProfile.email);
-      setProfileTelRegCode(userProfile.phone.region_code);
-      setProfileTelephone(userProfile.phone.telephone_number);
+      dispatch(setProfileFirstName({ setFirstName: userProfile.name.first_name }));
+      dispatch(setProfileLastName({ setLastName: userProfile.name.last_name }));
+      dispatch(setProfileEmail({ setEmail: userProfile.email }));
+      dispatch(setProfileTelRegCode({ setTeleCountryRegion: userProfile.phone.region_code }));
+      dispatch(setProfileTelephone({ setTelephoneNumber: userProfile.phone.telephone_number }));
     }
   }, [])
 
@@ -100,17 +122,19 @@ function PurchaseInfoForm({ userProfile }) {
             }
           </div>
         </div>
-        <OneCheckedOnly 
-          selectedType={selectedType} 
-          setSelectedType={setSelectedType}
-        />
+        <OneCheckedOnly bookingForTypeReg={bookingForTypeReg} />
+        {bookingForTypeReg === 'someoneElse' && 
+          <div className='border'>
+            Make sure you set the <strong>guest name</strong> and <strong>contact details</strong> is for who will be live to the hotel.
+          </div>
+        }
         <div className="GuestDetailsGroup">
           <div>
             <label>
               First Name 
               <input 
-                value={profileFirstName ?? ''} 
-                onChange={(e) => setProfileFirstName(e.target.value)}
+                value={firstNameReg ?? ''} 
+                onChange={(e) => dispatch(setProfileFirstName({ setFirstName: e.target.value }))}
               />
             </label>
           </div>
@@ -118,15 +142,24 @@ function PurchaseInfoForm({ userProfile }) {
             <label>
               Last Name 
               <input 
-                value={profileLastName ?? ''} 
-                onChange={(e) => setProfileLastName(e.target.value)}
+                value={lastNameReg ?? ''} 
+                onChange={(e) => dispatch(setProfileLastName({ setLastName: e.target.value }))}
               />
             </label>
           </div>
           <div>
             <label>
               Country / Region
-              <select className="CountryRegion" defaultValue="">
+              <select 
+                className="CountryRegion" 
+                defaultValue=""
+                onChange={(e) => 
+                  dispatch(
+                    setProfileCountryRegion({ 
+                      setCountryRegion: e.target.value 
+                  })
+                )}
+              >
                 <option value="" disabled>
                   Select country/region
                 </option>
@@ -139,18 +172,26 @@ function PurchaseInfoForm({ userProfile }) {
             </label>
           </div>
         </div>
-        { selectedType === 'company' &&
+        { isUnderCompanyBusinessReg === true &&
           <div className='d-flex'>
             <div>
               <div>Company Name</div>                
               <div>
-                <input type='text' ref={InputCompanyName} />
+                <input 
+                  type='text' 
+                  value={companyNameReg ?? ''}
+                  onChange={(e) => dispatch(setCompanyName({ setCompanyName: e.target.value }))}
+                />
               </div>
             </div>
             <div>
               <div>Company Registration Number</div>
               <label>
-                <input type='text' ref={InputCompanyRegNum} />
+                <input 
+                  type='text' 
+                  value={companyRegNumReg ?? ''}
+                  onChange={(e) => dispatch(setCompanyRegNum({ setCompanyName: e.target.value }))}
+                />
               </label>
             </div>
           </div>
@@ -164,8 +205,8 @@ function PurchaseInfoForm({ userProfile }) {
               <div>Email Address</div>
               <input 
                 type="text" 
-                value={profileEmail ?? ''}
-                onChange={(e) => setProfileEmail(e.target.value)}
+                value={emailReg ?? ''}
+                onChange={(e) => dispatch(setProfileEmail({ setEmail: e.target.value }))}
               />
             </div>
             <div>
@@ -173,8 +214,8 @@ function PurchaseInfoForm({ userProfile }) {
               <div className="d-flex me-3">
                 <select 
                   className="CountryTeleCode" 
-                  value={profileTelRegCode ?? ''}
-                  onChange={(e) => setProfileTelRegCode(e.target.value)}
+                  value={telephoneRegionCodeReg ?? ''}
+                  onChange={(e) => dispatch(setProfileTelRegCode({ setTeleCountryRegion: e.target.value }))}
                 >
                   <option value="" disabled>
                     Phone
@@ -187,8 +228,8 @@ function PurchaseInfoForm({ userProfile }) {
                 </select>
                 <input 
                   type="text" 
-                  value={profileTelephone}
-                  onChange={(e) => setProfileTelephone(e.target.value)}
+                  value={telephoneNumberReg ?? ''}
+                  onChange={(e) => dispatch(setProfileTelephone({ setTelephoneNumber: e.target.value }))}
                 />
               </div>
             </div>

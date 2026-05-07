@@ -29,7 +29,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
 
   if (breakfastword === "Breakfast included" && isbreakfastincluded === true) {
     // Breakfast included // FREE MEALS
-    console.log("HaveChargeBreakfast:", `1 condition`);
+    // console.log("HaveChargeBreakfast:", `1 condition`);
     return (
       <span style={{ color: 'green' }}>
         <BreakfastIcon /> {breakfastword}
@@ -37,7 +37,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
     )
 
   } else if (CheckisMealsFree(breakfastword) && isbreakfastincluded === false) {
-    console.log(`2 HaveChargeBreakfast`);
+    // console.log(`2 HaveChargeBreakfast`);
     // Breakfast EUR 999
     return (
       <span>
@@ -47,7 +47,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
 
   
   } else if (breakfastword.includes(`Breakfast included`) && isbreakfastincluded === true) {
-    console.log("HaveChargeBreakfast:", `2 condition`);
+    // console.log("HaveChargeBreakfast:", `2 condition`);
     // Breakfast included Lunch EUR 46 Dinner EUR 62 // length: 8
     // Breakfast included in the price Lunch EUR 46 Dinner EUR 62 // length: 11
 
@@ -68,7 +68,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
 
     
   } else if (breakfastword.split(/\s+/g).length === 9) {
-    console.log("HaveChargeBreakfast:", `3 condition`);
+    // console.log("HaveChargeBreakfast:", `3 condition`);
     // Breakfast MYR 131 Lunch MYR 212 Dinner MYR 286 // length: 9
 
     const SplitedString = breakfastword.split('\n');
@@ -92,7 +92,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
     && breakfastword.match(/Enjoy a convenient/g).length === 3
     && breakfastword.split('. ').length === 3
   ) {
-    console.log("HaveChargeBreakfast:", `4 condition`);
+    // console.log("HaveChargeBreakfast:", `4 condition`);
     // Enjoy a convenient breakfast at the property for EUR 37 per person, per night. 
     // Enjoy a convenient lunch at the property for EUR 81 per person, per night. 
     // Enjoy a convenient dinner at the property for EUR 135 per person, per night.
@@ -137,7 +137,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
     breakfastword.match(/Enjoy a convenient/g) 
     && breakfastword.match(/Enjoy a convenient/g).length === 1
   ) {
-    console.log("HaveChargeBreakfast:", `5 condition`);
+    // console.log("HaveChargeBreakfast:", `5 condition`);
     // Enjoy a convenient breakfast at the property for EUR 37 per person, per night. 
     
     const RephraseFunction = (breakfastword) => {
@@ -161,7 +161,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
       </span>
     )
   } else if (!breakfastword) {
-    console.log("HaveChargeBreakfast:", `6 condition`);
+    // console.log("HaveChargeBreakfast:", `6 condition`);
     // any length string but except free meals
     return (
       <span>

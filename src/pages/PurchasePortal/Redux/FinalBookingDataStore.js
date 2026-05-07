@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import BookingSlice from './BookingSlice';
+import FinalBookingDataSlice from './FinalBookingDataSlice';
 
 
 export const store = configureStore({
   reducer: {
-    counter: BookingSlice
+    counter: FinalBookingDataSlice
   }
 })
