@@ -7,7 +7,10 @@ const initialState = {
       first_name: '',
       last_name: ''
     },
-    country_region: '',
+    country_region: {
+      country_code: '',
+      country_name: ''
+    },
     email: '',
     phone: {
       country_region: '',
@@ -20,19 +23,19 @@ const initialState = {
         company_reg_num: ''
       }
     },
-    hotel_booking_data: {
+    main_hotel_booked: {
       main_hotel_name: '',
       main_hotel_address: '',
       checking_start_end_time: {
-        check_in: '',
-        check_out: '',
+        check_in_date: '',
+        check_out_date: '',
         total_days: ''
       },
       guest: {
         adults: '',
         childs: ''
       },
-      select_room_offers: []
+      select_room_offers: {}
     }
   },
 };
@@ -69,9 +72,12 @@ const FinalBookingDataSlice = createSlice({
     },
 
     setProfileCountryRegion(state, action) {
-      const { setCountryRegion } = action.payload;
+      const { setCountryCode, setCountryName } = action.payload;
+
       state.CustomerDetailsnBookingHotelData.
-      country_region = setCountryRegion;
+      country_region.country_code = setCountryCode;
+      state.CustomerDetailsnBookingHotelData.
+      country_region.country_name = setCountryName;
     },
 
     setCompanyName(state, action) {
@@ -102,8 +108,43 @@ const FinalBookingDataSlice = createSlice({
       const { setTelephoneNumber } = action.payload;
       state.CustomerDetailsnBookingHotelData.
       phone.phone_number = setTelephoneNumber;
-    }
-  }
+    },
+
+    setMainHotelData(state, action) {
+      const {
+        setHotelName,
+        setHotelAddress,
+        setCheckInNOut,
+        setGuestPax,
+        setSelectedOfferRoomData
+      } = action.payload;
+
+      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.
+      main_hotel_booked;
+      
+      path_main_hotel_booked.main_hotel_name = setHotelName;
+      path_main_hotel_booked.main_hotel_address = setHotelAddress;
+      path_main_hotel_booked.checking_start_end_time.check_in_date = setCheckInNOut.start_date;
+      path_main_hotel_booked.checking_start_end_time.check_out_date = setCheckInNOut.end_date;
+      path_main_hotel_booked.checking_start_end_time.total_days = setCheckInNOut.total_days;
+      path_main_hotel_booked.guest.adults = setGuestPax.adultPax;
+      path_main_hotel_booked.guest.childs = setGuestPax.childPax;
+
+      path_main_hotel_booked.select_room_offers = setSelectedOfferRoomData.map((MainRoom) => ({
+        ...MainRoom,
+        base_select_room: MainRoom.base_select_room.flatMap((offer) => {
+          const AmountofRoom = offer.amount;
+          const { amount, ...otherOffer } = offer;
+
+          return Array.from({ length: AmountofRoom }, (_, repeatIndex) => ({
+            ...otherOffer,
+            main_guest_name: '',
+            repeatIndex,
+            uniqueKey: `${offer.block_id}-${repeatIndex}`
+          }));
+        }) 
+      }))
+  }}
 });
 
 export const {
@@ -115,6 +156,7 @@ export const {
   setCompanyName,
   setCompanyRegNum,
   setProfileTelRegCode,
-  setProfileTelephone
+  setProfileTelephone,
+  setMainHotelData
 } = FinalBookingDataSlice.actions;
 export default FinalBookingDataSlice.reducer;

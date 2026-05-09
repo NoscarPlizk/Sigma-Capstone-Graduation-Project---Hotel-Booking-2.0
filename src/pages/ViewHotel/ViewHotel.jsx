@@ -404,8 +404,10 @@ export default function ViewHotel() {
     hotelDetailsData: hotelDetailsData?.data,
     hotelPhotoData: hotelPhotoData?.data,
     selectedRooms: useSelector(state => state.viewhotel_selectbooking.saveHouse),
-    start_date: start_date,
-    end_date: end_date
+    checkInNOutDate: {
+      start_date: start_date,
+      end_date: end_date
+    }
   }
     
   return (

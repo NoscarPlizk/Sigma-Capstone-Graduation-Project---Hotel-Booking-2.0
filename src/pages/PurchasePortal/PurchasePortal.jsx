@@ -12,7 +12,8 @@ import {
   setCompanyRegNum,
   setProfileEmail,
   setProfileTelRegCode,
-  setProfileTelephone
+  setProfileTelephone,
+  setMainHotelData
 } from './Redux/FinalBookingDataSlice';
 
 import './PurchasePortal.css';
@@ -93,9 +94,6 @@ function PurchaseInfoForm({ userProfile }) {
 
   const { firebaseUser } = useAuth();
 
-
-
-
   useEffect(() => {
     if (userProfile) {
       dispatch(setProfileFirstName({ setFirstName: userProfile.name.first_name }));
@@ -153,12 +151,18 @@ function PurchaseInfoForm({ userProfile }) {
               <select 
                 className="CountryRegion" 
                 defaultValue=""
-                onChange={(e) => 
+                onChange={(e) => {                  
+                  const country_code = e.target.value;
+                  const country_name = countryRegionOptions.find(
+                    (country) => country.code === country_code
+                  );
+
                   dispatch(
                     setProfileCountryRegion({ 
-                      setCountryRegion: e.target.value 
+                      setCountryCode: country_code,
+                      setCountryName: country_name
                   })
-                )}
+                )}}
               >
                 <option value="" disabled>
                   Select country/region
@@ -498,14 +502,19 @@ function HotelRoomList({ selectedRooms }) {
 
 export default function PurchasePortal({ BookedHotelNMainInfo }) {
   const { userProfile } = useAuth();
+  const dispatch = useDispatch();
   
+  const adultPax = useContext(BookedList).adultPax;
+  const childPax = useContext(BookedList).childPax;
+
   const { 
     hotelDetailsData, 
     hotelPhotoData, 
     selectedRooms, 
-    start_date, 
-    end_date
+    checkInNOutDate
   } = BookedHotelNMainInfo;
+
+  const { start_date, end_date } = checkInNOutDate;
       
   console.log("BookedHotelNMainInfo:", BookedHotelNMainInfo);
 
@@ -535,6 +544,23 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
     const diffMs = endDate - startDate;
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   }
+
+  useEffect(() => {
+    dispatch(setMainHotelData({
+      setHotelName: hotelDetailsData.hotel_name,
+      setHotelAddress: hotelDetailsData.address,
+      setCheckInNOut: {
+        start_date: RemakeDate().start_date,
+        end_date: RemakeDate().end_date,
+        total_days: StarttoEndDateCalculate()
+      },
+      setGuestPax: {
+        adultPax: adultPax,
+        childPax: childPax
+      },
+      setSelectedOfferRoomData: selectedRooms
+    }))
+  }, []);
 
   console.log()
   return (
