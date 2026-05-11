@@ -1,16 +1,18 @@
 .FormNInfomationFrame {
   display: grid;
   grid-template-columns: 7fr 4fr;
-  grid-template-rows: max-content max-content;
+  grid-template-rows: max-content max-content max-content;
   grid-template-areas: 
     "PurchaseInfoForm MainHotelInfomation"
-    "HotelRoomList MainHotelInfomation";
+    "HotelRoomList MainHotelInfomation"
+    "HotelRoomList ButtonNextPaymentEndpoint";
   gap: 20px;
 }
 
 .LeftPurchaseInfoForm { grid-area: PurchaseInfoForm; }
 .LeftHotelRoomList { grid-area: HotelRoomList; }
 .RightMainHotelInfomation { grid-area: MainHotelInfomation; }
+.RightButtonNextPaymentEndpoint { grid-area: ButtonNextPaymentEndpoint; }
 
 .PurchaseInfoForm {
   border: 1px solid;
@@ -61,10 +63,6 @@ input[type="checkbox"] {
   width: 100%;
 }
 
-
-
-
-
 .SelectedRoomBox {
   border: 1px solid;
   border-radius: 10px;
@@ -83,10 +81,18 @@ input[type="checkbox"] {
   gap: 15px;
 }
 
-
-
 .HotelRoomList {
   border: 1px solid;
   border-radius: 10px;
   padding: 10px;
+}
+
+.EditGuestNameHyperlink {
+  color: blue;
+  cursor: pointer;
+  transition: 0.1s;
+  text-decoration: none;
+}
+.EditGuestNameHyperlink:hover {
+  text-decoration: underline;
 }

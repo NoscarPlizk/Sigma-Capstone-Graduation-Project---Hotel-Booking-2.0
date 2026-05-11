@@ -170,7 +170,7 @@ export default function HaveChargeBreakfast({ breakfastword, isbreakfastincluded
     )
 
   } else {
-    console.log("HaveChargeBreakfast:", `7 condition`);
+    // console.log("HaveChargeBreakfast:", `7 condition`);
     return null;
   }
 }

@@ -1,6 +1,5 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
-// import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -13,13 +12,15 @@ import {
   setProfileEmail,
   setProfileTelRegCode,
   setProfileTelephone,
-  setMainHotelData
+  setMainHotelData,
+  setProfileFirstMainGuestNameRoom,
+  setMainGuestName
 } from './Redux/FinalBookingDataSlice';
+
+import { useAuth } from '../../content/Firebase/AuthContext';
 
 import './PurchasePortal.css';
 import { BookedList } from "../../content/data transfer/bookedListContent";
-
-import { useAuth } from '../../content/Firebase/AuthContext';
 
 import { countryRegionOptions } from "../../content/countryRegionOptions";
 import HaveChargeBreakfast from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast";
@@ -101,6 +102,7 @@ function PurchaseInfoForm({ userProfile }) {
       dispatch(setProfileEmail({ setEmail: userProfile.email }));
       dispatch(setProfileTelRegCode({ setTeleCountryRegion: userProfile.phone.region_code }));
       dispatch(setProfileTelephone({ setTelephoneNumber: userProfile.phone.telephone_number }));
+
     }
   }, [])
 
@@ -194,7 +196,7 @@ function PurchaseInfoForm({ userProfile }) {
                 <input 
                   type='text' 
                   value={companyRegNumReg ?? ''}
-                  onChange={(e) => dispatch(setCompanyRegNum({ setCompanyName: e.target.value }))}
+                  onChange={(e) => dispatch(setCompanyRegNum({ setCompanyRegNum: e.target.value }))}
                 />
               </label>
             </div>
@@ -386,6 +388,34 @@ function MainHotelInfomation({
 }
 
 function HotelRoomList({ selectedRooms }) {
+  const dispatch = useDispatch();
+
+  const [ blockIdFirst, setBlockIdFirst ] = useState('');
+  const [ newMainGuestName, setNewMainGuestName ] = useState('');
+
+  function StartSetMainGuestName({ uniqueKey }) {
+    setBlockIdFirst(uniqueKey);
+  };
+
+  function SaveMainGuestName({ baseRoomId, uniqueKey, newMainGuestName }) {
+    dispatch(
+      setMainGuestName({
+        baseRoomId: baseRoomId,
+        uniqueKey:   uniqueKey,
+        newMainGuestName: newMainGuestName,
+      })
+    )
+    setBlockIdFirst('');
+  };
+
+  function cancelEditMainGuestName() {
+    setBlockIdFirst('');
+    setNewMainGuestName('');
+  };
+
+  const DifferenceMainRoomBundle = useSelector(state => 
+    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData).
+    main_hotel_booked.select_room_offers;
 
   const childAgeString = useContext(BookedList).childAgeString;
   const BookedRooms = selectedRooms;
@@ -400,7 +430,7 @@ function HotelRoomList({ selectedRooms }) {
     });
 
     return all_amount_room;
-  }
+  };
 
   function getOrdinal(n) {
     if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
@@ -411,50 +441,37 @@ function HotelRoomList({ selectedRooms }) {
       case 3: return `${n}rd`;
       default: return `${n}th`;
     }
-  }
+  };
   
   return (
     <div className="HotelRoomList">
       <h4>Selected Rooms: {CountTotalRooms()}</h4>
       <div className="border rounded-3">
-      {BookedRooms.length > 0 
-        && BookedRooms.map((MainRoom, index) => {
-
-          const ContinueSequenceRoom = MainRoom.base_select_room.flatMap((offer) =>
-            Array.from({ length: offer.amount }, (_, repeatIndex) => ({
-              offer,
-              repeatIndex,
-              uniqueKey: `${offer.block_id}-${repeatIndex}`
-            }))
-          );
-          
-          console.log("ContinueSequenceRoom:", ContinueSequenceRoom);
+      {DifferenceMainRoomBundle.length > 0 
+        && DifferenceMainRoomBundle.map((MainRoom, index) => {
+          const { base_room_name, base_select_room } = MainRoom;
           
           return (
             <div key={index} className="SelectedRoomBox">
-              <h5 className="">{MainRoom.base_room_name ?? ''}</h5>
+              <h5 className="">{base_room_name ?? ''}</h5>
               <div className="d-flex flex-column gap-3">
-                {ContinueSequenceRoom.map(({ offer, uniqueKey }, index) => {
+                {base_select_room.map(({ spec_room_data, main_guest_name, uniqueKey }, index) => {
                   
-                  // console.log("offers:", offers);
-
-                  // const RoomAmount = offers?.amount;
-
-                  const OfferSpecRoomData = offer?.spec_room_data;
+                  // const OfferSpecRoomData = offer?.spec_room_data;
                   // console.log("OfferSpecRoomData", OfferSpecRoomData);
 
-                  const BreakfastString = OfferSpecRoomData?.
+                  const BreakfastString = spec_room_data?.
                     block_text.policies[2]?.content ?? '';
-                  const CancelationString = OfferSpecRoomData?.policy_display_details?.
+                  const CancelationString = spec_room_data?.policy_display_details?.
                     cancellation?.title_details?.translation ?? '';
                   
-                  const amount_adults = OfferSpecRoomData?.nr_adults;
-                  const amount_childs = OfferSpecRoomData?.nr_children;
+                  const amount_adults = spec_room_data?.nr_adults;
+                  const amount_childs = spec_room_data?.nr_children;
 
-                  const OfferPriceCurrency = OfferSpecRoomData?.
+                  const OfferPriceCurrency = spec_room_data?.
                     product_price_breakdown?.all_inclusive_amount?.currency ?? 'N/A';
 
-                  const OfferPriceTaxInclude = OfferSpecRoomData?.
+                  const OfferPriceTaxInclude = spec_room_data?.
                     product_price_breakdown?.all_inclusive_amount?.value?.toFixed(2) ?? '';
 
                   return (
@@ -465,7 +482,7 @@ function HotelRoomList({ selectedRooms }) {
                       <div className="d-flex flex-column w-100 gap-3">
                         <div className="">
                           <PerksListColumn 
-                            offer={OfferSpecRoomData} 
+                            offer={spec_room_data} 
                             childAgeString={childAgeString}
                           />
                         </div>
@@ -477,10 +494,40 @@ function HotelRoomList({ selectedRooms }) {
                               <label>{amount_childs > 0 && amount_childs} Child</label>
                             </div>
                             <div className="d-flex gap-1">
-                              <label>Main Guest: </label>
-                              <div>
-                                <button>Type Name</button>
-                              </div>
+                              <label>
+                                Main Guest:
+                                {' '}
+                                {blockIdFirst === uniqueKey 
+                                  ? <div>
+                                      <input 
+                                        type='text' 
+                                        placeholder={main_guest_name || "Type Name"}
+                                        value={newMainGuestName}
+                                        onChange={(e) => setNewMainGuestName(e.target.value)}
+                                      />
+                                      <button onClick={() => SaveMainGuestName({
+                                        baseRoomId: MainRoom.base_room_id,
+                                        uniqueKey:   uniqueKey,
+                                        newMainGuestName: newMainGuestName,
+                                      })}>
+                                        Save
+                                      </button>
+                                      <button
+                                        onClick={() => cancelEditMainGuestName()}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  : <a 
+                                      className='EditGuestNameHyperlink'
+                                      onClick={() => StartSetMainGuestName({ 
+                                        uniqueKey: uniqueKey
+                                      })}
+                                    >
+                                      {main_guest_name || "Type Name"} ✎
+                                    </a> 
+                                }
+                              </label>
                             </div>
                           </div>
                           <div>
@@ -495,6 +542,23 @@ function HotelRoomList({ selectedRooms }) {
           )}) 
       }
       </div>
+    </div>
+  )
+}
+
+function ButtonNextPaymentEndpoint() {
+  const bookingRegistry = useSelector(state => 
+    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData);
+  
+  function CheckBeforeGoSettlePayment() {
+    
+  }
+
+  return (
+    <div>
+      <button onClick={() => CheckBeforeGoSettlePayment()} >
+        Next: Settle Payment
+      </button>
     </div>
   )
 }
@@ -559,7 +623,13 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
         childPax: childPax
       },
       setSelectedOfferRoomData: selectedRooms
-    }))
+    }));
+
+    if (userProfile) {
+      dispatch(setProfileFirstMainGuestNameRoom({ 
+        setMainGuestName: `${userProfile.name.first_name} ${userProfile.name.last_name}`
+      }));
+    }
   }, []);
 
   console.log()
@@ -581,6 +651,9 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
               RemakeDate={RemakeDate()} 
               StarttoEndDateCalculate={StarttoEndDateCalculate}
             />  
+          </div>
+          <div className='RightButtonNextPaymentEndpoint'>
+            <ButtonNextPaymentEndpoint />
           </div>
         </div>
       </Container>

@@ -35,7 +35,7 @@ const initialState = {
         adults: '',
         childs: ''
       },
-      select_room_offers: {}
+      select_room_offers: []
     }
   },
 };
@@ -46,16 +46,18 @@ const FinalBookingDataSlice = createSlice({
   reducers: {
     setBookingForType(state, action) {
       const setGuestBookingForType = action.payload;
-      state.
-      CustomerDetailsnBookingHotelData.
+    
+      state.CustomerDetailsnBookingHotelData.
       main_guest_name.guest_booking_for_type = setGuestBookingForType;
+
+      const path_company = state.CustomerDetailsnBookingHotelData.company;
       
       if (setGuestBookingForType === 'company') {
-        state.CustomerDetailsnBookingHotelData.
-        company.is_Company_Business = true 
+        path_company.is_Company_Business = true 
       } else {
-        state.CustomerDetailsnBookingHotelData.
-        company.is_Company_Business = false
+        path_company.is_Company_Business = false;
+        path_company.company_data.company_name = '';
+        path_company.company_data.company_reg_num = '';
       }
     },
 
@@ -89,7 +91,7 @@ const FinalBookingDataSlice = createSlice({
     setCompanyRegNum(state, action) {
       const { setCompanyRegNum } = action.payload;
       state.CustomerDetailsnBookingHotelData.
-      company.company_data.company_name = setCompanyRegNum;
+      company.company_data.company_reg_num = setCompanyRegNum;
     },
 
     setProfileEmail(state, action) {
@@ -119,8 +121,7 @@ const FinalBookingDataSlice = createSlice({
         setSelectedOfferRoomData
       } = action.payload;
 
-      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.
-      main_hotel_booked;
+      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.main_hotel_booked;
       
       path_main_hotel_booked.main_hotel_name = setHotelName;
       path_main_hotel_booked.main_hotel_address = setHotelAddress;
@@ -129,22 +130,40 @@ const FinalBookingDataSlice = createSlice({
       path_main_hotel_booked.checking_start_end_time.total_days = setCheckInNOut.total_days;
       path_main_hotel_booked.guest.adults = setGuestPax.adultPax;
       path_main_hotel_booked.guest.childs = setGuestPax.childPax;
-
       path_main_hotel_booked.select_room_offers = setSelectedOfferRoomData.map((MainRoom) => ({
         ...MainRoom,
         base_select_room: MainRoom.base_select_room.flatMap((offer) => {
           const AmountofRoom = offer.amount;
-          const { amount, ...otherOffer } = offer;
-
+          const { amount, ...otherProperty } = offer;
           return Array.from({ length: AmountofRoom }, (_, repeatIndex) => ({
-            ...otherOffer,
+            ...otherProperty,
             main_guest_name: '',
             repeatIndex,
             uniqueKey: `${offer.block_id}-${repeatIndex}`
           }));
         }) 
-      }))
-  }}
+      }));
+    },
+
+    setProfileFirstMainGuestNameRoom(state, action) {
+      const { setMainGuestName } = action.payload;
+      
+      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.main_hotel_booked;
+
+      path_main_hotel_booked.select_room_offers[0].
+      base_select_room[0].main_guest_name = setMainGuestName
+    },
+
+    setMainGuestName(state, action) {
+      const { baseRoomId, uniqueKey, newMainGuestName } = action.payload;
+      console.log("setMainGuestName RUNNING");
+      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.main_hotel_booked;
+
+      path_main_hotel_booked.select_room_offers.find((Base) => Base.base_room_id === baseRoomId).
+      base_select_room.find((Offer) => Offer.uniqueKey === uniqueKey).
+      main_guest_name = newMainGuestName;
+    }
+  }
 });
 
 export const {
@@ -157,6 +176,8 @@ export const {
   setCompanyRegNum,
   setProfileTelRegCode,
   setProfileTelephone,
-  setMainHotelData
+  setMainHotelData,
+  setProfileFirstMainGuestNameRoom,
+  setMainGuestName
 } = FinalBookingDataSlice.actions;
 export default FinalBookingDataSlice.reducer;
