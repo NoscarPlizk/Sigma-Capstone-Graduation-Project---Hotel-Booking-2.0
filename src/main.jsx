@@ -6,6 +6,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // require download package:
 // react-bootstrap, react-router-dom, font awesome, @reduxjs/toolkit react-redux, firebase, fast-deep-equal
 
+// Payment package:
+// Stripe: @stripe/stripe-js @stripe/react-stripe-js
+// Stripe: @paypal/react-paypal-js
+{/* <script async src="https://pay.google.com/gp/p/js/pay.js"></script> */}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

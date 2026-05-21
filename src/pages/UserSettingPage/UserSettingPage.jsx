@@ -11,7 +11,6 @@ import PaymentMethodPage from "./SubPage/PaymentMethodPage";
 import { logoutUser } from "../../content/Firebase/authservice";
 import { auth } from "../../content/Firebase/firebase";
 import { useAuth } from "../../content/Firebase/AuthContext";
-// import { doc, getDoc, setDoc } from "firebase/firestore";
 
 import { useDispatch, useSelector } from "react-redux";
 import { selectSubPage } from "./Redux/SubPageSlice";

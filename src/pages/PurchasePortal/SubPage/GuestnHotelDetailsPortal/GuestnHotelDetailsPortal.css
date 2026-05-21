@@ -22,6 +22,8 @@
   width: auto;
 }
 
+/* OneCheckedOnly */
+
 input[type="checkbox"] {
   width: 20px;
   height: 20px;
@@ -33,10 +35,30 @@ input[type="checkbox"] {
   gap: 7px;
 }
 
+/* OneCheckedOnly */
+
 .GuestDetailsGroup {
   display: flex;
   gap: 10px;
 }
+
+/* InputBox  */
+
+.GeneralInputBox {
+  height: 20px;
+  width: 200px;
+  border-radius: 5px;
+}
+
+.FalseInputBox {
+  height: 20px;
+  width: 200px;
+  border: 2px solid red;
+  border-radius: 5px;
+  background-color: #fff5f5;
+}
+
+/* InputBox  */
 
 .CountryRegion {
   max-width: 250px;

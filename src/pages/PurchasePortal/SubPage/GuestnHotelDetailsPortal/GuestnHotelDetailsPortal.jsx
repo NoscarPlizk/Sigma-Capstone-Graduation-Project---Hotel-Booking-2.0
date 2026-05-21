@@ -3,249 +3,30 @@ import { Container, Row, Col, Form } from 'react-bootstrap';
 import { useSelector, useDispatch } from "react-redux";
 
 import {
-  setBookingForType,
-  setProfileFirstName, 
-  setProfileLastName,
-  setProfileCountryRegion,
-  setCompanyName,
-  setCompanyRegNum,
-  setProfileEmail,
-  setProfileTelRegCode,
-  setProfileTelephone,
+  // setBookingForType,
+  // setProfileFirstName, 
+  // setProfileLastName,
+  // setProfileCountryRegion,
+  // setCompanyName,
+  // setCompanyRegNum,
+  // setProfileEmail,
+  // setProfileTelRegCode,
+  // setProfileTelephone,
   setMainHotelData,
   setProfileFirstMainGuestNameRoom,
   setMainGuestName
-} from './Redux/FinalBookingDataSlice';
+} from '../../Redux/FinalBookingDataSlice';
 
-import { useAuth } from '../../content/Firebase/AuthContext';
+import { useAuth } from '../../../../content/Firebase/AuthContext';
 
-import './PurchasePortal.css';
-import { BookedList } from "../../content/data transfer/bookedListContent";
+import './GuestnHotelDetailsPortal.css';
+import { BookedList } from "../../../../content/data transfer/bookedListContent";
 
-import { countryRegionOptions } from "../../content/countryRegionOptions";
-import HaveChargeBreakfast from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast";
-import SplitCancelationBoldText from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/SplitCancelationBoldText";
-import ChildAgeFreePolicy from "../ViewHotel/component/PerksListRelatedFunction/SubComponent/ChildAgeFreePolicy";
-import PerksListColumn from "../ViewHotel/component/PerksListRelatedFunction/PerksListColumn";
-
-
-function OneCheckedOnly({ bookingForTypeReg }) {
-  const dispatch = useDispatch();
-
-  return (
-    <div>
-      <label className="mb-1"><strong>Are you Booking for?</strong></label>
-      <div className="d-flex mb-3 gap-3">
-        <div className="theCheckBoxStyle">
-          <label>
-            <input 
-              type="radio" 
-              value='mainGuest' 
-              checked={bookingForTypeReg === 'mainGuest'}
-              onChange={(e) => dispatch(setBookingForType(e.target.value))}
-            />
-            I'm the main guest
-          </label>
-        </div>            
-        <div className="theCheckBoxStyle">
-          <label>
-            <input 
-              type="radio" 
-              value='someoneElse'
-              checked={bookingForTypeReg === 'someoneElse'}
-              onChange={(e) => dispatch(setBookingForType(e.target.value))}
-            />
-            I'm booking for someone else
-          </label>
-        </div>            
-        <div className="theCheckBoxStyle">
-          <label>
-            <input 
-              type="radio" 
-              value='company'
-              checked={bookingForTypeReg === 'company'}
-              onChange={(e) => dispatch(setBookingForType(e.target.value))}
-            />
-            Under Company / Business
-          </label>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-
-function PurchaseInfoForm({ userProfile }) {
-  const dispatch = useDispatch();
-  
-  const bookingRegistry = useSelector(state => state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData);
-  console.log("bookingRegistry:", bookingRegistry);
-  const bookingForTypeReg = bookingRegistry?.main_guest_name?.guest_booking_for_type ?? 'mainGuest';
-  const firstNameReg = bookingRegistry?.main_guest_name?.first_name ?? '';
-  const lastNameReg = bookingRegistry?.main_guest_name?.last_name ?? '';
-  const isUnderCompanyBusinessReg = bookingRegistry?.company?.is_Company_Business ?? '';
-  const companyNameReg = bookingRegistry?.company?.company_data.company_name ?? '';
-  const companyRegNumReg = bookingRegistry?.company?.company_data.company_reg_num ?? '';
-  const emailReg = bookingRegistry?.email ?? '';
-  const telephoneRegionCodeReg = bookingRegistry?.phone?.country_region ?? '';
-  const telephoneNumberReg = bookingRegistry?.phone?.phone_number ?? '';
-
-  const InputCompanyName = useRef(null);
-  const InputCompanyRegNum = useRef(null);
-
-  const { firebaseUser } = useAuth();
-
-  useEffect(() => {
-    if (userProfile) {
-      dispatch(setProfileFirstName({ setFirstName: userProfile.name.first_name }));
-      dispatch(setProfileLastName({ setLastName: userProfile.name.last_name }));
-      dispatch(setProfileEmail({ setEmail: userProfile.email }));
-      dispatch(setProfileTelRegCode({ setTeleCountryRegion: userProfile.phone.region_code }));
-      dispatch(setProfileTelephone({ setTelephoneNumber: userProfile.phone.telephone_number }));
-
-    }
-  }, [])
-
-  return (
-    <div className="PurchaseInfoForm">
-      <div className="mb-3">
-        <div className='d-flex justify-content-between'>
-          <h5>Booking Guest Details</h5>
-          <div>
-            {!!firebaseUser && 
-              <div className='border'>
-                You Had Signed In:
-                <strong>
-                  {firebaseUser.email}
-                </strong>
-              </div>
-            }
-          </div>
-        </div>
-        <OneCheckedOnly bookingForTypeReg={bookingForTypeReg} />
-        {bookingForTypeReg === 'someoneElse' && 
-          <div className='border'>
-            Make sure you set the <strong>guest name</strong> and <strong>contact details</strong> is for who will be live to the hotel.
-          </div>
-        }
-        <div className="GuestDetailsGroup">
-          <div>
-            <label>
-              First Name 
-              <input 
-                value={firstNameReg ?? ''} 
-                onChange={(e) => dispatch(setProfileFirstName({ setFirstName: e.target.value }))}
-              />
-            </label>
-          </div>
-          <div>
-            <label>
-              Last Name 
-              <input 
-                value={lastNameReg ?? ''} 
-                onChange={(e) => dispatch(setProfileLastName({ setLastName: e.target.value }))}
-              />
-            </label>
-          </div>
-          <div>
-            <label>
-              Country / Region
-              <select 
-                className="CountryRegion" 
-                defaultValue=""
-                onChange={(e) => {                  
-                  const country_code = e.target.value;
-                  const country_name = countryRegionOptions.find(
-                    (country) => country.code === country_code
-                  );
-
-                  dispatch(
-                    setProfileCountryRegion({ 
-                      setCountryCode: country_code,
-                      setCountryName: country_name
-                  })
-                )}}
-              >
-                <option value="" disabled>
-                  Select country/region
-                </option>
-                {countryRegionOptions.map((country) => (
-                  <option key={country.name} value={country.code}>
-                    {country.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
-        { isUnderCompanyBusinessReg === true &&
-          <div className='d-flex'>
-            <div>
-              <div>Company Name</div>                
-              <div>
-                <input 
-                  type='text' 
-                  value={companyNameReg ?? ''}
-                  onChange={(e) => dispatch(setCompanyName({ setCompanyName: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div>
-              <div>Company Registration Number</div>
-              <label>
-                <input 
-                  type='text' 
-                  value={companyRegNumReg ?? ''}
-                  onChange={(e) => dispatch(setCompanyRegNum({ setCompanyRegNum: e.target.value }))}
-                />
-              </label>
-            </div>
-          </div>
-        }
-      </div>
-      <div className="mb-3">
-        <div>
-          <h5>Contact</h5>
-          <div className="GuestDetailsGroup">
-            <div>
-              <div>Email Address</div>
-              <input 
-                type="text" 
-                value={emailReg ?? ''}
-                onChange={(e) => dispatch(setProfileEmail({ setEmail: e.target.value }))}
-              />
-            </div>
-            <div>
-              <div>Phone</div>
-              <div className="d-flex me-3">
-                <select 
-                  className="CountryTeleCode" 
-                  value={telephoneRegionCodeReg ?? ''}
-                  onChange={(e) => dispatch(setProfileTelRegCode({ setTeleCountryRegion: e.target.value }))}
-                >
-                  <option value="" disabled>
-                    Phone
-                  </option>
-                  {countryRegionOptions.map((country) => (
-                    <option key={country.code} value={country.phoneCode}>
-                      {country.phoneCode} {country.name}
-                    </option>
-                  ))}
-                </select>
-                <input 
-                  type="text" 
-                  value={telephoneNumberReg ?? ''}
-                  onChange={(e) => dispatch(setProfileTelephone({ setTelephoneNumber: e.target.value }))}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-          {/* <p>Input phone number exclude initial digit 0 like 0/13-323-1323</p> */}
-      </div>
-    </div>
-  )
-}
+import HaveChargeBreakfast from "../../../ViewHotel/component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast";
+import SplitCancelationBoldText from "../../../ViewHotel/component/PerksListRelatedFunction/SubComponent/SplitCancelationBoldText";
+import ChildAgeFreePolicy from "../../../ViewHotel/component/PerksListRelatedFunction/SubComponent/ChildAgeFreePolicy";
+import PerksListColumn from "../../../ViewHotel/component/PerksListRelatedFunction/PerksListColumn";
+import PurchaseInfoForm from './component/PurchaseInfoForm';
 
 function MainHotelInfomation({ 
   hotelDetailsData, 
@@ -546,14 +327,7 @@ function HotelRoomList({ selectedRooms }) {
   )
 }
 
-function ButtonNextPaymentEndpoint() {
-  const bookingRegistry = useSelector(state => 
-    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData);
-  
-  function CheckBeforeGoSettlePayment() {
-    
-  }
-
+function ButtonNextPaymentEndpoint({ CheckBeforeGoSettlePayment }) {
   return (
     <div>
       <button onClick={() => CheckBeforeGoSettlePayment()} >
@@ -564,9 +338,13 @@ function ButtonNextPaymentEndpoint() {
 }
 
 
-export default function PurchasePortal({ BookedHotelNMainInfo }) {
+export default function GuestnHotelDetailsPortal({ BookedHotelNMainInfo, setSubPage }) {
   const { userProfile } = useAuth();
   const dispatch = useDispatch();
+
+  const BookingType = useSelector(state => 
+    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData)
+    .main_guest_name.guest_booking_for_type;
   
   const adultPax = useContext(BookedList).adultPax;
   const childPax = useContext(BookedList).childPax;
@@ -632,13 +410,91 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
     }
   }, []);
 
-  console.log()
+  const [ isTouched, setIsTouched ] = useState({
+    first_name: false,
+    last_name: false,
+    country_region_code: false,
+    email: false,
+    phone_country_region: false,
+    phone_number: false,
+    company_name: false,
+    company_reg_num: false,
+  });
+
+  const [ hadvaluebeforeSubmit, SethadvaluebeforeSubmit ] = useState({
+    first_name: false,
+    last_name: false,
+    country_region_code: false,
+    email: false,
+    phone_country_region: false,
+    phone_number: false,
+    company_name: false,
+    company_reg_num: false
+  });
+
+  const VarValueBeforeSubmitState = {
+    hadvaluebeforeSubmit,
+    SethadvaluebeforeSubmit
+  };
+
+  function DetectedTouch({ name }) {
+    setIsTouched((prev) => ({ ...prev, [name]: true }));
+  }
+
+  function isEmpty(value) {
+    return value.trim() === '';
+  }
+
+  function isError(ActualState, StateKey) {
+    if (
+      ( isEmpty(ActualState) && isTouched[StateKey] === false ) || 
+      ( !isEmpty(ActualState) && isTouched[StateKey] === true )
+    ) {
+      return false;
+    } else if ( isEmpty(ActualState) && isTouched[StateKey] === true ) {
+      return true
+    } 
+  }
+
+  const CheckBeforeGoSettlePayment = () => {
+    console.log("BookingType:", BookingType);
+
+    function isAllRequiredHadValue() {
+      const companyFields = ["company_name", "company_reg_num"];
+
+      const A = Object.entries(hadvaluebeforeSubmit)
+        .filter(([key]) => {
+          if (BookingType === "company") return true;
+          return !companyFields.includes(key);
+        })
+
+      console.log("A:", A);
+
+      const B = A.every(([key, value]) => value === true);
+      return B;
+    }
+    
+    const hadError = isAllRequiredHadValue();
+
+    if (!hadError) {
+      console.log("Some required field is still false");
+      return;
+    }
+
+    return setSubPage('PaymentPortal');
+  }
+
   return (
     <>
       <Container className="mt-4">
         <div className="FormNInfomationFrame">
           <div className="LeftPurchaseInfoForm">
-            <PurchaseInfoForm userProfile={userProfile} />
+            <PurchaseInfoForm 
+              userProfile={userProfile} 
+              DetectedTouch={DetectedTouch}
+              isError={isError}
+              VarValueBeforeSubmitState={VarValueBeforeSubmitState}
+            />
           </div>
           <div className="LeftHotelRoomList">
             <HotelRoomList selectedRooms={selectedRooms} />
@@ -653,7 +509,9 @@ export default function PurchasePortal({ BookedHotelNMainInfo }) {
             />  
           </div>
           <div className='RightButtonNextPaymentEndpoint'>
-            <ButtonNextPaymentEndpoint />
+            <ButtonNextPaymentEndpoint 
+              CheckBeforeGoSettlePayment={CheckBeforeGoSettlePayment}
+            />
           </div>
         </div>
       </Container>

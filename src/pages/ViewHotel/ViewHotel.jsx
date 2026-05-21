@@ -17,7 +17,7 @@ import * as Falcons from "react-icons/fa";
 import { FaChair, FaCheck, FaHeart, FaMoneyBill1Wave, FaPerson, FaPlane, FaShare, FaWifi } from "react-icons/fa6";
 import { FaChild } from "react-icons/fa";
 
-import PurchasePortal from "../PurchasePortal/PurchasePortal.jsx";
+import MainPurchasePortal from "../PurchasePortal/MainPurchasePortal.jsx"; 
 
 import AvaliableFacilitiesLabel from './component/AvaliableFacilitiesLabel.jsx'
 import SelectMenu from '../../component/SelectMenu/SelectMenu.jsx';
@@ -173,8 +173,8 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
     const saveHouse = useSelector(state => state.viewhotel_selectbooking.saveHouse);
 
     if (!roomList) return <div>Loading....</div>;
-    console.log("roomList", roomList);
-    console.log({ room_photo: roomList?.data?.rooms });
+    // console.log("roomList", roomList);
+    // console.log({ room_photo: roomList?.data?.rooms });
     const rooms = roomList?.data?.block;
     const rooms_data = roomList?.data?.rooms;
 
@@ -421,7 +421,7 @@ export default function ViewHotel() {
           <div className="d-flex justify-content-end">
             <button onClick={() => setOpenModalPurchasePortal(false)}> x </button>
           </div>
-          <PurchasePortal BookedHotelNMainInfo={BookedHotelNMainInfo} />
+          <MainPurchasePortal BookedHotelNMainInfo={BookedHotelNMainInfo} />
         </Modal.Body>
       </Modal>
       <Container className="Shell">
