@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import { useSelector, useDispatch } from "react-redux";
 
@@ -28,145 +28,8 @@ import ChildAgeFreePolicy from "../../../ViewHotel/component/PerksListRelatedFun
 import PerksListColumn from "../../../ViewHotel/component/PerksListRelatedFunction/PerksListColumn";
 import PurchaseInfoForm from './component/PurchaseInfoForm';
 
-function MainHotelInfomation({ 
-  hotelDetailsData, 
-  hotelPhotoData, 
-  selectedRooms, 
-  RemakeDate, 
-  StarttoEndDateCalculate 
-}) {
+import MainHotelInfomation from '../../component/MainHotelInfomation';
 
-  const { start_date, end_date } = RemakeDate;
-
-  const adultPax = useContext(BookedList).adultPax;
-  const childPax = useContext(BookedList).childPax;
-  
-  const MainIMG = hotelPhotoData[0].url;
-
-  const BookedRooms = selectedRooms;
-
-  function CountTotalPrice() {
-    let all_price_room = 0;
-    let currency = '';
-
-    BookedRooms.forEach(baseObj => {
-      baseObj.base_select_room.forEach(baseOff => {
-        const valueofPrice = baseOff.amount * Number(
-          baseOff?.
-          spec_room_data?.
-          product_price_breakdown?.
-          all_inclusive_amount?.
-          value?.
-          toFixed(2));
-
-        const thecurrency = 
-          baseOff?.
-          spec_room_data?.
-          product_price_breakdown?.
-          all_inclusive_amount?.currency
-
-          
-        currency = thecurrency;
-        all_price_room += valueofPrice;
-      });
-    });
-
-    const object = {
-      currency: currency,
-      all_price_room: all_price_room
-    }
-
-    return object;
-  }
-
-  const RoomNPrice = CountTotalPrice();
-
-  console.log('RoomNPrice:', RoomNPrice);
-
-  return (
-    <div className="MainHotelInfomation">
-      <img src={MainIMG} className="MainHotelImg" />
-      <div className="p-2">
-        <div>
-          <div className="mt-2 mb-2">
-            {hotelDetailsData?.rawData?.accuratePropertyClass
-              &&  Array.from({ length: hotelDetailsData?.rawData?.accuratePropertyClass },
-                  (_, index) => (
-                    <span key={index}>⭐</span>
-                  ))
-            }
-          </div>
-          <h4>{hotelDetailsData?.hotel_name ?? ''}</h4>
-          <p>
-            {hotelDetailsData?.address ?? ''}
-            , {hotelDetailsData?.zip} {hotelDetailsData?.city}
-            , {hotelDetailsData?.country_trans}
-          </p>
-        </div>
-        <div className="d-flex flex-column gap-2">
-          <div className="border rounded-2 p-3">
-            <h5>The Booking Details</h5>
-            <div className="d-flex gap-5">
-              <div>
-                <p>Check In</p>
-                {start_date}
-              </div>
-              <div>
-                <p>Check Out</p>
-                {end_date}         
-              </div>
-              <div>
-                <p>Total Day</p>
-                {StarttoEndDateCalculate()} Days
-              </div>
-            </div>
-            <hr/>
-              <div>
-                <p>Living Guest For:</p>
-                <div className="d-flex gap-2">
-                  <div>
-                    {adultPax} Adults
-                  </div>
-                  <div>
-                    {childPax} Childs
-                  </div>
-                </div>    
-              </div>
-            <hr/>
-            <div>
-              <p><strong>Our Selected Plan for {StarttoEndDateCalculate()} Days</strong></p>
-              {BookedRooms.map((baseObj, index) => {
-                const MainRoomName = baseObj.base_room_name;
-                const TotalRoomAmount = baseObj.base_select_room.reduce(
-                  (sum, room) => sum + room.amount, 0
-                );
-
-                return (
-                  <div key={index} className="d-flex gap-2">
-                    <div>{TotalRoomAmount}</div>
-                    <div>X</div>
-                    <div>{MainRoomName}</div>
-                  </div>
-                )
-                })
-              }
-            </div>
-            <hr/>
-            <div>
-              <p><strong>The Price Summary</strong></p>
-              <div className="d-flex justify-content-between">
-                  <h3>Price: </h3>
-                <h3>{RoomNPrice.currency} {RoomNPrice.all_price_room}</h3>
-              </div>
-              <div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function HotelRoomList({ selectedRooms }) {
   const dispatch = useDispatch();
@@ -331,14 +194,16 @@ function ButtonNextPaymentEndpoint({ CheckBeforeGoSettlePayment }) {
   return (
     <div>
       <button onClick={() => CheckBeforeGoSettlePayment()} >
-        Next: Settle Payment
+        Settle Payment
       </button>
     </div>
   )
 }
 
 
-export default function GuestnHotelDetailsPortal({ BookedHotelNMainInfo, setSubPage }) {
+export default function GuestnHotelDetailsPortal({ 
+  BookedHotelNMainInfo, objectDateNCalculate, setSubPage 
+}) {
   const { userProfile } = useAuth();
   const dispatch = useDispatch();
 
@@ -346,55 +211,46 @@ export default function GuestnHotelDetailsPortal({ BookedHotelNMainInfo, setSubP
     state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData)
     .main_guest_name.guest_booking_for_type;
   
-  const adultPax = useContext(BookedList).adultPax;
-  const childPax = useContext(BookedList).childPax;
+  const { adultPax, childPax } = useContext(BookedList);
 
-  const { 
-    hotelDetailsData, 
-    hotelPhotoData, 
-    selectedRooms, 
-    checkInNOutDate
-  } = BookedHotelNMainInfo;
-
+  const { hotelDetailsData, selectedRooms, checkInNOutDate } = BookedHotelNMainInfo;
   const { start_date, end_date } = checkInNOutDate;
       
-  console.log("BookedHotelNMainInfo:", BookedHotelNMainInfo);
+  const { RemakeDate, StarttoEndDateCalculate } = objectDateNCalculate;
 
-  function RemakeDate() {
-    const processing = (date) => {
-      return new Date(date).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      });
-    }
+  // function RemakeDate(start_date, end_date) {
+  //   function processing(date) {
+  //     return new Date(date).toLocaleDateString('en-GB', {
+  //       day: '2-digit',
+  //       month: 'short',
+  //       year: 'numeric'
+  //     });
+  //   }
 
-    const StartDate = processing(start_date);
-    const EndDate = processing(end_date);
+  //   return {
+  //     start_date: processing(start_date), 
+  //     end_date: processing(end_date)
+  //   }
+  // }
 
-    const dateObject = {
-      start_date: StartDate, end_date: EndDate
-    }
-
-    return dateObject;
-  }
-
-  const StarttoEndDateCalculate = () => {
-    const startDate = new Date(start_date);
-    const endDate = new Date(end_date);
+  // function StarttoEndDateCalculate(start_date, end_date) {
+  //   const startDate = new Date(start_date);
+  //   const endDate = new Date(end_date);
     
-    const diffMs = endDate - startDate;
-    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  }
+  //   const diffMs = endDate - startDate;
+  //   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  // }
 
   useEffect(() => {
+    const remakeDate = RemakeDate(start_date, end_date);
+
     dispatch(setMainHotelData({
       setHotelName: hotelDetailsData.hotel_name,
       setHotelAddress: hotelDetailsData.address,
       setCheckInNOut: {
-        start_date: RemakeDate().start_date,
-        end_date: RemakeDate().end_date,
-        total_days: StarttoEndDateCalculate()
+        start_date: remakeDate.start_date,
+        end_date: remakeDate.end_date,
+        total_days: StarttoEndDateCalculate(start_date, end_date)
       },
       setGuestPax: {
         adultPax: adultPax,
@@ -481,40 +337,27 @@ export default function GuestnHotelDetailsPortal({ BookedHotelNMainInfo, setSubP
       return;
     }
 
-    return setSubPage('PaymentPortal');
+    return setSubPage('StripePaymentPage');
   }
 
   return (
-    <>
-      <Container className="mt-4">
-        <div className="FormNInfomationFrame">
-          <div className="LeftPurchaseInfoForm">
-            <PurchaseInfoForm 
-              userProfile={userProfile} 
-              DetectedTouch={DetectedTouch}
-              isError={isError}
-              VarValueBeforeSubmitState={VarValueBeforeSubmitState}
-            />
-          </div>
-          <div className="LeftHotelRoomList">
-            <HotelRoomList selectedRooms={selectedRooms} />
-          </div>
-          <div className="RightMainHotelInfomation">
-            <MainHotelInfomation 
-              hotelDetailsData={hotelDetailsData}
-              hotelPhotoData={hotelPhotoData}
-              selectedRooms={selectedRooms}
-              RemakeDate={RemakeDate()} 
-              StarttoEndDateCalculate={StarttoEndDateCalculate}
-            />  
-          </div>
-          <div className='RightButtonNextPaymentEndpoint'>
-            <ButtonNextPaymentEndpoint 
-              CheckBeforeGoSettlePayment={CheckBeforeGoSettlePayment}
-            />
-          </div>
-        </div>
-      </Container>
-    </>
+    <div className='FormNInfomationFrame'>
+      <div className="PurchaseInfoForm">
+        <PurchaseInfoForm 
+          userProfile={userProfile} 
+          DetectedTouch={DetectedTouch}
+          isError={isError}
+          VarValueBeforeSubmitState={VarValueBeforeSubmitState}
+        />
+      </div>
+      <div className="HotelRoomList">
+        <HotelRoomList selectedRooms={selectedRooms} />
+      </div>
+      <div className='ButtonNextPaymentEndpoint'>
+        <ButtonNextPaymentEndpoint 
+          CheckBeforeGoSettlePayment={CheckBeforeGoSettlePayment}
+        />
+      </div>
+    </div>
   )
 }

@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 *.env
 src/content/firebase.js
+
+server/backend.env
+server/node_modules/

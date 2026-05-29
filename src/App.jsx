@@ -13,7 +13,8 @@ import Layout from "./layout/Layout";
 import SearchToHotelList from "./pages/SearchToHotelList";
 import ViewHotel from "./pages/ViewHotel/ViewHotel";
 import UserSettingPage from "./pages/UserSettingPage/UserSettingPage";
-import Payment from "./pages/Payment";
+// import Payment from "./pages/Payment";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
 // import PurchasePortal from "./pages/PurchasePortal/PurchasePortal";
@@ -106,7 +107,7 @@ function AppInner({
         <Route path="viewhotel" element={<ViewHotel />} />
         <Route path="usersetting" element={<UserSettingPage />} />
         <Route path="allbookedlist" element={<AllBookedList />} />
-        <Route path="payment" element={<Payment />} />
+        <Route path="paymentsuccesspage" element={<PaymentSuccessPage />} />
         {/* <Route path="purchaseportal" element={<PurchasePortal />} /> */}
       </Route>
     </Routes>

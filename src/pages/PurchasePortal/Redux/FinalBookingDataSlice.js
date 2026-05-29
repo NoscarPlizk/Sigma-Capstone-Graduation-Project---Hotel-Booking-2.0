@@ -35,7 +35,14 @@ const initialState = {
         adults: '',
         childs: ''
       },
-      select_room_offers: []
+      total_cost: {
+        grand_total_cost: '',
+        currency: '',
+      },
+      select_room_offers: {
+        purchase_room_description: [],
+        purchase_room_data: []
+      }
     }
   },
 };
@@ -130,7 +137,8 @@ const FinalBookingDataSlice = createSlice({
       path_main_hotel_booked.checking_start_end_time.total_days = setCheckInNOut.total_days;
       path_main_hotel_booked.guest.adults = setGuestPax.adultPax;
       path_main_hotel_booked.guest.childs = setGuestPax.childPax;
-      path_main_hotel_booked.select_room_offers = setSelectedOfferRoomData.map((MainRoom) => ({
+      path_main_hotel_booked.select_room_offers.purchase_room_data 
+        = setSelectedOfferRoomData.map((MainRoom) => ({
         ...MainRoom,
         base_select_room: MainRoom.base_select_room.flatMap((offer) => {
           const AmountofRoom = offer.amount;

@@ -11,6 +11,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // Stripe: @paypal/react-paypal-js
 {/* <script async src="https://pay.google.com/gp/p/js/pay.js"></script> */}
 
+// Backend Package:
+// npm install express, cors, dotenv, stripe
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

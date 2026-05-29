@@ -346,7 +346,6 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
   
 export default function ViewHotel() {
   const APIurl = useContext(BookedList).APIurl;
-  // const token = useContext(BookedList).token;
   const currency = useContext(BookedList).currency;
   const start_date = useContext(BookedList).initialDate;
   const end_date = useContext(BookedList).dueDate;
@@ -357,10 +356,6 @@ export default function ViewHotel() {
 
   const hotelsData = state?.hotels;
   console.log("hotelsData", hotelsData);
-
-  // const checkToken = () => {
-  //   if (token.length === null) redirect('/userauth');
-  // }
 
   const [ openModalPurchasePortal, setOpenModalPurchasePortal ] = useState(false);
 

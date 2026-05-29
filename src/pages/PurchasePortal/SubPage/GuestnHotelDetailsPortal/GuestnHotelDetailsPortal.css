@@ -1,25 +1,28 @@
 .FormNInfomationFrame {
   display: grid;
-  grid-template-columns: 7fr 4fr;
+  grid-template-columns: 7fr;
   grid-template-rows: max-content max-content max-content;
   grid-template-areas: 
-    "PurchaseInfoForm MainHotelInfomation"
-    "HotelRoomList MainHotelInfomation"
-    "HotelRoomList ButtonNextPaymentEndpoint";
+    "PurchaseInfoForm"
+    "HotelRoomList"
+    "ButtonNextPaymentEndpoint";
   gap: 20px;
 }
 
-.LeftPurchaseInfoForm { grid-area: PurchaseInfoForm; }
-.LeftHotelRoomList { grid-area: HotelRoomList; }
-.RightMainHotelInfomation { grid-area: MainHotelInfomation; }
-.RightButtonNextPaymentEndpoint { grid-area: ButtonNextPaymentEndpoint; }
-
-.PurchaseInfoForm {
+.PurchaseInfoForm { 
+  grid-area: PurchaseInfoForm; 
   border: 1px solid;
   border-radius: 10px;
   padding: 15px;
   gap: 10px;
   width: auto;
+}
+
+.HotelRoomList { grid-area: HotelRoomList; }
+.ButtonNextPaymentEndpoint { 
+  grid-area: ButtonNextPaymentEndpoint; 
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* OneCheckedOnly */

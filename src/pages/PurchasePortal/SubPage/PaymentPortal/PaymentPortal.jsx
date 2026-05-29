@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./PaymentPortal.css";
+import { PaymentElement } from "@stripe/react-stripe-js";
 
 function PaymentOption({ type, selectedPayment, setSelectedPayment, icon, label }) {
   const isSelected = selectedPayment === type;

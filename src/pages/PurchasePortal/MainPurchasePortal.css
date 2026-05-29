@@ -1,0 +1,13 @@
+.MainPurchasePortalFrame {
+  display: grid;
+  grid-template-columns: 4fr 7fr;
+  grid-template-rows: max-content max-content max-content;
+  grid-template-areas: 
+    "MainHotelInfomation RightPart"
+    "MainHotelInfomation RightPart"
+    "MainHotelInfomation RightPart";
+  gap: 20px;
+}
+
+.MainHotelInfomation { grid-area: MainHotelInfomation; }
+.RightPart { grid-area: RightPart; }
