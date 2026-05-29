@@ -5,7 +5,13 @@ export default function MainHotelInfomation({
   BookedHotelNMainInfo,
   objectDateNCalculate
 }) {
-  const { hotelDetailsData, hotelPhotoData, selectedRooms, checkInNOutDate } = BookedHotelNMainInfo;
+  const { 
+    hotelDetailsData, 
+    hotelPhotoData, 
+    selectedRooms, 
+    checkInNOutDate 
+  } = BookedHotelNMainInfo;
+  
   const { start_date, end_date } = checkInNOutDate;
 
   const { RemakeDate, StarttoEndDateCalculate } = objectDateNCalculate;

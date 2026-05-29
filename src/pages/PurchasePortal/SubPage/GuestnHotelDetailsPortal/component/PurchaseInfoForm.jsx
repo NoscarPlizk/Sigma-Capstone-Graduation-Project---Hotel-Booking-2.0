@@ -71,7 +71,9 @@ export default function PurchaseInfoForm({
 
   const { hadvaluebeforeSubmit, SethadvaluebeforeSubmit } = VarValueBeforeSubmitState;
   
-  const bookingRegistry = useSelector(state => state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData);
+  const bookingRegistry = useSelector(state => 
+    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData
+  );
   console.log("bookingRegistry:", bookingRegistry);
   const bookingForTypeReg = bookingRegistry?.main_guest_name?.guest_booking_for_type ?? 'mainGuest';
   const firstNameReg = bookingRegistry?.main_guest_name?.first_name ?? '';

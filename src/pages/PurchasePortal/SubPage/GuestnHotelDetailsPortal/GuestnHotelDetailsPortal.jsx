@@ -59,7 +59,7 @@ function HotelRoomList({ selectedRooms }) {
 
   const DifferenceMainRoomBundle = useSelector(state => 
     state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData).
-    main_hotel_booked.select_room_offers;
+    main_hotel_booked.select_room_offers.purchase_room_data;
 
   const childAgeString = useContext(BookedList).childAgeString;
   const BookedRooms = selectedRooms;
