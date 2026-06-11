@@ -15,10 +15,8 @@ export default function CheckoutForm() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
-
+    if (!stripe || !elements) { return; }
+    
     setIsProcessing(true);
     setMessage("");
 

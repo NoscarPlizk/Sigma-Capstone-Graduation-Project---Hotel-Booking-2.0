@@ -71,7 +71,7 @@ export default function PerksListColumn({ offer, childAgeString }) {
                 childAgeString={childAgeString} 
                 offer={offer}
               /> 
-            : `ChildAgeFreePolicy no show`
+            : '' //`ChildAgeFreePolicy no show`
           }
         </div>
         <div id="No prepayment needed">

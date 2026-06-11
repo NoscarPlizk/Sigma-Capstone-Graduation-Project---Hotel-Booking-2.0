@@ -12,8 +12,8 @@ import {
   // setProfileEmail,
   // setProfileTelRegCode,
   // setProfileTelephone,
-  setMainHotelData,
-  setProfileFirstMainGuestNameRoom,
+  // setMainHotelData,
+  // setProfileFirstMainGuestNameRoom,
   setMainGuestName
 } from '../../Redux/FinalBookingDataSlice';
 
@@ -30,8 +30,7 @@ import PurchaseInfoForm from './component/PurchaseInfoForm';
 
 import MainHotelInfomation from '../../component/MainHotelInfomation';
 
-
-function HotelRoomList({ selectedRooms }) {
+function HotelRoomList({ bookingRegistry }) {
   const dispatch = useDispatch();
 
   const [ blockIdFirst, setBlockIdFirst ] = useState('');
@@ -57,20 +56,17 @@ function HotelRoomList({ selectedRooms }) {
     setNewMainGuestName('');
   };
 
-  const DifferenceMainRoomBundle = useSelector(state => 
-    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData).
-    main_hotel_booked.select_room_offers.purchase_room_data;
+  const DifferenceMainRoomBundle = bookingRegistry.main_hotel_booked.select_room_offers;
 
   const childAgeString = useContext(BookedList).childAgeString;
-  const BookedRooms = selectedRooms;
 
-  function CountTotalRooms() {
+  function CountAllTotalRooms() {
     let all_amount_room = 0;
 
-    BookedRooms.forEach(baseObj => {
+    DifferenceMainRoomBundle.forEach(baseObj => {
       baseObj.base_select_room.forEach(MainRoom => {
-        all_amount_room += MainRoom.amount;
-      });
+        all_amount_room += Number(MainRoom.amount);
+      }); 
     });
 
     return all_amount_room;
@@ -89,7 +85,7 @@ function HotelRoomList({ selectedRooms }) {
   
   return (
     <div className="HotelRoomList">
-      <h4>Selected Rooms: {CountTotalRooms()}</h4>
+      <h4>Selected Rooms: {CountAllTotalRooms()}</h4>
       <div className="border rounded-3">
       {DifferenceMainRoomBundle.length > 0 
         && DifferenceMainRoomBundle.map((MainRoom, index) => {
@@ -151,7 +147,7 @@ function HotelRoomList({ selectedRooms }) {
                                       />
                                       <button onClick={() => SaveMainGuestName({
                                         baseRoomId: MainRoom.base_room_id,
-                                        uniqueKey:   uniqueKey,
+                                        uniqueKey: uniqueKey,
                                         newMainGuestName: newMainGuestName,
                                       })}>
                                         Save
@@ -201,70 +197,10 @@ function ButtonNextPaymentEndpoint({ CheckBeforeGoSettlePayment }) {
 }
 
 
-export default function GuestnHotelDetailsPortal({ 
-  BookedHotelNMainInfo, objectDateNCalculate, setSubPage 
-}) {
+export default function GuestnHotelDetailsPortal({ bookingRegistry, setSubPage }) {
   const { userProfile } = useAuth();
-  const dispatch = useDispatch();
 
-  const BookingType = useSelector(state => 
-    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData)
-    .main_guest_name.guest_booking_for_type;
-  
-  const { adultPax, childPax } = useContext(BookedList);
-
-  const { hotelDetailsData, selectedRooms, checkInNOutDate } = BookedHotelNMainInfo;
-  const { start_date, end_date } = checkInNOutDate;
-      
-  const { RemakeDate, StarttoEndDateCalculate } = objectDateNCalculate;
-
-  // function RemakeDate(start_date, end_date) {
-  //   function processing(date) {
-  //     return new Date(date).toLocaleDateString('en-GB', {
-  //       day: '2-digit',
-  //       month: 'short',
-  //       year: 'numeric'
-  //     });
-  //   }
-
-  //   return {
-  //     start_date: processing(start_date), 
-  //     end_date: processing(end_date)
-  //   }
-  // }
-
-  // function StarttoEndDateCalculate(start_date, end_date) {
-  //   const startDate = new Date(start_date);
-  //   const endDate = new Date(end_date);
-    
-  //   const diffMs = endDate - startDate;
-  //   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  // }
-
-  useEffect(() => {
-    const remakeDate = RemakeDate(start_date, end_date);
-
-    dispatch(setMainHotelData({
-      setHotelName: hotelDetailsData.hotel_name,
-      setHotelAddress: hotelDetailsData.address,
-      setCheckInNOut: {
-        start_date: remakeDate.start_date,
-        end_date: remakeDate.end_date,
-        total_days: StarttoEndDateCalculate(start_date, end_date)
-      },
-      setGuestPax: {
-        adultPax: adultPax,
-        childPax: childPax
-      },
-      setSelectedOfferRoomData: selectedRooms
-    }));
-
-    if (userProfile) {
-      dispatch(setProfileFirstMainGuestNameRoom({ 
-        setMainGuestName: `${userProfile.name.first_name} ${userProfile.name.last_name}`
-      }));
-    }
-  }, []);
+  const BookingType = bookingRegistry.main_guest_name.guest_booking_for_type;
 
   const [ isTouched, setIsTouched ] = useState({
     first_name: false,
@@ -351,7 +287,7 @@ export default function GuestnHotelDetailsPortal({
         />
       </div>
       <div className="HotelRoomList">
-        <HotelRoomList selectedRooms={selectedRooms} />
+        <HotelRoomList bookingRegistry={bookingRegistry} />
       </div>
       <div className='ButtonNextPaymentEndpoint'>
         <ButtonNextPaymentEndpoint 

@@ -1,5 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Container } from "react-bootstrap";
+import { useSelector, useDispatch } from "react-redux";
+
+import {
+  setMainHotelData,
+  setProfileFirstMainGuestNameRoom,
+} from './Redux/FinalBookingDataSlice';
+
+import { useAuth } from "../../content/Firebase/AuthContext";
+
+import { BookedList } from "../../content/data transfer/bookedListContent";
 
 import MainHotelInfomation from "./component/MainHotelInfomation";
 import GuestnHotelDetailsPortal from "./SubPage/GuestnHotelDetailsPortal/GuestnHotelDetailsPortal";
@@ -46,6 +56,52 @@ export default function MainPurchasePortal({ BookedHotelNMainInfo }) {
     RemakeDate, StarttoEndDateCalculate
   }
 
+  const { adultPax, childPax } = useContext(BookedList);
+
+  const { 
+    hotelDetailsData, 
+    selectedRooms, 
+    checkInNOutDate, 
+    currency 
+  } = BookedHotelNMainInfo;
+
+  const { start_date, end_date } = checkInNOutDate;
+
+  const dispatch = useDispatch();
+  const { userProfile } = useAuth();
+
+  useEffect(() => {
+    const remakeDate = RemakeDate(start_date, end_date);
+
+    dispatch(setMainHotelData({
+      setHotelName: hotelDetailsData.hotel_name,
+      setHotelAddress: hotelDetailsData.address,
+      setHotelId: hotelDetailsData.hotel_id,
+      setCheckInNOut: {
+        start_date: remakeDate.start_date,
+        end_date: remakeDate.end_date,
+        total_days: StarttoEndDateCalculate(start_date, end_date)
+      },
+      setGuestPax: {
+        adultPax: adultPax,
+        childPax: childPax
+      },
+      setSelectedOfferRoomData: selectedRooms,
+      setCurrency: currency,
+      setJSONDATA: hotelDetailsData
+    }));
+
+    if (userProfile) {
+      dispatch(setProfileFirstMainGuestNameRoom({ 
+        setMainGuestName: `${userProfile.name.first_name} ${userProfile.name.last_name}`
+      }));
+    }
+  }, []);
+
+  const bookingRegistry = useSelector(state => 
+    state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData
+  );
+
   return (
     <>
       <Container className="mt-4">
@@ -54,12 +110,12 @@ export default function MainPurchasePortal({ BookedHotelNMainInfo }) {
             <MainHotelInfomation 
               BookedHotelNMainInfo={BookedHotelNMainInfo}
               objectDateNCalculate={objectDateNCalculate}
+              bookingRegistry={bookingRegistry}
             />
           </div>
           <div className="RightPart">
             <DisplayComponent 
-              BookedHotelNMainInfo={BookedHotelNMainInfo} 
-              objectDateNCalculate={objectDateNCalculate}
+              bookingRegistry={bookingRegistry}
               setSubPage={setSubPage}
             />
           </div>

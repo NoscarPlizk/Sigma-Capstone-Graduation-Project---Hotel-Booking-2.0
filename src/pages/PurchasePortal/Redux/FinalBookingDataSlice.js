@@ -1,7 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import BookingRegCodeGenerate from "./sub-function/BookingRegCodeGenerate";
+import SumAllSelRoomAmtNPrc from "./sub-function/SumAllSelRoomAmtNPrc";
 
 const initialState = {
   CustomerDetailsnBookingHotelData: {
+    booking_registry_code: '',
     main_guest_name: {
       guest_booking_for_type: 'mainGuest',
       first_name: '',
@@ -37,12 +40,11 @@ const initialState = {
       },
       total_cost: {
         grand_total_cost: '',
+        grand_total_cost_deceimal: '',
         currency: '',
       },
-      select_room_offers: {
-        purchase_room_description: [],
-        purchase_room_data: []
-      }
+      select_room_offers: [],
+      rawjsondata: {}
     }
   },
 };
@@ -123,22 +125,19 @@ const FinalBookingDataSlice = createSlice({
       const {
         setHotelName,
         setHotelAddress,
+        setHotelId,
         setCheckInNOut,
         setGuestPax,
-        setSelectedOfferRoomData
+        setSelectedOfferRoomData,
+        setCurrency,
+        setJSONDATA
       } = action.payload;
 
-      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.main_hotel_booked;
-      
-      path_main_hotel_booked.main_hotel_name = setHotelName;
-      path_main_hotel_booked.main_hotel_address = setHotelAddress;
-      path_main_hotel_booked.checking_start_end_time.check_in_date = setCheckInNOut.start_date;
-      path_main_hotel_booked.checking_start_end_time.check_out_date = setCheckInNOut.end_date;
-      path_main_hotel_booked.checking_start_end_time.total_days = setCheckInNOut.total_days;
-      path_main_hotel_booked.guest.adults = setGuestPax.adultPax;
-      path_main_hotel_booked.guest.childs = setGuestPax.childPax;
-      path_main_hotel_booked.select_room_offers.purchase_room_data 
-        = setSelectedOfferRoomData.map((MainRoom) => ({
+      console.log('actionpayload From Slice:', action.payload);
+
+      const { start_date, end_date } = setCheckInNOut;
+
+      const OfferedRoomData = setSelectedOfferRoomData.map((MainRoom) => ({
         ...MainRoom,
         base_select_room: MainRoom.base_select_room.flatMap((offer) => {
           const AmountofRoom = offer.amount;
@@ -151,6 +150,29 @@ const FinalBookingDataSlice = createSlice({
           }));
         }) 
       }));
+
+      const total_cost = SumAllSelRoomAmtNPrc(setSelectedOfferRoomData);
+
+      function ConvertToDecimal(total_cost) {
+        return Math.round(total_cost * 100);
+      }
+
+      const booking_registry = state.CustomerDetailsnBookingHotelData;
+      const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.main_hotel_booked;
+      
+      booking_registry.booking_registry_code = BookingRegCodeGenerate(setHotelId, start_date, end_date);
+      path_main_hotel_booked.main_hotel_name = setHotelName;
+      path_main_hotel_booked.main_hotel_address = setHotelAddress;
+      path_main_hotel_booked.checking_start_end_time.check_in_date = setCheckInNOut.start_date;
+      path_main_hotel_booked.checking_start_end_time.check_out_date = setCheckInNOut.end_date;
+      path_main_hotel_booked.checking_start_end_time.total_days = setCheckInNOut.total_days;
+      path_main_hotel_booked.guest.adults = setGuestPax.adultPax;
+      path_main_hotel_booked.guest.childs = setGuestPax.childPax;
+      path_main_hotel_booked.select_room_offers = OfferedRoomData;
+      path_main_hotel_booked.total_cost.grand_total_cost = total_cost;
+      path_main_hotel_booked.total_cost.grand_total_cost_deceimal = ConvertToDecimal(total_cost);
+      path_main_hotel_booked.total_cost.currency = setCurrency;
+      path_main_hotel_booked.rawjsondata = setJSONDATA;
     },
 
     setProfileFirstMainGuestNameRoom(state, action) {
@@ -158,8 +180,8 @@ const FinalBookingDataSlice = createSlice({
       
       const path_main_hotel_booked = state.CustomerDetailsnBookingHotelData.main_hotel_booked;
 
-      path_main_hotel_booked.select_room_offers[0].
-      base_select_room[0].main_guest_name = setMainGuestName
+      path_main_hotel_booked.select_room_offers[0]
+      .base_select_room[0].main_guest_name = setMainGuestName
     },
 
     setMainGuestName(state, action) {

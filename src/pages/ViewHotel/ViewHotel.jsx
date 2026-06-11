@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
-import { storeBookRoom } from "./Redux/StoreBookingRoom/BookingSlice_ViewHotel.js";
+import { storeBookRoom, clearBookedRooms } from "./Redux/StoreBookingRoom/BookingSlice_ViewHotel.js";
 // import { openModal, closeModal } from './Redux/ShowModal/ModalShowSlice.js'
 
 import "./ViewHotel.css";
@@ -86,7 +86,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
 
       const nested_object = {
         cal_allamount: cal_allamount,
-        cal_totalprice: cal_totalprice
+        cal_totalprice: cal_totalprice.toFixed(2)
       }
 
       return nested_object;
@@ -106,7 +106,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
                   </strong>
                 </h5>
                 <div className="ep-TotalPricePurchase">
-                  {currency}{' '}{SumedAmountnPrc.cal_totalprice.toFixed(2)}
+                  {currency}{' '}{SumedAmountnPrc.cal_totalprice}
                 </div>
               <button 
                 className="finalpurchase_Button"
@@ -134,30 +134,33 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
                   <h5>{baseObj?.base_room_name ?? 'n/a'}</h5>
                 </div>
                 <div>
-                  {baseObj.base_select_room.map((baseOff, index) => 
-                    <div key={index} className="ep-offroomlist">
-                      <div className="pax-co">
-                        <AdultorChildIcon
-                          amount_adults={baseOff.spec_room_data?.nr_adults}
-                          amount_child={baseOff.spec_room_data?.nr_children}
-                        />
+                  {baseObj.base_select_room.map((baseOff, index) => {
+                    const { nr_adults, nr_children, product_price_breakdown } = baseOff.spec_room_data;
+                    const { value, currency } = product_price_breakdown.all_inclusive_amount;
+                    const allroomprice = Number(value?.toFixed(2) * baseOff.amount).toFixed(2);
+
+                    return (
+                      <div key={index} className="ep-offroomlist">
+                        <div className="pax-co">
+                          <AdultorChildIcon
+                            amount_adults={nr_adults ?? undefined}
+                            amount_child={nr_children ?? undefined}
+                          />
+                        </div>
+                        <div className="room_amt-co">
+                          {baseOff?.amount} X rooms
+                        </div>  
+                        <div className="price-co">
+                          {currency ?? ''}
+                          {' '}
+                          { baseOff.amount === 1 
+                            ? value?.toFixed(2) 
+                            : allroomprice
+                          }
+                        </div>
                       </div>
-                      <div className="room_amt-co">
-                        {baseOff?.amount} X rooms
-                      </div>  
-                      <div className="price-co">
-                        {baseOff?.spec_room_data?.product_price_breakdown?.
-                            all_inclusive_amount?.currency ?? ''}
-                        {' '}
-                        { baseOff.amount > 1 
-                          ? baseOff?.spec_room_data?.product_price_breakdown?.
-                            all_inclusive_amount?.value?.toFixed(2) * baseOff.amount
-                          : baseOff?.spec_room_data?.product_price_breakdown?.
-                            all_inclusive_amount?.value?.toFixed(2) 
-                        }
-                      </div>
-                    </div>
-                  )}
+                    )
+                  })}
                 </div>
               </div>
             ))
@@ -345,7 +348,7 @@ import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
 
   
 export default function ViewHotel() {
-  const APIurl = useContext(BookedList).APIurl;
+  // const APIurl = useContext(BookedList).APIurl;
   const currency = useContext(BookedList).currency;
   const start_date = useContext(BookedList).initialDate;
   const end_date = useContext(BookedList).dueDate;
@@ -356,6 +359,8 @@ export default function ViewHotel() {
 
   const hotelsData = state?.hotels;
   console.log("hotelsData", hotelsData);
+
+  const dispatch = useDispatch();
 
   const [ openModalPurchasePortal, setOpenModalPurchasePortal ] = useState(false);
 
@@ -387,7 +392,7 @@ export default function ViewHotel() {
     }
 
     load();
-
+    dispatch(clearBookedRooms());
   }, []);
 
   console.log("hotelPhotoData:", hotelPhotoData?.data[0]?.url);
@@ -402,8 +407,11 @@ export default function ViewHotel() {
     checkInNOutDate: {
       start_date: start_date,
       end_date: end_date
-    }
+    },
+    currency: currency
   }
+
+  console.log("BookedHotelNMainInfo:", BookedHotelNMainInfo);
     
   return (
     <>        

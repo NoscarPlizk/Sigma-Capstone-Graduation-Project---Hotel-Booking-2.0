@@ -3,14 +3,19 @@ import { BookedList } from '../../../content/data transfer/bookedListContent';
 
 export default function MainHotelInfomation({ 
   BookedHotelNMainInfo,
-  objectDateNCalculate
+  objectDateNCalculate,
+  bookingRegistry
 }) {
+
   const { 
     hotelDetailsData, 
     hotelPhotoData, 
     selectedRooms, 
     checkInNOutDate 
   } = BookedHotelNMainInfo;
+
+  const select_room_offers = 
+    bookingRegistry?.main_hotel_booked?.select_room_offers ?? [];
   
   const { start_date, end_date } = checkInNOutDate;
 
@@ -48,12 +53,12 @@ export default function MainHotelInfomation({
       });
     });
 
-    const object = {
+    const nested_object = {
       currency: currency,
-      all_price_room: all_price_room
+      all_price_room: all_price_room.toFixed(2)
     }
 
-    return object;
+    return nested_object;
   }
 
   const RoomNPrice = CountTotalPrice();
@@ -112,20 +117,15 @@ export default function MainHotelInfomation({
             <hr/>
             <div>
               <p><strong>Our Selected Plan for {total_days} Days</strong></p>
-              {selectedRooms.map((baseObj, index) => {
-                const MainRoomName = baseObj.base_room_name;
-                const TotalRoomAmount = baseObj.base_select_room.reduce(
-                  (sum, room) => sum + room.amount, 0
-                );
+              {select_room_offers.map((rooms, index) => {
+                const { total_same_rooms_name } = 
+                  rooms.base_select_room_description;
 
                 return (
                   <div key={index} className="d-flex gap-2">
-                    <div>{TotalRoomAmount}</div>
-                    <div>X</div>
-                    <div>{MainRoomName}</div>
+                    <div>{total_same_rooms_name}</div>
                   </div>
-                )
-                })
+                )})
               }
             </div>
             <hr/>
