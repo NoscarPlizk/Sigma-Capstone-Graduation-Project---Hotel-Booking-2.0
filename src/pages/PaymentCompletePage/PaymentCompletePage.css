@@ -1,0 +1,206 @@
+.payment-complete-page {
+  min-height: calc(100vh - 70px);
+  background-color: #f5f5f5;
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.payment-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.success-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #52b788;
+  color: white;
+  font-size: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.error-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #dc3545;
+  color: white;
+  font-size: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.payment-header h1,
+.payment-card h1 {
+  font-size: 34px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.payment-header p,
+.payment-message {
+  color: #555;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.order-summary-card,
+.payment-card {
+  width: 100%;
+  max-width: 620px;
+  background-color: white;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.order-summary-card h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 22px;
+}
+
+.hotel-summary {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.hotel-image {
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
+  object-fit: cover;
+  background-color: #eee;
+}
+
+.hotel-info h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.hotel-info p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.summary-divider {
+  height: 1px;
+  background-color: #e5e5e5;
+  margin: 20px 0;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.room-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.room-image {
+  width: 70px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #eee;
+}
+
+.room-row h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.room-row p {
+  color: #666;
+  font-size: 13px;
+  margin: 0;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+}
+
+.total-row span,
+.total-row strong {
+  font-weight: 700;
+}
+
+.payment-actions {
+  margin-top: 26px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.outline-button,
+.primary-button {
+  min-width: 140px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.outline-button {
+  background-color: white;
+  border: 1px solid #222;
+  color: #222;
+}
+
+.primary-button {
+  background-color: #222;
+  border: 1px solid #222;
+  color: white;
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 17px;
+  color: #555;
+}
+
+@media (max-width: 576px) {
+  .payment-header h1,
+  .payment-card h1 {
+    font-size: 26px;
+  }
+
+  .hotel-summary {
+    flex-direction: column;
+  }
+
+  .room-row {
+    align-items: flex-start;
+  }
+
+  .room-left {
+    align-items: flex-start;
+  }
+}

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "./CheckoutForm";
-
+import { useAuth } from "../../../../content/Firebase/AuthContext";
 import { useSelector, useDispatch } from "react-redux";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -84,7 +85,10 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
   const [ clientSecret, setClientSecret ] = useState("");
   const [ loading, setLoading ] = useState(true);
   const [ loadError, setLoadError ] = useState("");
+  const { firebaseUser, userProfile } = useAuth();
 
+  const redirect = useNavigate();
+  
   // console.log('bookingReg_currency:', bookingRegistry.main_hotel_booked.total_cost.currency);
 
   useEffect(() => {
@@ -111,6 +115,7 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
         }
 
         setClientSecret(data.clientSecret);
+                
       } catch (error) {
         console.error("Create PaymentIntent error:", error);
         setLoadError(error.message);
@@ -119,32 +124,45 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
       }
     }
 
-
-    async function ImportIntoDB() {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/start-setting-registry-data-in-db`,
-          {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              bookingRegistry: bookingRegistry
-            }),
-          }
-        );
- 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to Database Post");
-        }
-      } catch (error) {
-        console.error('Database Post Error:', error)
-      }
-    }
-
     createPaymentIntent();
   }, []);
+
+
+  // async function ImportIntoDB(paymentIntentId) {
+  //   const response = await fetch(
+  //     `${import.meta.env.VITE_BACKEND_URL}/api/start-setting-registry-data-in-db`,
+  //     {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         stripePaymentIntentId: paymentIntentId,
+  //         firebaseUser: {
+  //           firebase_uid: firebaseUser.uid,
+  //           email: userProfile.email,
+  //           display_name: userProfile.displayName,
+  //           phone_number: `${userProfile.region_code} ${userProfile.telephone_number}`,
+  //           photo_url: userProfile.photoURL,
+  //         },
+  //         bookingRegistry,
+  //       }),
+  //     }
+  //   );
+
+  //   const data = await response.json();
+
+  //   if (!response.ok) {
+  //     throw new Error(data.message || "Failed to Database Post");
+  //   }
+
+  //   if (data.success) {
+  //     redirect(
+  //       `/payment-complete?booking_code=${encodeURIComponent(
+  //         data.booking.booking_code
+  //       )}`,
+  //       { replace: true }
+  //     );
+  //   }
+  // }
 
   const options = {
     clientSecret,

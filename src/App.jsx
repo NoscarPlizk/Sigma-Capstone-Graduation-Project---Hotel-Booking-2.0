@@ -13,11 +13,10 @@ import Layout from "./layout/Layout";
 import SearchToHotelList from "./pages/SearchToHotelList";
 import ViewHotel from "./pages/ViewHotel/ViewHotel";
 import UserSettingPage from "./pages/UserSettingPage/UserSettingPage";
-// import Payment from "./pages/Payment";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentCompletePage from "./pages/PaymentCompletePage/PaymentCompletePage";
+import PaymentCompletePrototypePage from "./pages/PaymentCompletePrototypePage/PaymentCompletePrototypePage";
 import AllBookedList from "./pages/AllBookedList";
 import MainHome from "./pages/MainHome";
-// import PurchasePortal from "./pages/PurchasePortal/PurchasePortal";
 
 export default function App() {
   const [ token, setToken ] = useLocalStorage('token', null);
@@ -107,8 +106,8 @@ function AppInner({
         <Route path="viewhotel" element={<ViewHotel />} />
         <Route path="usersetting" element={<UserSettingPage />} />
         <Route path="allbookedlist" element={<AllBookedList />} />
-        <Route path="paymentsuccesspage" element={<PaymentSuccessPage />} />
-        {/* <Route path="purchaseportal" element={<PurchasePortal />} /> */}
+        <Route path="paymentcomplete" element={<PaymentCompletePage />} />
+        <Route path="payment-complete-prototype" element={<PaymentCompletePrototypePage />} />
       </Route>
     </Routes>
   );
