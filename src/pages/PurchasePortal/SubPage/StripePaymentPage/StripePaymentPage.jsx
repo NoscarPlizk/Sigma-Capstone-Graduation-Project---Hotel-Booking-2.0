@@ -115,6 +115,11 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
         }
 
         setClientSecret(data.clientSecret);
+
+        sessionStorage.setItem(
+          `bookingRegistry:${data.paymentIntentId}`,
+          JSON.stringify(bookingRegistry)
+        );
                 
       } catch (error) {
         console.error("Create PaymentIntent error:", error);
@@ -126,43 +131,6 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
 
     createPaymentIntent();
   }, []);
-
-
-  // async function ImportIntoDB(paymentIntentId) {
-  //   const response = await fetch(
-  //     `${import.meta.env.VITE_BACKEND_URL}/api/start-setting-registry-data-in-db`,
-  //     {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         stripePaymentIntentId: paymentIntentId,
-  //         firebaseUser: {
-  //           firebase_uid: firebaseUser.uid,
-  //           email: userProfile.email,
-  //           display_name: userProfile.displayName,
-  //           phone_number: `${userProfile.region_code} ${userProfile.telephone_number}`,
-  //           photo_url: userProfile.photoURL,
-  //         },
-  //         bookingRegistry,
-  //       }),
-  //     }
-  //   );
-
-  //   const data = await response.json();
-
-  //   if (!response.ok) {
-  //     throw new Error(data.message || "Failed to Database Post");
-  //   }
-
-  //   if (data.success) {
-  //     redirect(
-  //       `/payment-complete?booking_code=${encodeURIComponent(
-  //         data.booking.booking_code
-  //       )}`,
-  //       { replace: true }
-  //     );
-  //   }
-  // }
 
   const options = {
     clientSecret,

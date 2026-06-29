@@ -84,7 +84,7 @@ export default function PurchaseInfoForm({
   const companyNameReg = bookingRegistry?.company?.company_data.company_name ?? '';
   const companyRegNumReg = bookingRegistry?.company?.company_data.company_reg_num ?? '';
   const emailReg = bookingRegistry?.email ?? '';
-  const telephoneRegionCodeReg = bookingRegistry?.phone?.country_region ?? '';
+  const telephoneRegionCodeReg = bookingRegistry?.phone?.region_code ?? '';
   const telephoneNumberReg = bookingRegistry?.phone?.phone_number ?? '';
 
   const InputCompanyName = useRef(null);
@@ -96,8 +96,12 @@ export default function PurchaseInfoForm({
     if (userProfile) {
       dispatch(setProfileFirstName({ setFirstName: userProfile.name.first_name }));
       dispatch(setProfileLastName({ setLastName: userProfile.name.last_name }));
+      dispatch(setProfileCountryRegion({ 
+        setCountryData: countryRegionOptions.find((country) => 
+        country.name === userProfile.nationality )
+      }));
       dispatch(setProfileEmail({ setEmail: userProfile.email }));
-      dispatch(setProfileTelRegCode({ setTeleCountryRegion: userProfile.phone.region_code }));
+      dispatch(setProfileTelRegCode({ setTeleCountryRegion: userProfile.phone }));
       dispatch(setProfileTelephone({ setTelephoneNumber: userProfile.phone.telephone_number }));
     }
   }, [])
@@ -122,7 +126,7 @@ export default function PurchaseInfoForm({
       lastNameReg, SethadvaluebeforeSubmit, 'last_name'
     );
     checkisNotEmptyStateByUseEffect(
-      countryRegionReg, SethadvaluebeforeSubmit, 'country_region_code'
+      countryNameReg, SethadvaluebeforeSubmit, 'country_region_name'
     );
     checkisNotEmptyStateByUseEffect(
       emailReg, SethadvaluebeforeSubmit, 'email'
@@ -163,8 +167,7 @@ export default function PurchaseInfoForm({
         <OneCheckedOnly bookingForTypeReg={bookingForTypeReg} />
         {bookingForTypeReg === 'someoneElse' && 
           <div className='border'>
-            Make sure you set the <strong>guest name</strong> 
-            and <strong>contact details</strong> is for who will be live to the hotel.
+            Make sure you set the <strong>guest name</strong> and <strong>contact details</strong> is for who will be live to the hotel.
           </div>
         }
         
@@ -208,22 +211,20 @@ export default function PurchaseInfoForm({
               Country / Region
               <select 
                 className={
-                  isError(countryRegionReg, Object.keys(countryRegionReg)) ? 
+                  isError(countryNameReg, Object.keys(countryNameReg)) ? 
                   "FalseInputBox CountryRegion" : "GeneralInputBox CountryRegion" 
                 }
-                name='country_region_code'
-                defaultValue=""
+                name='country_region_name'
+                value={countryNameReg ?? ''}
+                // defaultValue=""
                 onChange={(e) => {                  
-                  const country_code = e.target.value;
-                  const country_name = countryRegionOptions.find(
-                    (country) => country.code === country_code
-                  );
+                  const country_name = e.target.value;
 
                   dispatch(
                     setProfileCountryRegion({ 
-                      setCountryCode: country_code,
-                      setCountryName: country_name
-                  }))
+                      setCountryData: countryRegionOptions.find(
+                      (country) => country.code === country_name 
+                  )}))
                   DetectedTouch({ name: e.target.name });
                 }}
               >
@@ -231,7 +232,7 @@ export default function PurchaseInfoForm({
                   Select country/region
                 </option>
                 {countryRegionOptions.map((country) => (
-                  <option key={country.name} value={country.code}>
+                  <option key={country.name} value={country.name}>
                     {country.name}
                   </option>
                 ))}

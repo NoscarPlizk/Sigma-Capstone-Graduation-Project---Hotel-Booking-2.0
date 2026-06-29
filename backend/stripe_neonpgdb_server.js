@@ -41,7 +41,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
     const { 
       purchase_total_amount, 
       purchase_currency,
-      bookingId,
+      booking_Id,
       bookingRegistry
     } = req.body;
 
@@ -55,12 +55,8 @@ app.post("/api/create-payment-intent", async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: purchase_total_amount,
       currency: purchase_currency,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      metadata: {
-        bookingId,
-      },
+      automatic_payment_methods: { enabled: true, },
+      metadata: { booking_Id, },
     });
 
     res.json({

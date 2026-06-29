@@ -216,7 +216,7 @@ export default function GuestnHotelDetailsPortal({ bookingRegistry, setSubPage }
   const [ hadvaluebeforeSubmit, SethadvaluebeforeSubmit ] = useState({
     first_name: false,
     last_name: false,
-    country_region_code: false,
+    country_region_name: false,
     email: false,
     phone_country_region: false,
     phone_number: false,

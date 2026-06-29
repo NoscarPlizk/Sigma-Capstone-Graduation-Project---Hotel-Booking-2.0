@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../content/Firebase/AuthContext";
+import { useSelector } from "react-redux";
+
 import "./PaymentCompletePage.css";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -29,92 +31,116 @@ function formatDate(dateValue) {
 }
 
 export default function PaymentCompletePage() {
-  // const navigate = useNavigate();
-  // const { state } = useLocation();
-  // const { paymentIntentId } = state;
-  // const { firebaseUser, userProfile } = useAuth();
+  const navigate = useNavigate();
+  // const bookingRegistry = useSelector(state => 
+  //   state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData
+  // );
 
 
+  const { firebaseUser, userProfile } = useAuth();
 
-  const [searchParams] = useSearchParams();
-
+  const [ searchParams ] = useSearchParams();
   const bookingCode = searchParams.get("booking_code");
-  // const paymentIntentId = searchParams.get("payment_intent");
+  const paymentIntentId = searchParams.get("payment_intent");
 
-  const [booking, setBooking] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [ booking, setBooking ] = useState(null);
+  const [ loading, setLoading ] = useState(true);
+  const [ errorMessage, setErrorMessage ] = useState("");
+
+  function getSavedBookingRegistry(paymentIntentId) {
+    if (!paymentIntentId) return null;
+
+    const saved = sessionStorage.getItem(`bookingRegistry:${paymentIntentId}`);
+
+    if (!saved) return null;
+
+    return JSON.parse(saved);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
 
-    // async function ImportIntoDB(paymentIntentId) {
-    //   const response = await fetch(
-    //     `${import.meta.env.VITE_BACKEND_URL}/api/start-setting-registry-data-in-db`,
-    //     {
-    //       method: "POST",
-    //       headers: { "Content-Type": "application/json" },
-    //       body: JSON.stringify({
-    //         stripePaymentIntentId: paymentIntentId,
-    //         firebaseUser: {
-    //           firebase_uid: firebaseUser.uid,
-    //           email: userProfile.email,
-    //           display_name: userProfile.displayName,
-    //           phone_number: `${userProfile.region_code} ${userProfile.telephone_number}`,
-    //           photo_url: userProfile.photoURL,
-    //         },
-    //         bookingRegistry,
-    //       }),
-    //     }
-    //   );
+    async function ImportIntoDB(paymentIntentId) {
+      const bookingRegistry = getSavedBookingRegistry(paymentIntentId);
 
-    //   const data = await response.json();
+      if (!bookingRegistry) {
+        throw new Error("Booking data was lost. Please contact support.");
+      }
 
-    //   if (!response.ok) {
-    //     throw new Error(data.message || "Failed to Database Post");
-    //   }
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/start-setting-registry-data-in-db`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            stripePaymentIntentId: paymentIntentId,
+            firebaseUser: {
+              firebase_uid: firebaseUser.uid,
+              email: userProfile.email,
+              display_name: userProfile.displayName,
+              phone_number: `${userProfile.region_code} ${userProfile.telephone_number}`,
+              photo_url: userProfile.photoURL,
+            },
+            bookingRegistry,
+          }),
+        }
+      );
 
-    //   if (data.success) {
-    //     // redirect(
-    //     //   `/payment-complete?booking_code=${encodeURIComponent(
-    //     //     data.booking.booking_code
-    //     //   )}`,
-    //     //   { replace: true }
-    //     // );
-    //   }
-    // }
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to save booking into DB.");
+      }
+
+      sessionStorage.removeItem(`bookingRegistry:${paymentIntentId}`);
+
+      return data;
+    }
 
     async function fetchBookingSummary() {
+      let apiUrl = "";
+
+      if (bookingCode) {
+        apiUrl = `${BACKEND_URL}/api/booking-records/by-code/${encodeURIComponent(
+          bookingCode
+        )}`;
+      } else if (paymentIntentId) {
+        apiUrl = `${BACKEND_URL}/api/booking-records/by-payment-intent/${encodeURIComponent(
+          paymentIntentId
+        )}`;
+      } else {
+        throw new Error("Missing booking code or payment intent ID.");
+      }
+
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        signal: controller.signal,
+      });
+
+      const result = await response.json();
+
+      if (!result.booking) {
+        throw new Error("Booking summary API returned empty booking.");
+      }
+
+
+      setBooking(result.booking);
+    }
+
+    async function runPaymentSuccessFlow() {
       try {
         setLoading(true);
         setErrorMessage("");
 
-        let apiUrl = "";
-
-        if (bookingCode) {
-          apiUrl = `${BACKEND_URL}/api/booking-records/by-code/${encodeURIComponent(
-            bookingCode
-          )}`;
-        } else if (paymentIntentId) {
-          apiUrl = `${BACKEND_URL}/api/booking-records/by-payment-intent/${encodeURIComponent(
-            paymentIntentId
-          )}`;
-        } else {
-          throw new Error("Missing booking code or payment intent ID.");
+        // 1. First save/import booking into database
+        if (paymentIntentId) {
+          await ImportIntoDB(paymentIntentId);
         }
 
-        const response = await fetch(apiUrl, {
-          method: "GET",
-          signal: controller.signal,
-        });
+        // 2. After import success, then fetch booking summary
+        await fetchBookingSummary();
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-          throw new Error(result.message || "Failed to load booking summary.");
-        }
-
-        setBooking(result.booking);
       } catch (error) {
         if (error.name !== "AbortError") {
           setErrorMessage(error.message);
@@ -124,7 +150,8 @@ export default function PaymentCompletePage() {
       }
     }
 
-    // fetchBookingSummary();
+    runPaymentSuccessFlow();
+    console.log(`'booking' from after import database`, booking);
 
     return () => {
       controller.abort();
@@ -164,6 +191,27 @@ export default function PaymentCompletePage() {
   }
 
   const rooms = booking?.rooms || [];
+
+  if (!booking) {
+    return (
+      <main className="payment-complete-page">
+        <section className="payment-card">
+          <div className="error-badge">!</div>
+          <h1>Unable to load booking</h1>
+          <p className="payment-message">
+            Payment may be successful, but booking summary was not loaded.
+          </p>
+          <button
+            className="outline-button"
+            type="button"
+            onClick={() => navigate("/")}
+          >
+            Back to Home
+          </button>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="payment-complete-page">

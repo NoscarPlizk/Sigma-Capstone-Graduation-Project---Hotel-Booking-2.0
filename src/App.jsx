@@ -97,6 +97,10 @@ function AppInner({
     }
   }, [location.pathname]);
 
+  // RapidAPI tests
+  // console.log("RapidAPI key exists:", !!import.meta.env.VITE_RAPIDAPI_KEY);
+  // console.log("RapidAPI host:", import.meta.env.VITE_RAPIDAPI_HOST);
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

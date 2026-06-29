@@ -1,504 +1,366 @@
-import { Image, Button, Col, Row } from "react-bootstrap"
-import { useState, useRef } from "react"
-// import { doc, getDoc, setDoc } from "firebase/firestore";
-// import { db } from '../../../content/Firebase/firebase'
+import { Image, Col, Row } from "react-bootstrap";
+import { Fragment, useRef, useState } from "react";
 import { useAuth } from "../../../content/Firebase/AuthContext";
-import './UserProfilePage.css';
+import "./UserProfilePage.css";
 
-import { countryRegionOptions } from '../../../content/countryRegionOptions';
-import { nationalityData } from '../../../content/nationalityData'; 
+import { countryRegionOptions } from "../../../content/countryRegionOptions";
+import { nationalityData } from "../../../content/nationalityData";
 
-function LegalName({ UserName, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const inputFirstNameRef = useRef(null);
-  const inputLastNameRef = useRef(null);
+function ProfileRow({ label, displayValue, editContent, onSave }) {
+  const [openEdit, setOpenEdit] = useState(false);
 
-  const firstName = UserName?.first_name;
-  const lastname = UserName?.last_name;
-
-  function SaveEdit() {
-    SaveSpecDocFirestore({ name: {
-      first_name: inputFirstNameRef.current.value,
-      last_name: inputLastNameRef.current.value
-    }});
-    console.log('updated name to firestore');
+  function handleSave() {
+    onSave();
     setOpenEdit(false);
   }
 
   return (
     <div className="EveryChildBox">
       <div>
-        <strong>Real Name:</strong>
+        <strong>{label}:</strong>
       </div>
+
       <div className="SecondLongBox">
-        <div>
-          {(firstName && firstName.length > 0) 
-            ? `${firstName} ${lastname}`
-            : 'No Name Please Set Name'
-          }
-        </div>     
-        <div>
-          {OpenEdit && 
-            <div>
+        <div>{displayValue || ""}</div>
+
+        {openEdit && <div>{editContent}</div>}
+
+        {onSave && (
+          <div>
+            {!openEdit ? (
+              <button onClick={() => setOpenEdit(true)}>Edit</button>
+            ) : (
               <div>
-                First Name:
-                <input 
-                  type="text" 
-                  ref={inputFirstNameRef} 
-                  placeholder={firstName} 
-                />
+                <button onClick={() => setOpenEdit(false)}>Cancel</button>
+                <button onClick={handleSave}>Save</button>
               </div>
-              <div>
-                Second  Name:
-                <input 
-                  type="text" 
-                  ref={inputLastNameRef} 
-                  placeholder={lastname}
-                />
-              </div>
-            </div> 
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-function DisplayName({ display_name, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const inputNewDisplayNameRef = useRef(null);
-
-  function SaveEdit() {
-    SaveSpecDocFirestore({ display_name: inputNewDisplayNameRef.current.value })
-    console.log('updated Display Name to firestore');
-    setOpenEdit(false);
-  }
-
+function TextProfileField({
+  label,
+  fieldKey,
+  value,
+  SaveSpecDocFirestore,
+  type = "text",
+}) {
+  const inputRef = useRef(null);
+  const safeValue = value || "";
 
   return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Display Name:</strong>
-      </div>
-      <div className="SecondLongBox">
-        <div>
-          {(display_name && display_name.length > 0)
-            ? `${display_name}`
-            : ''
-          }
-        </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <input 
-                type="text"
-                ref={inputNewDisplayNameRef}
-                placeholder={display_name} 
-              />
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
+    <ProfileRow
+      label={label}
+      displayValue={safeValue}
+      editContent={
+        <input
+          type={type}
+          ref={inputRef}
+          defaultValue={safeValue}
+          placeholder={safeValue}
+        />
+      }
+      onSave={() => {
+        SaveSpecDocFirestore({
+          [fieldKey]: inputRef.current.value,
+        });
+      }}
+    />
+  );
 }
 
-function Email({ email }) {
+function SelectProfileField({
+  label,
+  fieldKey,
+  value,
+  options,
+  SaveSpecDocFirestore,
+}) {
+  const selectRef = useRef(null);
+
   return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Email:</strong>
-      </div>
-      <div className="SecondLongBox">
+    <ProfileRow
+      label={label}
+      displayValue={value || ""}
+      editContent={
+        <select ref={selectRef} defaultValue={value || options[0]}>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      }
+      onSave={() => {
+        SaveSpecDocFirestore({
+          [fieldKey]: selectRef.current.value,
+        });
+      }}
+    />
+  );
+}
+
+function ReadOnlyProfileField({ label, value }) {
+  return <ProfileRow label={label} displayValue={value || ""} />;
+}
+
+function LegalName({ userName, SaveSpecDocFirestore }) {
+  const firstNameRef = useRef(null);
+  const lastNameRef = useRef(null);
+
+  const firstName = userName?.first_name || "";
+  const lastName = userName?.last_name || "";
+
+  return (
+    <ProfileRow
+      label="Real Name"
+      displayValue={
+        firstName.length > 0
+          ? `${firstName} ${lastName}`
+          : "No Name Please Set Name"
+      }
+      editContent={
         <div>
-          {(email && email.length > 0)
-            ? `${email}`
-            : ''
-          }
+          <div>
+            First Name:
+            <input
+              type="text"
+              ref={firstNameRef}
+              defaultValue={firstName}
+              placeholder={firstName}
+            />
+          </div>
+
+          <div>
+            Last Name:
+            <input
+              type="text"
+              ref={lastNameRef}
+              defaultValue={lastName}
+              placeholder={lastName}
+            />
+          </div>
         </div>
-      </div>
-    </div>
-  )
+      }
+      onSave={() => {
+        SaveSpecDocFirestore({
+          name: {
+            first_name: firstNameRef.current.value,
+            last_name: lastNameRef.current.value,
+          },
+        });
+      }}
+    />
+  );
 }
 
 function PhoneNumber({ phone, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const selectRegionRef = useRef(null);
-  const inputNewPhoneRef = useRef(null);
+  const regionRef = useRef(null);
+  const phoneRef = useRef(null);
 
+  const regionCountryCode = phone?.region_country_code || "";
+  const regionCountry = phone?.region_country || "";
+  const regionCode = phone?.region_code || "";
+  const telephoneNumber = phone?.telephone_number || "";
 
-  function SaveEdit() {
-    const NewTelephone = `${selectRegionRef.current.value} ${inputNewPhoneRef.current.value}`;
-    SaveSpecDocFirestore({ phone: {
-      region_code: selectRegionRef.current.value,
-      telephone_number: inputNewPhoneRef.current.value
-    } })
-    console.log('updated phone to firestore:', NewTelephone);
-    setOpenEdit(false);
-  }
+  const selectedRegion =
+    countryRegionOptions.find(
+      (country) => country.code === regionCountryCode
+    ) ||
+    countryRegionOptions.find(
+      (country) =>
+        country.phoneCode === regionCode && country.name === regionCountry
+    ) ||
+    countryRegionOptions[0];
 
-  return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Phone:</strong>
-      </div>
-      <div className="SecondLongBox">
-        <div>
-          {(phone && (phone.region_code.length > 0 && phone.telephone_number > 0)) 
-          && `${phone.region_code} ${phone.telephone_number}`}
-        </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <select ref={selectRegionRef} id="Telephone Region" required >
-                {countryRegionOptions.map((region) => (
-                  <option 
-                    key={region.code}
-                    value={region.phoneCode}
-                  >
-                    {region.phoneCode} {region.name} 
-                  </option>
-                ))}
-              </select>
-              <input 
-                type="text"
-                ref={inputNewPhoneRef}
-                placeholder={`${phone.region_code} ${phone.telephone_number}`} 
-                required 
-              />
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function DateofBirth({ birth_date, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const inputNewBirthDateRef = useRef(null);
-
-  function SaveEdit() {
-    SaveSpecDocFirestore({ birth_date: inputNewBirthDateRef.current.value })
-    console.log('updated birth date to firestore');
-    setOpenEdit(false);
-  }
-
+  const displayPhone =
+    regionCode.length > 0 && telephoneNumber.length > 0
+      ? `${regionCode} ${telephoneNumber}`
+      : "";
 
   return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Date of Birth:</strong>
-      </div>
-      <div className="SecondLongBox">
+    <ProfileRow
+      label="Phone"
+      displayValue={displayPhone}
+      editContent={
         <div>
-          {(birth_date && birth_date.length > 0)
-            ? `${birth_date}`
-            : ''
-          }
+          <select
+            ref={regionRef}
+            id="Telephone Region"
+            defaultValue={selectedRegion?.code}
+            required
+          >
+            {countryRegionOptions.map((region) => (
+              <option key={region.code} value={region.code}>
+                {region.phoneCode} {region.name}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            ref={phoneRef}
+            defaultValue={telephoneNumber}
+            placeholder={displayPhone}
+            required
+          />
         </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <input 
-                type="date"
-                ref={inputNewBirthDateRef}
-                placeholder={birth_date} 
-              />
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
+      }
+      onSave={() => {
+        const selectedCountryCode = regionRef.current.value;
+
+        const selectedCountry = countryRegionOptions.find(
+          (country) => country.code === selectedCountryCode
+        );
+
+        SaveSpecDocFirestore({
+          phone: {
+            region_country_code: selectedCountry?.code || "",
+            region_code: selectedCountry?.phoneCode || "",
+            region_country: selectedCountry?.name || "",
+            telephone_number: phoneRef.current.value,
+          },
+        });
+      }}
+    />
+  );
 }
-
-function Gender({ gender, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const inputNewGenderRef = useRef(null);
-
-  function SaveEdit() {
-    SaveSpecDocFirestore({ gender: inputNewGenderRef.current.value })
-    console.log('updated gender to firestore');
-    setOpenEdit(false);
-  }
-
-  return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Gender:</strong>
-      </div>
-      <div className="SecondLongBox">
-        <div>
-          {(gender && gender.length > 0)
-            ? `${gender}`
-            : ''
-          }
-        </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <select ref={inputNewGenderRef} >
-                <option value='Male' >Male</option>
-                <option value='Female' >Female</option>
-                <option value='I prefer not to say' >I prefer not to say</option>
-              </select>
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Address({ address, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const inputNewAddressRef = useRef(null);
-
-  function SaveEdit() {
-    SaveSpecDocFirestore({ address: inputNewAddressRef.current.value })
-    console.log('updated address to firestore');
-    setOpenEdit(false);
-  }
-
-
-  return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Residential Address:</strong>
-      </div>
-      <div className="SecondLongBox">
-        <div>
-          {(address && address.length > 0)
-            ? `${address}`
-            : ''
-          }
-        </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <input 
-                type="text"
-                ref={inputNewAddressRef}
-                placeholder={address} 
-              />
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Nationality({ nationality, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
-  const inputNewNationalityRef = useRef(null);
-
-  function SaveEdit() {
-    SaveSpecDocFirestore({ nationality: inputNewNationalityRef.current.value })
-    console.log('updated nationality to firestore');
-    setOpenEdit(false);
-  }
-
-
-  return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Nationality:</strong>
-      </div>
-      <div className="SecondLongBox">
-        <div>
-          {(nationality && nationality.length > 0)
-            ? `${nationality}`
-            : ''
-          }
-        </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <select
-                ref={inputNewNationalityRef}
-                placeholder={nationality}
-              >
-                {nationalityData.map((countries) => (
-                  <option 
-                    key={countries}
-                    value={countries}
-                  >
-                    {countries}
-                  </option>
-                ))}
-              </select>
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
-}
-
-
 
 function Passport({ passport, SaveSpecDocFirestore }) {
-  const [ OpenEdit, setOpenEdit ] = useState(false);
+  const firstNameRef = useRef(null);
+  const lastNameRef = useRef(null);
+  const countryRef = useRef(null);
+  const passportNumberRef = useRef(null);
 
-  const firstNamePassportRef = useRef(null);
-  const lastNamePassportRef = useRef(null);
-  const inputPassportCountryRef = useRef(null);
-  const inputPassportNumberRef = useRef(null);
+  const firstName = passport?.first_name || "";
+  const lastName = passport?.last_name || "";
+  const passportCountry = passport?.passport_country || "";
+  const passportNumber = passport?.passport_number || "";
 
-  function SaveEdit() {
-    const PassportData = {
-      first_name: firstNamePassportRef.current.value,
-      last_name: lastNamePassportRef.current.value,
-      passport_country: inputPassportCountryRef.current.value,
-      passport_number: inputPassportNumberRef.current.value
-    }
-    SaveSpecDocFirestore({ passport: PassportData })
-    console.log('updated passport to firestore:', PassportData);
-    setOpenEdit(false);
-  }
+  const displayPassport = passport
+    ? `${firstName} ${lastName} ${passportCountry}: ${passportNumber}`
+    : "";
 
   return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>Passport:</strong>
-      </div>
-      <div className="SecondLongBox">
+    <ProfileRow
+      label="Passport"
+      displayValue={displayPassport}
+      editContent={
         <div>
-          {passport
-            ? `${passport.first_name} 
-               ${passport.last_name} 
-               ${passport.passport_country}:
-               ${passport.passport_number}
-               `
-            : ''
-          }
-        </div>
-        <div>
-          {OpenEdit && 
-            <div>
-              <div>
-                First Name:
-                <input                   
-                  id="Passport_First_Name" 
-                  type='text' 
-                  ref={firstNamePassportRef}/>
-              </div>              
-              <div>
-                Last Name:
-                <input                   
-                  id="Passport_Last_Name" 
-                  type='text' 
-                  ref={lastNamePassportRef}/>
-              </div>
-              <div>
-                Issue Country: 
-                <select
-                  ref={inputPassportCountryRef}
-                  placeholder={passport}
-                >
-                  {nationalityData.map((countries) => (
-                    <option 
-                      key={countries}
-                      value={countries}
-                    >
-                      {countries}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                Passport Number: 
-                <input 
-                  id="Passport_Number" 
-                  type='text' 
-                  ref={inputPassportNumberRef}
-                />
-              </div>
-            </div>
-          }
-        </div>
-        <div>
-          {!OpenEdit 
-            ? <button onClick={() => setOpenEdit(true)} >Edit</button>
-            : <div>
-                <button onClick={() => setOpenEdit(false)} >Cancel</button>
-                <button onClick={() => SaveEdit()} >Save</button>
-              </div>
-          }
-        </div>
-      </div>
-    </div>
-  )
-}
+          <div>
+            First Name:
+            <input
+              id="Passport_First_Name"
+              type="text"
+              ref={firstNameRef}
+              defaultValue={firstName}
+            />
+          </div>
 
+          <div>
+            Last Name:
+            <input
+              id="Passport_Last_Name"
+              type="text"
+              ref={lastNameRef}
+              defaultValue={lastName}
+            />
+          </div>
+
+          <div>
+            Issue Country:
+            <select
+              ref={countryRef}
+              defaultValue={passportCountry || nationalityData[0]}
+            >
+              {nationalityData.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            Passport Number:
+            <input
+              id="Passport_Number"
+              type="text"
+              ref={passportNumberRef}
+              defaultValue={passportNumber}
+            />
+          </div>
+        </div>
+      }
+      onSave={() => {
+        SaveSpecDocFirestore({
+          passport: {
+            first_name: firstNameRef.current.value,
+            last_name: lastNameRef.current.value,
+            passport_country: countryRef.current.value,
+            passport_number: passportNumberRef.current.value,
+          },
+        });
+      }}
+    />
+  );
+}
 
 export default function UserProfilePage() {
   const { userProfile, SaveSpecDocFirestore } = useAuth();
+
+  const profileRows = [
+    <LegalName
+      userName={userProfile?.name}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <TextProfileField
+      label="Display Name"
+      fieldKey="display_name"
+      value={userProfile?.display_name}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <ReadOnlyProfileField label="Email" value={userProfile?.email} />,
+    <PhoneNumber
+      phone={userProfile?.phone}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <TextProfileField
+      label="Date of Birth"
+      fieldKey="birth_date"
+      value={userProfile?.birth_date}
+      type="date"
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <SelectProfileField
+      label="Gender"
+      fieldKey="gender"
+      value={userProfile?.gender}
+      options={["Male", "Female", "I prefer not to say"]}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <TextProfileField
+      label="Residential Address"
+      fieldKey="address"
+      value={userProfile?.address}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <SelectProfileField
+      label="Nationality"
+      fieldKey="nationality"
+      value={userProfile?.nationality}
+      options={nationalityData}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+    <Passport
+      passport={userProfile?.passport}
+      SaveSpecDocFirestore={SaveSpecDocFirestore}
+    />,
+  ];
 
   return (
     <div>
@@ -506,93 +368,30 @@ export default function UserProfilePage() {
         <div>
           <h2>User Profile</h2>
         </div>
+
         <div>
           <div className="d-flex">
-            <Image 
-              src="https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg" 
+            <Image
+              src="https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg"
               roundedCircle
               style={{ width: 100, height: 100 }}
             />
           </div>
         </div>
-      </div> 
+      </div>
+
       <hr />
+
       <div>
         <Col>
-          <Row>
-            <LegalName 
-              UserName={userProfile?.name} 
-              SaveSpecDocFirestore={SaveSpecDocFirestore}
-            />
-          </Row>
-          <hr />
-          <Row>
-            <DisplayName 
-              display_name={userProfile?.display_name}
-              SaveSpecDocFirestore={SaveSpecDocFirestore}
-            />
-          </Row>
-          <hr />
-            <Row>
-              <Email email={userProfile?.email} />
-            </Row>
-          <hr />
-            <Row>
-              <PhoneNumber 
-                phone={userProfile?.phone}
-                SaveSpecDocFirestore={SaveSpecDocFirestore}
-              />
-            </Row>
-          <hr />
-            <Row>
-              <DateofBirth 
-                birth_date={userProfile?.birth_date}
-                SaveSpecDocFirestore={SaveSpecDocFirestore}
-              />
-            </Row>
-          <hr />
-            <Row>
-              <Gender 
-                gender={userProfile?.gender}
-                SaveSpecDocFirestore={SaveSpecDocFirestore}
-              />
-            </Row>
-          <hr />
-            <Row>
-              <Address 
-                address={userProfile?.address}
-                SaveSpecDocFirestore={SaveSpecDocFirestore}
-              />
-            </Row>
-          <hr />
-            <Row>
-              <Nationality 
-                nationality={userProfile?.nationality}
-                SaveSpecDocFirestore={SaveSpecDocFirestore}
-              />
-            </Row>
-          <hr />
-            <Row>
-              <Passport 
-                passport={userProfile?.passport}
-                SaveSpecDocFirestore={SaveSpecDocFirestore}
-              />
-            </Row>
+          {profileRows.map((row, index) => (
+            <Fragment key={index}>
+              <Row>{row}</Row>
+              {index !== profileRows.length - 1 && <hr />}
+            </Fragment>
+          ))}
         </Col>
       </div>
     </div>
-  )
+  );
 }
-
-// const userProfile = {
-//   uid: user.uid,
-//   legalName: "John Tan",
-//   displayName: "John",
-//   email: "john@gmail.com",
-//   phone: "+60123456789",
-//   address: {
-//     country: "Malaysia",
-//     city: "Kuching",
-//     fullAddress: "Some address here"
-//   }
-// };
