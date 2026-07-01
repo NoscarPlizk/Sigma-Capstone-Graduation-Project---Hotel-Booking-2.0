@@ -103,7 +103,7 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
               purchase_total_amount: bookingRegistry.main_hotel_booked.total_cost.grand_total_cost_deceimal, // RM450.00 = 45000 sen
               purchase_currency: bookingRegistry.main_hotel_booked.total_cost.currency,
               booking_Id: bookingRegistry.booking_registry_code,
-              bookingRegistry: bookingRegistry
+              // bookingRegistry: bookingRegistry
             }),
           }
         );
