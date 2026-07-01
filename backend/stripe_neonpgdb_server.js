@@ -12,6 +12,7 @@ import {
   formatDateCode,
   getRoomOffers,
   getOfferAmount,
+  getOfferStableId,
   getRoomGroupDescription,
   getOfferPricePerRoom,
   getOfferTotalPrice,
@@ -135,6 +136,8 @@ app.post("/api/start-setting-registry-data-in-db", async (req, res) => {
       stripePaymentIntentId
     } = req.body;
 
+    console.log('req.body in dbprocess', req.body);
+
     if (!firebaseUser?.firebase_uid) {
       return res.status(400).json({
         success: false,
@@ -190,6 +193,34 @@ app.post("/api/start-setting-registry-data-in-db", async (req, res) => {
         success: false,
         message: "Stripe payment is not completed yet",
         paymentStatus: paymentIntent.status,
+      });
+    }
+
+    const existingBookingResult = await client.query(
+      `
+      SELECT
+        bp.booking_id,
+        br.booking_code
+      FROM booking_payments bp
+      INNER JOIN booking_records br
+        ON br.booking_id = bp.booking_id
+      WHERE bp.stripe_payment_intent_id = $1
+      LIMIT 1
+      `,
+      [paymentIntent.id]
+    );
+
+    if (existingBookingResult.rowCount > 0) {
+      const existingBooking = existingBookingResult.rows[0];
+
+      return res.json({
+        success: true,
+        message: "Booking data already exists for this Stripe payment intent",
+        bookingId: existingBooking.booking_id,
+        bookingCode: existingBooking.booking_code,
+        firebaseUid,
+        stripePaymentIntentId: paymentIntent.id,
+        alreadyImported: true,
       });
     }
 
@@ -431,13 +462,7 @@ app.post("/api/start-setting-registry-data-in-db", async (req, res) => {
           `,
           [
             roomGroupId,
-            pickFirst(
-              offer?.offer_id,
-              offer?.offerId,
-              offer?.block_id,
-              offer?.room_id,
-              offer?.spec_room_data?.block_id
-            ),
+            getOfferStableId(offer),
             pickFirst(
               offer?.offer_name,
               offer?.offerName,

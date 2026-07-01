@@ -131,6 +131,24 @@ export function stringifyObjectIfNeeded(value) {
   return String(value);
 }
 
+export function getOfferStableId(offer) {
+  return pickFirst(
+    offer?.uniqueKey,
+    offer?.offer_id,
+    offer?.offerId,
+    Number.isInteger(offer?.repeatIndex) && offer?.block_id
+      ? `${offer.block_id}-${offer.repeatIndex}`
+      : null,
+    Number.isInteger(offer?.repeatIndex) && offer?.spec_room_data?.block_id
+      ? `${offer.spec_room_data.block_id}-${offer.repeatIndex}`
+      : null,
+    offer?.block_id,
+    offer?.room_id,
+    offer?.spec_room_data?.block_id,
+    offer?.spec_room_data?.room_id
+  );
+}
+
 export function extractBookingData(bookingRegistry) {
   const registry = pickFirst(
     bookingRegistry?.CustomerDetailsnBookingHotelData,
@@ -404,12 +422,14 @@ export function extractBookingData(bookingRegistry) {
         registry?.countryName
       ),
       countryRegion: pickFirst(
+        countryRegion?.country_region,
+        countryRegion?.countryRegion,
+        countryRegion?.country_name,
+        countryRegion?.countryName,
         phoneData?.region_country,
         phoneData?.region_country_code,
         phoneData?.regionCountry,
-        phoneData?.regionCountryCode,
-        countryRegion?.country_region,
-        countryRegion?.countryRegion
+        phoneData?.regionCountryCode
       ),
       phoneNumber: pickFirst(
         formatPhoneNumber(phoneData),
@@ -469,12 +489,28 @@ export function getOfferAmount(offer) {
 }
 
 export function getRoomGroupDescription(roomGroup) {
-  return pickFirst(
+  const description = pickFirst(
     roomGroup?.base_select_room_description?.total_same_rooms_name,
     roomGroup?.baseSelectRoomDescription?.totalSameRoomsName,
     roomGroup?.base_select_room_description,
     roomGroup?.baseSelectRoomDescription
   );
+
+  if (description && typeof description !== "object") {
+    return description;
+  }
+
+  const totalAmount = pickFirst(
+    roomGroup?.base_select_room_total_amount,
+    roomGroup?.baseSelectRoomTotalAmount
+  );
+
+  const roomName = pickFirst(
+    roomGroup?.base_room_name,
+    roomGroup?.baseRoomName
+  );
+
+  return [totalAmount, roomName].filter(Boolean).join(" x ") || null;
 }
 
 export function getOfferPricePerRoom(offer) {
@@ -518,9 +554,12 @@ export function getOfferCancellationPolicy(offer) {
     offer?.cancellation_policy,
     offer?.cancellationPolicy,
     offer?.spec_room_data?.cancellation_policy,
+    offer?.specRoomData?.cancellationPolicy,
     cancellationPolicy?.text,
     offer?.spec_room_data?.paymentterms?.cancellation?.type_translation,
-    offer?.spec_room_data?.policy_display_details?.cancellation?.title_details?.translation
+    offer?.specRoomData?.paymentterms?.cancellation?.typeTranslation,
+    offer?.spec_room_data?.policy_display_details?.cancellation?.title_details?.translation,
+    offer?.specRoomData?.policyDisplayDetails?.cancellation?.titleDetails?.translation
   );
 }
 
@@ -533,9 +572,12 @@ export function getOfferPaymentType(offer) {
     offer?.payment_type,
     offer?.paymentType,
     offer?.spec_room_data?.payment_type,
+    offer?.specRoomData?.paymentType,
     prepaymentPolicy?.text,
     offer?.spec_room_data?.paymentterms?.prepayment?.type_translation,
-    offer?.spec_room_data?.policy_display_details?.prepayment?.title_details?.translation
+    offer?.specRoomData?.paymentterms?.prepayment?.typeTranslation,
+    offer?.spec_room_data?.policy_display_details?.prepayment?.title_details?.translation,
+    offer?.specRoomData?.policyDisplayDetails?.prepayment?.titleDetails?.translation
   );
 }
 
