@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../content/Firebase/AuthContext";
-import { useSelector } from "react-redux";
 
 import "./PaymentCompletePage.css";
 
@@ -32,25 +31,22 @@ function formatDate(dateValue) {
 
 export default function PaymentCompletePage() {
   const navigate = useNavigate();
-  // const bookingRegistry = useSelector(state => 
-  //   state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData
-  // );
-
-
   const { firebaseUser, userProfile } = useAuth();
 
-  const [ searchParams ] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const bookingCode = searchParams.get("booking_code");
   const paymentIntentId = searchParams.get("payment_intent");
 
-  const [ booking, setBooking ] = useState(null);
-  const [ loading, setLoading ] = useState(true);
-  const [ errorMessage, setErrorMessage ] = useState("");
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  function getSavedBookingRegistry(paymentIntentId) {
-    if (!paymentIntentId) return null;
+  function getSavedBookingRegistry(currentPaymentIntentId) {
+    if (!currentPaymentIntentId) return null;
 
-    const saved = sessionStorage.getItem(`bookingRegistry:${paymentIntentId}`);
+    const saved = sessionStorage.getItem(
+      `bookingRegistry:${currentPaymentIntentId}`
+    );
 
     if (!saved) return null;
 
@@ -58,23 +54,27 @@ export default function PaymentCompletePage() {
   }
 
   useEffect(() => {
+    if (paymentIntentId && (!firebaseUser || !userProfile)) {
+      return undefined;
+    }
+
     const controller = new AbortController();
 
-    async function ImportIntoDB(paymentIntentId) {
-      const bookingRegistry = getSavedBookingRegistry(paymentIntentId);
+    async function ImportIntoDB(currentPaymentIntentId) {
+      const bookingRegistry = getSavedBookingRegistry(currentPaymentIntentId);
 
       if (!bookingRegistry) {
         throw new Error("Booking data was lost. Please contact support.");
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/start-setting-registry-data-in-db`,
+        `${BACKEND_URL}/api/start-setting-registry-data-in-db`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
           body: JSON.stringify({
-            stripePaymentIntentId: paymentIntentId,
+            stripePaymentIntentId: currentPaymentIntentId,
             firebaseUser: {
               firebase_uid: firebaseUser.uid,
               email: userProfile.email,
@@ -87,13 +87,13 @@ export default function PaymentCompletePage() {
         }
       );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to save booking into DB.");
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || "Failed to save booking into DB.");
       }
 
-      sessionStorage.removeItem(`bookingRegistry:${paymentIntentId}`);
+      sessionStorage.removeItem(`bookingRegistry:${currentPaymentIntentId}`);
 
       return data;
     }
@@ -118,12 +118,15 @@ export default function PaymentCompletePage() {
         signal: controller.signal,
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || "Failed to fetch booking summary.");
+      }
 
       if (!result.booking) {
         throw new Error("Booking summary API returned empty booking.");
       }
-
 
       setBooking(result.booking);
     }
@@ -133,14 +136,11 @@ export default function PaymentCompletePage() {
         setLoading(true);
         setErrorMessage("");
 
-        // 1. First save/import booking into database
         if (paymentIntentId) {
           await ImportIntoDB(paymentIntentId);
         }
 
-        // 2. After import success, then fetch booking summary
         await fetchBookingSummary();
-
       } catch (error) {
         if (error.name !== "AbortError") {
           setErrorMessage(error.message);
@@ -151,12 +151,11 @@ export default function PaymentCompletePage() {
     }
 
     runPaymentSuccessFlow();
-    console.log(`'booking' from after import database`, booking);
 
     return () => {
       controller.abort();
     };
-  }, [bookingCode, paymentIntentId]);
+  }, [bookingCode, paymentIntentId, firebaseUser, userProfile]);
 
   if (loading) {
     return (
@@ -173,11 +172,8 @@ export default function PaymentCompletePage() {
       <main className="payment-complete-page">
         <section className="payment-card">
           <div className="error-badge">!</div>
-
           <h1>Unable to load booking</h1>
-
           <p className="payment-message">{errorMessage}</p>
-
           <button
             className="outline-button"
             type="button"
@@ -189,8 +185,6 @@ export default function PaymentCompletePage() {
       </main>
     );
   }
-
-  const rooms = booking?.rooms || [];
 
   if (!booking) {
     return (
@@ -213,119 +207,197 @@ export default function PaymentCompletePage() {
     );
   }
 
+  const rooms = booking.rooms || [];
+  const paxText = `${booking.adult_pax} adult(s), ${booking.child_pax} child(s)`;
+
   return (
     <main className="payment-complete-page">
-      <section className="payment-header">
+      <section className="payment-header" style={styles.header}>
         <div className="success-badge">✓</div>
-
-        <h1>Thank you for your purchase</h1>
-
-        <p>
-          Your hotel booking has been confirmed.
-          <br />
-          Your booking number is{" "}
-          <strong>#{booking.booking_code}</strong>
-        </p>
+        <h1>Booking Confirmed</h1>
+        <p>Your hotel booking has been successfully confirmed.</p>
       </section>
 
-      <section className="order-summary-card">
-        <h2>Order Summary</h2>
+      <section className="order-summary-card" style={styles.summaryCard}>
+        <div style={styles.bookingMeta}>
+          <span style={styles.metaLabel}>Booking Number</span>
+          <strong style={styles.bookingCode}>#{booking.booking_code}</strong>
+        </div>
 
-        <div className="hotel-summary">
+        <div className="hotel-summary" style={styles.hotelSummary}>
           {booking.hotel_photo_url && (
             <img
               src={booking.hotel_photo_url}
               alt={booking.hotel_name}
               className="hotel-image"
+              style={styles.hotelImage}
             />
           )}
 
-          <div className="hotel-info">
+          <div className="hotel-info" style={styles.hotelInfo}>
             <h3>{booking.hotel_name}</h3>
             <p>{booking.hotel_address}</p>
+          </div>
+        </div>
 
-            <p>
+        <div className="summary-divider" />
+
+        <div style={styles.infoGrid}>
+          <div style={styles.infoBlock}>
+            <span style={styles.metaLabel}>Stay</span>
+            <strong>
               {formatDate(booking.check_in_date)} -{" "}
               {formatDate(booking.check_out_date)}
-            </p>
+            </strong>
+            <p>{booking.total_days} night(s)</p>
+          </div>
 
-            <p>
-              {booking.total_days} night(s), {booking.adult_pax} adult(s),{" "}
-              {booking.child_pax} child(s)
-            </p>
+          <div style={styles.infoBlock}>
+            <span style={styles.metaLabel}>Guests</span>
+            <strong>{paxText}</strong>
+          </div>
+
+          <div style={styles.infoBlock}>
+            <span style={styles.metaLabel}>Total</span>
+            <strong>{formatMoney(booking.total_amount, booking.currency)}</strong>
           </div>
         </div>
 
-        <div className="summary-divider" />
+        {rooms.length > 0 && (
+          <>
+            <div className="summary-divider" />
 
-        {rooms.length > 0 ? (
-          <div className="room-list">
-            {rooms.map((room, index) => (
-              <div className="room-row" key={room.room_id || index}>
-                <div className="room-left">
-                  {room.photo_url && (
-                    <img
-                      src={room.photo_url}
-                      alt={room.room_name}
-                      className="room-image"
-                    />
-                  )}
+            <div style={styles.roomsSection}>
+              <span style={styles.metaLabel}>Booked Rooms</span>
 
-                  <div>
-                    <h4>{room.room_name}</h4>
-                    <p>
-                      {room.amount} room(s)
-                      {room.description ? ` · ${room.description}` : ""}
-                    </p>
+              <div style={styles.roomList}>
+                {rooms.map((room, index) => (
+                  <div
+                    className="room-row"
+                    style={styles.roomRow}
+                    key={`${room.room_name}-${index}`}
+                  >
+                    <div>
+                      <h4 style={styles.roomName}>{room.room_name}</h4>
+                      <p style={styles.roomMeta}>{room.amount} room(s)</p>
+                    </div>
+
+                    <strong style={styles.roomPrice}>
+                      {formatMoney(room.subtotal_amount, booking.currency)}
+                    </strong>
                   </div>
-                </div>
-
-                <strong>
-                  {formatMoney(room.subtotal_amount, booking.currency)}
-                </strong>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="room-row">
-            <div>
-              <h4>{booking.hotel_name}</h4>
-              <p>{booking.total_days} night(s)</p>
             </div>
-
-            <strong>
-              {formatMoney(booking.total_amount, booking.currency)}
-            </strong>
-          </div>
+          </>
         )}
 
-        <div className="summary-divider" />
-
-        <div className="total-row">
-          <span>Total</span>
-          <strong>
-            {formatMoney(booking.total_amount, booking.currency)}
-          </strong>
+        <div className="payment-actions" style={styles.actions}>
+          <button
+            className="primary-button"
+            type="button"
+            style={styles.primaryButton}
+            onClick={() => navigate("/")}
+          >
+            Return to Home
+          </button>
         </div>
       </section>
-
-      <div className="payment-actions">
-        <button
-          className="outline-button"
-          type="button"
-          onClick={() => navigate("/")}
-        >
-          Back to Home
-        </button>
-
-        <button
-          className="primary-button"
-          type="button"
-          onClick={() => navigate("/my-bookings")}
-        >
-          View My Bookings
-        </button>
-      </div>
     </main>
   );
 }
+
+const styles = {
+  header: {
+    maxWidth: "420px",
+  },
+  summaryCard: {
+    maxWidth: "560px",
+    padding: "28px",
+  },
+  bookingMeta: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    gap: "6px",
+    marginBottom: "22px",
+  },
+  metaLabel: {
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#7a7a7a",
+  },
+  bookingCode: {
+    fontSize: "20px",
+    color: "#1f1f1f",
+  },
+  hotelSummary: {
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    gap: "14px",
+  },
+  hotelImage: {
+    width: "100%",
+    maxWidth: "240px",
+    height: "160px",
+    borderRadius: "14px",
+  },
+  hotelInfo: {
+    maxWidth: "420px",
+  },
+  infoGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "14px",
+  },
+  infoBlock: {
+    backgroundColor: "#fafafa",
+    border: "1px solid #ececec",
+    borderRadius: "12px",
+    padding: "14px 16px",
+    textAlign: "center",
+  },
+  roomsSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  roomList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  roomRow: {
+    padding: "12px 14px",
+    borderRadius: "12px",
+    backgroundColor: "#fafafa",
+    border: "1px solid #ececec",
+    alignItems: "center",
+  },
+  roomName: {
+    margin: 0,
+    fontSize: "15px",
+    fontWeight: 600,
+    color: "#1f1f1f",
+  },
+  roomMeta: {
+    margin: "4px 0 0",
+    fontSize: "13px",
+    color: "#6a6a6a",
+  },
+  roomPrice: {
+    fontSize: "14px",
+    color: "#1f1f1f",
+  },
+  actions: {
+    marginTop: "24px",
+  },
+  primaryButton: {
+    minWidth: "180px",
+    borderRadius: "999px",
+    padding: "12px 20px",
+  },
+};
