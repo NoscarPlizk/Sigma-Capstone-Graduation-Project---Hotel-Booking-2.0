@@ -26,7 +26,7 @@ export default function Layout() {
               {!isLoggedIn && <Button>Login or Signup</Button>}
             </Nav.Link>
             <Nav.Link href='/allbookedlist'>
-              {isLoggedIn && <Button>Check Booked Hotel List</Button>}
+              {isLoggedIn && <Button>Booked Hotel History</Button>}
             </Nav.Link>
             <Button onClick={() => setShowCurrencyModal(true)}>
               Currency: 

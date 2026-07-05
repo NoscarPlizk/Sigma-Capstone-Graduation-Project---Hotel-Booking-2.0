@@ -171,7 +171,7 @@ function Order({ selectedHotelName }) {
 };
 
 
-export default function AllBookedList() {
+export default function BookedHotelHistory() {
   const APIurl = useContext(BookedList).APIurl;
   const token = useContext(BookedList).token;
   const redirect = useNavigate();
