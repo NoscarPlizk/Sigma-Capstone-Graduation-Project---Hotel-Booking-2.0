@@ -230,6 +230,29 @@ async function findBookingSummary(client, lookupQuery, params) {
   return buildBookingSummary(bookingRow, roomsResult.rows);
 }
 
+async function findExistingBookingByPaymentIntent(client, paymentIntentId) {
+  const existingBookingResult = await client.query(
+    `
+    SELECT
+      bp.booking_id,
+      br.booking_code,
+      br.firebase_uid
+    FROM booking_payments bp
+    INNER JOIN booking_records br
+      ON br.booking_id = bp.booking_id
+    WHERE bp.stripe_payment_intent_id = $1
+    LIMIT 1
+    `,
+    [paymentIntentId]
+  );
+
+  if (existingBookingResult.rowCount === 0) {
+    return null;
+  }
+
+  return existingBookingResult.rows[0];
+}
+
 app.post("/api/start-setting-registry-data-in-db", async (req, res) => {
   const client = await pool.connect();
   let transactionStarted = false;
@@ -301,29 +324,19 @@ app.post("/api/start-setting-registry-data-in-db", async (req, res) => {
       });
     }
 
-    const existingBookingResult = await client.query(
-      `
-      SELECT
-        bp.booking_id,
-        br.booking_code
-      FROM booking_payments bp
-      INNER JOIN booking_records br
-        ON br.booking_id = bp.booking_id
-      WHERE bp.stripe_payment_intent_id = $1
-      LIMIT 1
-      `,
-      [paymentIntent.id]
+    const existingBooking = await findExistingBookingByPaymentIntent(
+      client,
+      paymentIntent.id
     );
 
-    if (existingBookingResult.rowCount > 0) {
-      const existingBooking = existingBookingResult.rows[0];
+    if (existingBooking) {
 
       return res.json({
         success: true,
         message: "Booking data already exists for this Stripe payment intent",
         bookingId: existingBooking.booking_id,
         bookingCode: existingBooking.booking_code,
-        firebaseUid,
+        firebaseUid: existingBooking.firebase_uid ?? firebaseUid,
         stripePaymentIntentId: paymentIntent.id,
         alreadyImported: true,
       });
@@ -641,6 +654,28 @@ app.post("/api/start-setting-registry-data-in-db", async (req, res) => {
   } catch (error) {
     if (transactionStarted) {
       await client.query("ROLLBACK");
+    }
+
+    if (
+      error?.code === "23505" &&
+      error?.constraint === "booking_payments_stripe_payment_intent_id_key"
+    ) {
+      const existingBooking = await findExistingBookingByPaymentIntent(
+        client,
+        req.body?.stripePaymentIntentId
+      );
+
+      if (existingBooking) {
+        return res.json({
+          success: true,
+          message: "Booking data already exists for this Stripe payment intent",
+          bookingId: existingBooking.booking_id,
+          bookingCode: existingBooking.booking_code,
+          firebaseUid: existingBooking.firebase_uid ?? req.body?.firebaseUser?.firebase_uid,
+          stripePaymentIntentId: req.body?.stripePaymentIntentId,
+          alreadyImported: true,
+        });
+      }
     }
 
     console.error("Database insert error:", error);

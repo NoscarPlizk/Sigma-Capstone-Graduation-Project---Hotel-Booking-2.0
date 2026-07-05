@@ -16,9 +16,9 @@ const initialState = {
     },
     email: '',
     phone: {
-      region_code: '',
-      region_country: '',
-      region_country_code: '',
+      region_number_code: '',
+      region_country_name: '',
+      region_country_short_name_code: '',
       phone_number: ''
     },
     company: {
@@ -88,7 +88,7 @@ const FinalBookingDataSlice = createSlice({
       const { setCountryData } = action.payload;
 
       state.CustomerDetailsnBookingHotelData.
-      country_region.country_code = setCountryData.code;
+      country_region.country_code = setCountryData.code; // setCountryData.phoneCode
       state.CustomerDetailsnBookingHotelData.
       country_region.country_name = setCountryData.name;
     },
@@ -114,11 +114,11 @@ const FinalBookingDataSlice = createSlice({
     setProfileTelRegCode(state, action) {
       const { setTeleCountryRegion } = action.payload;
       state.CustomerDetailsnBookingHotelData.
-      phone.region_code = setTeleCountryRegion.region_code;
+      phone.region_number_code = setTeleCountryRegion.phoneCode;
       state.CustomerDetailsnBookingHotelData.
-      phone.region_country = setTeleCountryRegion.region_country;
+      phone.region_country_name = setTeleCountryRegion.name;
       state.CustomerDetailsnBookingHotelData.
-      phone.region_country_code = setTeleCountryRegion.region_country_code;
+      phone.region_country_short_name_code = setTeleCountryRegion.code;
     },
 
     setProfileTelephone(state, action) {

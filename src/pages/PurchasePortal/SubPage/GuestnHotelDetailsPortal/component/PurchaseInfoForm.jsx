@@ -216,14 +216,13 @@ export default function PurchaseInfoForm({
                 }
                 name='country_region_name'
                 value={countryNameReg ?? ''}
-                // defaultValue=""
                 onChange={(e) => {                  
                   const country_name = e.target.value;
 
                   dispatch(
                     setProfileCountryRegion({ 
                       setCountryData: countryRegionOptions.find(
-                      (country) => country.code === country_name 
+                      (country) => country.name === country_name 
                   )}))
                   DetectedTouch({ name: e.target.name });
                 }}
@@ -312,7 +311,12 @@ export default function PurchaseInfoForm({
                   name='country_region_telephone'
                   value={telephoneRegionCodeReg ?? ''}
                   onChange={(e) => {
-                    dispatch(setProfileTelRegCode({ setTeleCountryRegion: e.target.value }))
+                    const country_name = e.target.value; 
+
+                    dispatch(setProfileTelRegCode({ 
+                      setTeleCountryRegion: countryRegionOptions.find(
+                      (country) => country.name === country_name
+                    )}))
                     DetectedTouch({ name: e.target.name });
                   }}
                 >
@@ -320,7 +324,7 @@ export default function PurchaseInfoForm({
                     Phone
                   </option>
                   {countryRegionOptions.map((country) => (
-                    <option key={country.code} value={country.phoneCode}>
+                    <option key={country.name} value={country.name}>
                       {country.phoneCode} {country.name}
                     </option>
                   ))}

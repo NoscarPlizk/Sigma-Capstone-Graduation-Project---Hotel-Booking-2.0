@@ -195,7 +195,7 @@ function PhoneNumber({ phone, SaveSpecDocFirestore }) {
             required
           >
             {countryRegionOptions.map((region) => (
-              <option key={region.code} value={region.code}>
+              <option key={region.name} value={region.name}>
                 {region.phoneCode} {region.name}
               </option>
             ))}
@@ -219,9 +219,9 @@ function PhoneNumber({ phone, SaveSpecDocFirestore }) {
 
         SaveSpecDocFirestore({
           phone: {
-            region_country_code: selectedCountry?.code || "",
-            region_code: selectedCountry?.phoneCode || "",
-            region_country: selectedCountry?.name || "",
+            region_country_short_name_code: selectedCountry?.code || "",
+            region_number_code: selectedCountry?.phoneCode || "",
+            region_country_name: selectedCountry?.name || "",
             telephone_number: phoneRef.current.value,
           },
         });

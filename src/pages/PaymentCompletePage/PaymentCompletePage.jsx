@@ -29,6 +29,12 @@ function formatDate(dateValue) {
   });
 }
 
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export default function PaymentCompletePage() {
   const navigate = useNavigate();
   const { firebaseUser, userProfile } = useAuth();
@@ -40,6 +46,10 @@ export default function PaymentCompletePage() {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const importStateKey = paymentIntentId
+    ? `bookingImportState:${paymentIntentId}`
+    : null;
 
   function getSavedBookingRegistry(currentPaymentIntentId) {
     if (!currentPaymentIntentId) return null;
@@ -61,11 +71,33 @@ export default function PaymentCompletePage() {
     const controller = new AbortController();
 
     async function ImportIntoDB(currentPaymentIntentId) {
+      if (!importStateKey) {
+        throw new Error("Missing import state key.");
+      }
+
       const bookingRegistry = getSavedBookingRegistry(currentPaymentIntentId);
 
       if (!bookingRegistry) {
         throw new Error("Booking data was lost. Please contact support.");
       }
+
+      const existingImportState = sessionStorage.getItem(importStateKey);
+
+      if (existingImportState === "completed") {
+        return {
+          success: true,
+          alreadyImported: true,
+        };
+      }
+
+      if (existingImportState === "started") {
+        return {
+          success: true,
+          alreadyImported: true,
+        };
+      }
+
+      sessionStorage.setItem(importStateKey, "started");
 
       const response = await fetch(
         `${BACKEND_URL}/api/start-setting-registry-data-in-db`,
@@ -77,10 +109,24 @@ export default function PaymentCompletePage() {
             stripePaymentIntentId: currentPaymentIntentId,
             firebaseUser: {
               firebase_uid: firebaseUser.uid,
-              email: userProfile.email,
-              display_name: userProfile.displayName,
-              phone_number: `${userProfile.region_code} ${userProfile.telephone_number}`,
-              photo_url: userProfile.photoURL,
+              email: userProfile?.email ?? firebaseUser?.email ?? null,
+              display_name:
+                userProfile?.display_name ??
+                ([
+                  userProfile?.name?.first_name,
+                  userProfile?.name?.last_name,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || null) ??
+                firebaseUser?.displayName ??
+                null,
+              phone_number: [
+                userProfile?.phone?.region_code,
+                userProfile?.phone?.telephone_number,
+              ]
+                .filter(Boolean)
+                .join(" ") || null,
+              photo_url: userProfile?.photo_url ?? firebaseUser?.photoURL ?? null,
             },
             bookingRegistry,
           }),
@@ -90,9 +136,11 @@ export default function PaymentCompletePage() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok || !data?.success) {
+        sessionStorage.removeItem(importStateKey);
         throw new Error(data?.message || "Failed to save booking into DB.");
       }
 
+      sessionStorage.setItem(importStateKey, "completed");
       sessionStorage.removeItem(`bookingRegistry:${currentPaymentIntentId}`);
 
       return data;
@@ -113,22 +161,33 @@ export default function PaymentCompletePage() {
         throw new Error("Missing booking code or payment intent ID.");
       }
 
-      const response = await fetch(apiUrl, {
-        method: "GET",
-        signal: controller.signal,
-      });
+      let lastError = null;
 
-      const result = await response.json().catch(() => null);
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          signal: controller.signal,
+        });
 
-      if (!response.ok || !result?.success) {
-        throw new Error(result?.message || "Failed to fetch booking summary.");
+        const result = await response.json().catch(() => null);
+
+        if (response.ok && result?.success && result?.booking) {
+          setBooking(result.booking);
+          return;
+        }
+
+        lastError = new Error(
+          result?.message || "Failed to fetch booking summary."
+        );
+
+        if (response.status !== 404 || attempt === 3) {
+          throw lastError;
+        }
+
+        await delay(400 * (attempt + 1));
       }
 
-      if (!result.booking) {
-        throw new Error("Booking summary API returned empty booking.");
-      }
-
-      setBooking(result.booking);
+      throw lastError ?? new Error("Failed to fetch booking summary.");
     }
 
     async function runPaymentSuccessFlow() {
