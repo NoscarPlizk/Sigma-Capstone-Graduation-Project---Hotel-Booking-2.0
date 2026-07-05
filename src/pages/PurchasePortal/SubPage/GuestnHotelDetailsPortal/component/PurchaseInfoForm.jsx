@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import { useSelector, useDispatch } from "react-redux";
 
@@ -69,7 +69,30 @@ export default function PurchaseInfoForm({
 }) {
   const dispatch = useDispatch();
 
-  const { hadvaluebeforeSubmit, SethadvaluebeforeSubmit } = VarValueBeforeSubmitState;
+  function findCountryByPhone(phone) {
+    if (!phone || typeof phone !== 'object') {
+      return undefined;
+    }
+
+    const regionCountryCode =
+      phone.region_country_short_name_code ?? phone.region_country_code ?? '';
+    const regionCountryName =
+      phone.region_country_name ?? phone.region_country ?? '';
+    const regionNumberCode =
+      phone.region_number_code ?? phone.region_code ?? '';
+
+    return (
+      countryRegionOptions.find((country) => country.code === regionCountryCode) ||
+      countryRegionOptions.find(
+        (country) =>
+          country.name === regionCountryName &&
+          country.phoneCode === regionNumberCode
+      ) ||
+      countryRegionOptions.find((country) => country.name === regionCountryName)
+    );
+  }
+
+  const { SethadvaluebeforeSubmit } = VarValueBeforeSubmitState;
   
   const bookingRegistry = useSelector(state => 
     state.PurchasePortal_FinalBookingData.CustomerDetailsnBookingHotelData
@@ -78,22 +101,21 @@ export default function PurchaseInfoForm({
   const bookingForTypeReg = bookingRegistry?.main_guest_name?.guest_booking_for_type ?? 'mainGuest';
   const firstNameReg = bookingRegistry?.main_guest_name?.first_name ?? '';
   const lastNameReg = bookingRegistry?.main_guest_name?.last_name ?? '';
-  const countryRegionReg = bookingRegistry?.country_region?.country_code ?? '';
   const countryNameReg = bookingRegistry?.country_region?.country_name ?? '';
   const isUnderCompanyBusinessReg = bookingRegistry?.company?.is_Company_Business ?? '';
   const companyNameReg = bookingRegistry?.company?.company_data.company_name ?? '';
   const companyRegNumReg = bookingRegistry?.company?.company_data.company_reg_num ?? '';
   const emailReg = bookingRegistry?.email ?? '';
-  const telephoneRegionCodeReg = bookingRegistry?.phone?.region_code ?? '';
+  const telephoneRegionCodeReg =
+    bookingRegistry?.phone?.region_country_short_name_code ?? '';
   const telephoneNumberReg = bookingRegistry?.phone?.phone_number ?? '';
-
-  const InputCompanyName = useRef(null);
-  const InputCompanyRegNum = useRef(null);
 
   const { firebaseUser } = useAuth();
 
   useEffect(() => {
     if (userProfile) {
+      const selectedPhoneCountry = findCountryByPhone(userProfile.phone);
+
       dispatch(setProfileFirstName({ setFirstName: userProfile.name.first_name }));
       dispatch(setProfileLastName({ setLastName: userProfile.name.last_name }));
       dispatch(setProfileCountryRegion({ 
@@ -101,10 +123,16 @@ export default function PurchaseInfoForm({
         country.name === userProfile.nationality )
       }));
       dispatch(setProfileEmail({ setEmail: userProfile.email }));
-      dispatch(setProfileTelRegCode({ setTeleCountryRegion: userProfile.phone }));
-      dispatch(setProfileTelephone({ setTelephoneNumber: userProfile.phone.telephone_number }));
+
+      if (selectedPhoneCountry) {
+        dispatch(setProfileTelRegCode({ setTeleCountryRegion: selectedPhoneCountry }));
+      }
+
+      if (userProfile?.phone?.telephone_number) {
+        dispatch(setProfileTelephone({ setTelephoneNumber: userProfile.phone.telephone_number }));
+      }
     }
-  }, [])
+  }, [dispatch, userProfile])
 
   function checkisNotEmptyStateByUseEffect(
     stateRegistryProps, SethadvaluebeforeSubmit, keyname
@@ -146,7 +174,16 @@ export default function PurchaseInfoForm({
         firstNameReg, SethadvaluebeforeSubmit, 'company_reg_num'
       );
     }
-  }, [bookingRegistry])
+  }, [
+    SethadvaluebeforeSubmit,
+    bookingForTypeReg,
+    countryNameReg,
+    emailReg,
+    firstNameReg,
+    lastNameReg,
+    telephoneNumberReg,
+    telephoneRegionCodeReg,
+  ])
 
   return (
     <div className="PurchaseInfoForm">
@@ -305,17 +342,17 @@ export default function PurchaseInfoForm({
               <div className="d-flex me-3">
                 <select 
                   className={
-                    isError(telephoneRegionCodeReg, 'country_region_telephone') ? 
+                    isError(telephoneRegionCodeReg, 'phone_country_region') ? 
                     "FalseInputBox CountryTeleCode" : "GeneralInputBox CountryTeleCode"
                   }
-                  name='country_region_telephone'
+                  name='phone_country_region'
                   value={telephoneRegionCodeReg ?? ''}
                   onChange={(e) => {
-                    const country_name = e.target.value; 
+                    const countryCode = e.target.value; 
 
                     dispatch(setProfileTelRegCode({ 
                       setTeleCountryRegion: countryRegionOptions.find(
-                      (country) => country.name === country_name
+                      (country) => country.code === countryCode
                     )}))
                     DetectedTouch({ name: e.target.name });
                   }}
@@ -324,7 +361,7 @@ export default function PurchaseInfoForm({
                     Phone
                   </option>
                   {countryRegionOptions.map((country) => (
-                    <option key={country.name} value={country.name}>
+                    <option key={country.code} value={country.code}>
                       {country.phoneCode} {country.name}
                     </option>
                   ))}

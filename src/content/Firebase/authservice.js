@@ -7,6 +7,13 @@ import {
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
+const EMPTY_PHONE = {
+  region_number_code: "",
+  region_country_name: "",
+  region_country_short_name_code: "",
+  telephone_number: "",
+};
+
 export async function registerUser(email, password, name) {
   const userCredential = await createUserWithEmailAndPassword(
     auth,
@@ -20,7 +27,7 @@ export async function registerUser(email, password, name) {
     uid: user.uid,
     name: name,
     email: user.email,
-    phone: "",
+    phone: { ...EMPTY_PHONE },
     address: "",
     createdAt: serverTimestamp()
   });

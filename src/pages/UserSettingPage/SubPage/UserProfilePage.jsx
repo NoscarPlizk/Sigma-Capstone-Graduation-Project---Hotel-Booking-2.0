@@ -162,9 +162,11 @@ function PhoneNumber({ phone, SaveSpecDocFirestore }) {
   const regionRef = useRef(null);
   const phoneRef = useRef(null);
 
-  const regionCountryCode = phone?.region_country_code || "";
-  const regionCountry = phone?.region_country || "";
-  const regionCode = phone?.region_code || "";
+  const regionCountryCode =
+    phone?.region_country_short_name_code || phone?.region_country_code || "";
+  const regionCountry =
+    phone?.region_country_name || phone?.region_country || "";
+  const regionCode = phone?.region_number_code || phone?.region_code || "";
   const telephoneNumber = phone?.telephone_number || "";
 
   const selectedRegion =
@@ -195,7 +197,7 @@ function PhoneNumber({ phone, SaveSpecDocFirestore }) {
             required
           >
             {countryRegionOptions.map((region) => (
-              <option key={region.name} value={region.name}>
+              <option key={region.code} value={region.code}>
                 {region.phoneCode} {region.name}
               </option>
             ))}

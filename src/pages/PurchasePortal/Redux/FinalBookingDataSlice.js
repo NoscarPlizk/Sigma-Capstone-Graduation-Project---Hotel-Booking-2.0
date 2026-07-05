@@ -86,6 +86,9 @@ const FinalBookingDataSlice = createSlice({
 
     setProfileCountryRegion(state, action) {
       const { setCountryData } = action.payload;
+      if (!setCountryData) {
+        return;
+      }
 
       state.CustomerDetailsnBookingHotelData.
       country_region.country_code = setCountryData.code; // setCountryData.phoneCode
@@ -113,12 +116,32 @@ const FinalBookingDataSlice = createSlice({
 
     setProfileTelRegCode(state, action) {
       const { setTeleCountryRegion } = action.payload;
+      if (!setTeleCountryRegion) {
+        return;
+      }
+
+      const regionNumberCode =
+        setTeleCountryRegion.phoneCode ??
+        setTeleCountryRegion.region_number_code ??
+        setTeleCountryRegion.region_code ??
+        '';
+      const regionCountryName =
+        setTeleCountryRegion.name ??
+        setTeleCountryRegion.region_country_name ??
+        setTeleCountryRegion.region_country ??
+        '';
+      const regionCountryShortNameCode =
+        setTeleCountryRegion.code ??
+        setTeleCountryRegion.region_country_short_name_code ??
+        setTeleCountryRegion.region_country_code ??
+        '';
+
       state.CustomerDetailsnBookingHotelData.
-      phone.region_number_code = setTeleCountryRegion.phoneCode;
+      phone.region_number_code = regionNumberCode;
       state.CustomerDetailsnBookingHotelData.
-      phone.region_country_name = setTeleCountryRegion.name;
+      phone.region_country_name = regionCountryName;
       state.CustomerDetailsnBookingHotelData.
-      phone.region_country_short_name_code = setTeleCountryRegion.code;
+      phone.region_country_short_name_code = regionCountryShortNameCode;
     },
 
     setProfileTelephone(state, action) {
@@ -147,7 +170,7 @@ const FinalBookingDataSlice = createSlice({
         ...MainRoom,
         base_select_room: MainRoom.base_select_room.flatMap((offer) => {
           const AmountofRoom = offer.amount;
-          const { amount, ...otherProperty } = offer;
+          const { amount: _amount, ...otherProperty } = offer;
           return Array.from({ length: AmountofRoom }, (_, repeatIndex) => ({
             ...otherProperty,
             main_guest_name: '',

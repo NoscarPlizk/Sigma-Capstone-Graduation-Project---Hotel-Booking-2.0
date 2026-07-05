@@ -1,11 +1,46 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import useLocalStorage from "use-local-storage";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import isEqual from 'fast-deep-equal';
 
 const AuthContext = createContext(null);
+const EMPTY_PHONE = {
+  region_number_code: "",
+  region_country_name: "",
+  region_country_short_name_code: "",
+  telephone_number: "",
+};
+
+function normalizePhone(phone) {
+  if (!phone || typeof phone !== "object") {
+    return { ...EMPTY_PHONE };
+  }
+
+  return {
+    region_number_code:
+      phone.region_number_code ?? phone.region_code ?? "",
+    region_country_name:
+      phone.region_country_name ?? phone.region_country ?? "",
+    region_country_short_name_code:
+      phone.region_country_short_name_code ?? phone.region_country_code ?? "",
+    telephone_number: phone.telephone_number ?? "",
+  };
+}
+
+function shouldMigratePhone(phone) {
+  if (!phone || typeof phone !== "object") {
+    return true;
+  }
+
+  return (
+    "region_code" in phone ||
+    "region_country" in phone ||
+    "region_country_code" in phone
+  );
+}
 
 export function AuthProvider({ children }) {
   const [ firebaseUser, setFirebaseUser ] = useLocalStorage("firebaseUser", null);
@@ -47,26 +82,35 @@ export function AuthProvider({ children }) {
         function normalizeUserProfile(firestoreProfile) {
           if (!firestoreProfile) return null;
 
-          const { createdAt, updatedAt, ...cleanProfile  } = firestoreProfile;
-          return cleanProfile;
+          const { createdAt: _createdAt, updatedAt: _updatedAt, ...cleanProfile  } = firestoreProfile;
+          return {
+            ...cleanProfile,
+            phone: normalizePhone(cleanProfile.phone),
+          };
         }
 
+        const rawFirestoreData = userDocSnap.data();
         const actualUserProfile = normalizeUserProfile(userProfile);
-        const actualFirestoreData = normalizeUserProfile(userDocSnap.data());
+        const actualFirestoreData = normalizeUserProfile(rawFirestoreData);
         // if exsting user details, else detected is new user without info, generate blank info
         if (userDocSnap.exists()) {
+          if (shouldMigratePhone(rawFirestoreData?.phone)) {
+            await updateDoc(userDocRef, {
+              phone: actualFirestoreData.phone,
+              updatedAt: serverTimestamp(),
+            });
+          }
 
           
           if (!userProfile) {
-            console.log("Login Firestore Profile:", userDocSnap.data());
+            console.log("Login Firestore Profile:", rawFirestoreData);
             setUserProfile({
-              // id: userDocSnap.id,
-              ...userDocSnap.data()
+              ...actualFirestoreData
             });
           } else if (userProfile && !isEqual(actualUserProfile, actualFirestoreData)) {
-            console.log("Update Latest Firestore Profile:", userDocSnap.data());
+            console.log("Update Latest Firestore Profile:", rawFirestoreData);
             setUserProfile({
-              ...userDocSnap.data()
+              ...actualFirestoreData
             });
           }
 
@@ -79,7 +123,7 @@ export function AuthProvider({ children }) {
             name: user.displayName || "",
             display_name: "",
             email: user.email,
-            phone: "",
+            phone: { ...EMPTY_PHONE },
             address: "",
             createdAt: serverTimestamp()
           };
@@ -111,6 +155,29 @@ export function AuthProvider({ children }) {
 
     const userRef = doc(db, "users", firebaseUser.uid);
 
+    if ("phone" in updatedProfile) {
+      const { phone, ...otherUpdates } = updatedProfile;
+      const normalizedPhone = normalizePhone(phone);
+
+      await updateDoc(
+        userRef,
+        {
+          ...otherUpdates,
+          phone: normalizedPhone,
+          updatedAt: serverTimestamp()
+        }
+      );
+
+      setUserProfile((prev) => ({
+        ...(prev ?? {}),
+        ...otherUpdates,
+        phone: normalizedPhone,
+      }));
+
+      console.log('SaveSpecDocFirestore Success');
+      return;
+    }
+
     await setDoc(
       userRef, 
       {
@@ -119,6 +186,11 @@ export function AuthProvider({ children }) {
       }, 
       { merge: true }
     );
+
+    setUserProfile((prev) => ({
+      ...(prev ?? {}),
+      ...updatedProfile,
+    }));
 
     console.log('SaveSpecDocFirestore Success');
   }

@@ -121,6 +121,7 @@ export default function PaymentCompletePage() {
                 firebaseUser?.displayName ??
                 null,
               phone_number: [
+                userProfile?.phone?.region_number_code ??
                 userProfile?.phone?.region_code,
                 userProfile?.phone?.telephone_number,
               ]
