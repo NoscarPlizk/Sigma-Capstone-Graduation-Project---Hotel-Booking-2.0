@@ -15,7 +15,7 @@ import ViewHotel from "./pages/ViewHotel/ViewHotel";
 import UserSettingPage from "./pages/UserSettingPage/UserSettingPage";
 import PaymentCompletePage from "./pages/PaymentCompletePage/PaymentCompletePage";
 import PaymentCompletePrototypePage from "./pages/PaymentCompletePrototypePage/PaymentCompletePrototypePage";
-import AllBookedList from "./pages/AllBookedList";
+import BookedHotelHistory from "./pages/BookedHotelHistory";
 import MainHome from "./pages/MainHome";
 
 export default function App() {
@@ -109,7 +109,7 @@ function AppInner({
         <Route path="userauth" element={<AuthPages />} />
         <Route path="viewhotel" element={<ViewHotel />} />
         <Route path="usersetting" element={<UserSettingPage />} />
-        <Route path="allbookedlist" element={<AllBookedList />} />
+        <Route path="bookedhotelhistory" element={<BookedHotelHistory />} />
         <Route path="paymentcomplete" element={<PaymentCompletePage />} />
         <Route path="payment-complete-prototype" element={<PaymentCompletePrototypePage />} />
       </Route>

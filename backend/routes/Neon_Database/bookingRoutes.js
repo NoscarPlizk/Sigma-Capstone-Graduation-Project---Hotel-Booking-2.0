@@ -64,6 +64,7 @@ function buildBookingSummary(bookingRow, roomRows) {
   );
 
   return {
+    booking_id: bookingRow.booking_id,
     booking_code: bookingRow.booking_code,
     hotel_name: bookingRow.hotel_name,
     hotel_address: bookingRow.hotel_address,
@@ -75,12 +76,129 @@ function buildBookingSummary(bookingRow, roomRows) {
     child_pax: Number(bookingRow.child_pax ?? 0),
     currency: String(bookingRow.currency ?? "MYR").toUpperCase(),
     total_amount: convertFromSmallestUnit(bookingRow.total_amount),
+    booking_status: bookingRow.booking_status ?? null,
+    payment_status: bookingRow.payment_status ?? null,
     rooms: roomRows.map((roomRow) => ({
       room_name: roomRow.room_name,
       amount: Number(roomRow.amount ?? 0),
       subtotal_amount: convertFromSmallestUnit(roomRow.subtotal_amount),
     })),
   };
+}
+
+function buildBookingHistoryItems(bookingRows, roomRows, paymentRows) {
+  const roomRowsByBookingId = new Map();
+
+  for (const roomRow of roomRows) {
+    const currentRoomRows = roomRowsByBookingId.get(roomRow.booking_id) ?? [];
+    currentRoomRows.push(roomRow);
+    roomRowsByBookingId.set(roomRow.booking_id, currentRoomRows);
+  }
+
+  const paymentByBookingId = new Map();
+
+  for (const paymentRow of paymentRows) {
+    paymentByBookingId.set(paymentRow.booking_id, paymentRow);
+  }
+
+  return bookingRows.map((bookingRow) => {
+    const summary = buildBookingSummary(
+      bookingRow,
+      roomRowsByBookingId.get(bookingRow.booking_id) ?? []
+    );
+    const paymentRow = paymentByBookingId.get(bookingRow.booking_id);
+
+    return {
+      ...summary,
+      stripe_payment_intent_id: paymentRow?.stripe_payment_intent_id ?? null,
+      receipt_url: paymentRow?.receipt_url ?? null,
+    };
+  });
+}
+
+async function findBookingHistoryItemsByFirebaseUid(client, firebaseUid) {
+  const bookingsResult = await client.query(
+    `
+    SELECT
+      booking_id,
+      booking_code,
+      firebase_uid,
+      hotel_name,
+      hotel_address,
+      check_in_date,
+      check_out_date,
+      total_days,
+      adult_pax,
+      child_pax,
+      currency,
+      total_amount,
+      booking_status,
+      payment_status,
+      booking_registry_json
+    FROM booking_records
+    WHERE firebase_uid = $1
+    ORDER BY booking_id DESC
+    `,
+    [firebaseUid]
+  );
+
+  if (bookingsResult.rowCount === 0) {
+    return [];
+  }
+
+  const bookingIds = bookingsResult.rows.map((bookingRow) => bookingRow.booking_id);
+
+  const roomRowsResult = await client.query(
+    `
+    SELECT
+      brg.booking_id,
+      brg.room_group_id,
+      brg.base_room_name AS room_name,
+      COALESCE(
+        brg.base_select_room_total_amount,
+        SUM(bro.amount),
+        0
+      ) AS amount,
+      COALESCE(SUM(bro.total_offer_price), 0) AS subtotal_amount
+    FROM booking_room_groups brg
+    LEFT JOIN booking_room_offers bro
+      ON bro.room_group_id = brg.room_group_id
+    WHERE brg.booking_id = ANY($1::uuid[])
+    GROUP BY
+      brg.booking_id,
+      brg.room_group_id,
+      brg.base_room_name,
+      brg.base_select_room_total_amount
+    ORDER BY brg.booking_id DESC, brg.room_group_id ASC
+    `,
+    [bookingIds]
+  );
+
+  const paymentRowsResult = await client.query(
+    `
+    SELECT
+      booking_id,
+      stripe_payment_intent_id,
+      receipt_url,
+      payment_status
+    FROM booking_payments
+    WHERE booking_id = ANY($1::uuid[])
+    ORDER BY booking_id DESC
+    `,
+    [bookingIds]
+  );
+
+  return buildBookingHistoryItems(
+    bookingsResult.rows,
+    roomRowsResult.rows,
+    paymentRowsResult.rows
+  );
+}
+
+async function findBookingHistoryItemByCode(client, bookingCode, firebaseUid) {
+  const bookings = await findBookingHistoryItemsByFirebaseUid(client, firebaseUid);
+
+  return bookings.find((booking) => booking.booking_code === bookingCode) ?? null;
 }
 
 async function findBookingSummary(client, lookupQuery, params) {
@@ -663,6 +781,136 @@ export function registerBookingRoutes(app, { pool, stripe }) {
       res.status(500).json({
         success: false,
         message: "Failed to fetch booking summary by booking code.",
+        error: error.message,
+      });
+    } finally {
+      client.release();
+    }
+  });
+
+  app.get("/api/booking-records/user/:firebaseUid", async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+      const firebaseUid = String(req.params.firebaseUid ?? "").trim();
+
+      if (!firebaseUid) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing firebase UID.",
+        });
+      }
+
+      const bookings = await findBookingHistoryItemsByFirebaseUid(
+        client,
+        firebaseUid
+      );
+
+      res.json({
+        success: true,
+        bookings,
+      });
+    } catch (error) {
+      console.error("Booking history by user error:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch booking history.",
+        error: error.message,
+      });
+    } finally {
+      client.release();
+    }
+  });
+
+  app.patch("/api/booking-records/:bookingCode/cancel", async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+      const bookingCode = String(req.params.bookingCode ?? "").trim();
+      const firebaseUid = String(req.body?.firebaseUid ?? "").trim();
+
+      if (!bookingCode) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing booking code.",
+        });
+      }
+
+      if (!firebaseUid) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing firebase UID.",
+        });
+      }
+
+      const existingBookingResult = await client.query(
+        `
+        SELECT
+          booking_id,
+          booking_status
+        FROM booking_records
+        WHERE booking_code = $1
+          AND firebase_uid = $2
+        LIMIT 1
+        `,
+        [bookingCode, firebaseUid]
+      );
+
+      if (existingBookingResult.rowCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Booking record was not found for this user.",
+        });
+      }
+
+      const existingBooking = existingBookingResult.rows[0];
+
+      if (existingBooking.booking_status === "cancelled") {
+        const booking = await findBookingHistoryItemByCode(
+          client,
+          bookingCode,
+          firebaseUid
+        );
+
+        return res.json({
+          success: true,
+          message: "Booking was already cancelled.",
+          booking,
+        });
+      }
+
+      await client.query(
+        `
+        UPDATE booking_records
+        SET
+          booking_status = 'cancelled',
+          payment_status = CASE
+            WHEN payment_status = 'paid' THEN 'refund_pending'
+            ELSE payment_status
+          END
+        WHERE booking_id = $1
+        `,
+        [existingBooking.booking_id]
+      );
+
+      const booking = await findBookingHistoryItemByCode(
+        client,
+        bookingCode,
+        firebaseUid
+      );
+
+      res.json({
+        success: true,
+        message: "Booking has been cancelled.",
+        booking,
+      });
+    } catch (error) {
+      console.error("Cancel booking error:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to cancel booking.",
         error: error.message,
       });
     } finally {
