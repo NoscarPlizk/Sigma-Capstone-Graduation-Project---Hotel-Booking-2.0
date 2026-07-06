@@ -1,19 +1,68 @@
 import { Row, Col, Container, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { useEffect } from 'react';
-import { BookedList } from "../../content/data transfer/bookedListContent";
 import SelectMenu from "../../component/SelectMenu/SelectMenu";
 import "./MainHome.css";
-import { useContext } from "react";
 
-function SelectCard({ title, imgUrl }) {
+const popularDestinations = [
+  {
+    title: "Kuala Lumpur",
+    region: "Asia",
+    note: "Skyline, food, and easy weekend stays",
+    imgUrl:
+      "https://img.static-kl.com/transform/1f159175-0757-4f9e-a9a8-ec6dbd5bce68/",
+  },
+  {
+    title: "Tokyo",
+    region: "Asia",
+    note: "Neighbourhood hotels with late-night energy",
+    imgUrl:
+      "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcSJrEMCqMgEVm-268dXRBSqg7BRX-77DoP-X3Ki37flVvSpjOHOEaTXLjAzhakWWOWv8mww_6gSd-ht2cnvg4hrKh0&s=19",
+  },
+  {
+    title: "Paris",
+    region: "Europe",
+    note: "Classic city stays near landmarks and cafes",
+    imgUrl:
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Dubai",
+    region: "Middle East",
+    note: "Modern towers, shopping, and resort breaks",
+    imgUrl:
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Vancouver",
+    region: "North America",
+    note: "Harbour views with a calm city pace",
+    imgUrl:
+      "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    title: "Melbourne",
+    region: "Oceania",
+    note: "Creative districts, coffee, and short escapes",
+    imgUrl:
+      "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=1200&q=80",
+  },
+];
+
+function PopularCityCard({ title, region, note, imgUrl }) {
   return (
-    <Col>
+    <Col xs={12} md={6} xl={4}>
       <Card
-        className="border-0 rounded-4 overflow-hidden position-relative shadow"
-        style={{ width: 320, height: 220 }}
+        className="border-0 rounded-5 overflow-hidden position-relative shadow-sm h-100"
+        style={{
+          minHeight: 220,
+          backgroundColor: "#f8fbfe",
+          boxShadow: "0 16px 40px rgba(30, 71, 117, 0.10)",
+        }}
       >
-        <Link to={'/searchtohotellist'} className="w-100 h-100">
+        <Link
+          to={"/searchtohotellist"}
+          className="w-100 h-100 text-decoration-none d-block"
+        >
           <Card.Img
             src={imgUrl}
             alt={title}
@@ -21,19 +70,48 @@ function SelectCard({ title, imgUrl }) {
             style={{ objectFit: "cover" }}
           />
 
-          {/* Overlay shadow */}
           <div
-            className="position-absolute top-0 start-0 w-100"
+            className="position-absolute top-0 start-0 w-100 h-100"
             style={{
-              height: "40%",
               background:
-                "linear-gradient(to bottom, rgba(0,0,0,.6), rgba(0,0,0,0))",
+                "linear-gradient(180deg, rgba(15, 45, 78, 0.18) 0%, rgba(15, 45, 78, 0.10) 35%, rgba(9, 28, 52, 0.68) 100%)",
             }}
           />
 
-          {/* Title */}
-          <div className="position-absolute top-0 start-0 p-3 text-white fw-bold fs-4">
-            {title}
+          <div className="position-absolute top-0 start-0 p-3">
+            <span
+              className="px-3 py-2 rounded-pill small fw-semibold"
+              style={{
+                backgroundColor: "rgba(248, 251, 254, 0.92)",
+                color: "#315b86",
+                letterSpacing: "0.02em",
+              }}
+            >
+              Popular destination
+            </span>
+          </div>
+
+          <div className="position-absolute bottom-0 start-0 p-4 text-white">
+            <p
+              className="mb-2 text-uppercase fw-semibold"
+              style={{
+                fontSize: "0.78rem",
+                letterSpacing: "0.12em",
+                color: "rgba(235, 244, 252, 0.88)",
+              }}
+            >
+              {region}
+            </p>
+            <h3 className="mb-2 fw-bold">{title}</h3>
+            <p
+              className="mb-0"
+              style={{
+                maxWidth: 260,
+                color: "rgba(236, 244, 252, 0.90)",
+              }}
+            >
+              {note}
+            </p>
           </div>
         </Link>
       </Card>
@@ -52,34 +130,53 @@ export default function MainHome() {
             <SelectMenu />
           </div>
         </div>
-        <Container>
-          <Row className="px-5">
-            <h1 className="mt-3">Find your next stay in Asia</h1>
-            <Row className="mt-3">
-              <SelectCard 
-                title="Kuala Lumpur" 
-                imgUrl="https://img.static-kl.com/transform/1f159175-0757-4f9e-a9a8-ec6dbd5bce68/"
-              />
-              <SelectCard 
-                title="Singapore" 
-                imgUrl="https://images.trvl-media.com/place/6047873/15d3ae30-ef33-406e-971f-9520c03f1089.jpg"
-              />
-              <SelectCard 
-                title="Taipei" 
-                imgUrl="https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcTskIxvQ6q0LdUXXjHemhHZDiuuGlNvwIaq03f7br9C8VrMGoh_XGBQJ_MTURO3THRtsP422TC_l0yR3xuIEkjuByw&s=19"
-              />
-              <SelectCard 
-                title="Ho Chi Minh City" 
-                imgUrl="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Ho_Chi_Minh_City%2C_City_Hall%2C_2020-01_CN-04.jpg/330px-Ho_Chi_Minh_City%2C_City_Hall%2C_2020-01_CN-04.jpg"
-              />
+        <Container className="py-5">
+          <section
+            className="rounded-5 px-4 px-lg-5 py-4 py-lg-5"
+            style={{
+              background: "linear-gradient(180deg, #fbfdff 0%, #eef5fb 100%)",
+              border: "1px solid #d9e5f0",
+            }}
+          >
+            <Row className="align-items-end g-3 mb-4">
+              <Col lg={8}>
+                <p
+                  className="mb-2 text-uppercase fw-semibold"
+                  style={{
+                    color: "#6b8aa8",
+                    letterSpacing: "0.14em",
+                    fontSize: "0.82rem",
+                  }}
+                >
+                  Recommended
+                </p>
+                <h2 className="mb-2" style={{ color: "#14385f", fontWeight: 700 }}>
+                  Popular destinations
+                </h2>
+                <p className="mb-0" style={{ color: "#5c7690", maxWidth: 560 }}>
+                  Curated city picks across Asia, Europe, the Middle East,
+                  North America, and Oceania for quick hotel discovery.
+                </p>
+              </Col>
+              <Col lg={4}>
+                <div
+                  className="rounded-4 px-3 py-3"
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.72)",
+                    border: "1px solid #e2ebf3",
+                    color: "#5f7a95",
+                  }}
+                >
+                  Clean destination shortcuts with a calm white-and-blue theme.
+                </div>
+              </Col>
             </Row>
-            <Row className="mt-5">
-              <SelectCard 
-                title="Tokyo" 
-                imgUrl="https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcSJrEMCqMgEVm-268dXRBSqg7BRX-77DoP-X3Ki37flVvSpjOHOEaTXLjAzhakWWOWv8mww_6gSd-ht2cnvg4hrKh0&s=19"
-              />
+            <Row className="g-4">
+              {popularDestinations.map((city) => (
+                <PopularCityCard key={city.title} {...city} />
+              ))}
             </Row>
-          </Row>
+          </section>
         </Container>
       </Row>
     </>
