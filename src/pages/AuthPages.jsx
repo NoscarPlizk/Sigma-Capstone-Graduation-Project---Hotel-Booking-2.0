@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Modal, Button, Form, Container, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { loginUser, registerUser } from "../content/Firebase/authService";
+import "./AuthPages.css";
 
 export default function AuthPages() {
   const [ show, setShow ] = useState(false);
@@ -37,110 +38,97 @@ export default function AuthPages() {
     }
   };
 
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   if (username === '' || password === '') 
-  //   return console.log({ message: "EMPTY!!, Either username or password is Empty:", username: username, password: password });
-      
-  //   try {
-  //     const res = await axios.post(`${APIurl}login`, { username, password });
-  //     if (res.data && res.data.auth === true && res.data.token) {
-  //       setToken(res.data.token);
-  //       console.log('login was successful, token saved');
-  //     }
-  //     console.log(res.data);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
-  // const handleSignUp = async (e) => {
-  //   e.preventDefault();
-  //   if (username === '' || password === '') 
-  //   return console.log({ "EMPTY!!, Either username or password is Empty:": { username, password } });
-    
-  //   try {
-  //     const res = await axios.post(`${APIurl}signup`, { username, password });
-  //     console.log(res.data);
-            
-  //     console.log('login was successful, token saved');
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   return (
     <>
-      <Container>
-        <Modal show={show} onHide={handleCloseRegister}>
+      <div className="auth-page-shell">
+        <div className="auth-page-backdrop auth-page-backdrop-primary" />
+        <div className="auth-page-backdrop auth-page-backdrop-secondary" />
+        <Container className="auth-page-container">
+          <Modal
+            show={show}
+            onHide={handleCloseRegister}
+            centered
+            contentClassName="auth-register-modal"
+          >
           <Modal.Body>
-            <Form onSubmit={handleSignUp}>
-              <Form.Label>Insert Your Email and Password for Register</Form.Label>
+            <Form onSubmit={handleSignUp} className="auth-register-form">
+              <div className="auth-register-copy">
+                <span className="auth-section-kicker">Create account</span>
+                <h2>Register portal</h2>
+                <p>Insert your details to create a new account.</p>
+              </div>
               <Form.Group>
                 <Form.Control 
-                  className="mb-3"
+                  className="auth-input mb-3"
                   placeholder="Insert Username" 
                   type="text" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
                 <Form.Control
-                  className="mb-3"
+                  className="auth-input mb-3"
                   placeholder="Insert Email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <Form.Control 
+                  className="auth-input"
                   placeholder="Insert Password" 
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Form.Group>
-              <Button className="mt-3" type="submit">Register</Button>
+              <Button className="auth-primary-button mt-4" type="submit">Register</Button>
             </Form>
           </Modal.Body>
         </Modal>
-        <Form onSubmit={handleLogin} className="align-items-center">
-          <Form.Group>
-            <Row>
-              <Col>
-                <Container>
-                  <Form.Label className="py-2">
-                    <h3>Hi Welcome back!</h3>
-                  </Form.Label>
-                  <Form.Control 
-                    className="mb-3"
-                    placeholder="Insert Email" 
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <Form.Control 
-                    className="mb-3"
-                    placeholder="Insert Password" 
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Container>
-              </Col>
-              <Col>
-                <Container className="mt-3">
-                  <Button type="submit">
+          <Row className="justify-content-center w-100 mx-0">
+            <Col xxl={4} xl={5} lg={6} md={8} sm={10} xs={12}>
+              <div className="auth-card">
+                <div className="auth-copy-block">
+                  <span className="auth-section-kicker">Hotel Booking</span>
+                  <h1>Sign in</h1>
+                  <p>Use your email and password to access your booking portal.</p>
+                </div>
+
+                <Form onSubmit={handleLogin} className="auth-form">
+                  <Form.Group className="auth-form-group">
+                    <Form.Label className="auth-label">Email</Form.Label>
+                    <Form.Control 
+                      className="auth-input"
+                      placeholder="name@example.com" 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="auth-form-group">
+                    <Form.Label className="auth-label">Password</Form.Label>
+                    <Form.Control 
+                      className="auth-input"
+                      placeholder="Insert your password" 
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </Form.Group>
+
+                  <Button className="auth-primary-button" type="submit">
                     Login
                   </Button>
-                  <p className="mt-3">Or</p>
-                  <Button type="button" onClick={handleShowRegister}>
+
+                  <Button className="auth-secondary-button" type="button" onClick={handleShowRegister}>
                     New Register
                   </Button>
-                </Container>
-              </Col>
-            </Row>
-          </Form.Group>
-        </Form>
-      </Container>
+                </Form>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </div>
     </>
   );
 }

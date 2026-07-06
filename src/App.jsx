@@ -10,13 +10,13 @@ import { MasterReduxStore } from './content/data transfer/MasterReduxStore'
 import useLocalStorage from "use-local-storage";
 import AuthPages from "./pages/AuthPages";
 import Layout from "./layout/Layout";
-import SearchToHotelList from "./pages/SearchToHotelList";
+import SearchToHotelList from "./pages/SearchToHotelList/SearchToHotelList";
 import ViewHotel from "./pages/ViewHotel/ViewHotel";
 import UserSettingPage from "./pages/UserSettingPage/UserSettingPage";
 import PaymentCompletePage from "./pages/PaymentCompletePage/PaymentCompletePage";
 import PaymentCompletePrototypePage from "./pages/PaymentCompletePrototypePage/PaymentCompletePrototypePage";
 import BookedHotelHistory from "./pages/BookedHotelHistory";
-import MainHome from "./pages/MainHome";
+import MainHome from "./pages/MainHome/MainHome";
 
 export default function App() {
   const [ token, setToken ] = useLocalStorage('token', null);

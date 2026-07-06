@@ -1,8 +1,8 @@
 import { Row, Col, Container, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useEffect } from 'react';
-import { BookedList } from "../content/data transfer/bookedListContent";
-import SelectMenu from "../component/SelectMenu/SelectMenu";
+import { BookedList } from "../../content/data transfer/bookedListContent";
+import SelectMenu from "../../component/SelectMenu/SelectMenu";
 import "./MainHome.css";
 import { useContext } from "react";
 

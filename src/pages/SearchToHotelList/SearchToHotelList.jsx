@@ -1,8 +1,8 @@
 import { Row, Col, Container, Card, Button } from "react-bootstrap";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import SelectMenu from "../component/SelectMenu/SelectMenu";
-import { BookedList } from "../content/data transfer/bookedListContent";
+import SelectMenu from "../../component/SelectMenu/SelectMenu";
+import { BookedList } from "../../content/data transfer/bookedListContent";
 import "./SearchToHotelList.css";
 
 function LeftBar() {
