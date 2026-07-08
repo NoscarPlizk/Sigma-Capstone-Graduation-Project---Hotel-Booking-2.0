@@ -281,33 +281,42 @@ function HotelRoomType({ roomList, childAgeString, currency, setOpenModalPurchas
                     className="vh-room-description"
                   />
 
-                  <ExpandableChipList
-                    items={everyRoom?.room_data?.highlights}
-                    collapsedCount={5}
-                    className="vh-pill-row"
-                    renderItem={(label, pillIndex) => (
-                      <HighlightsPill
-                        key={`${label?.translated_name ?? "highlight"}-${pillIndex}`}
-                        iconKey={label?.icon}
-                        label={label?.translated_name}
-                      />
-                    )}
-                  />
+                </div>
 
-                  <ExpandableChipList
-                    items={everyRoom?.room_data?.facilities}
-                    collapsedCount={8}
-                    className="vh-facility-row"
-                    renderItem={(label, facilityIndex) => (
-                      <span
-                        key={`${label?.name ?? "facility"}-${facilityIndex}`}
-                        className="facilities-pill"
-                      >
-                        <Falcons.FaCheck aria-hidden="true" />
-                        {label?.name}
-                      </span>
-                    )}
-                  />
+                <div className="vh-room-feature-grid">
+                  <div className="vh-room-feature-group">
+                    <p className="vh-feature-group-title">Highlights</p>
+                    <ExpandableChipList
+                      items={everyRoom?.room_data?.highlights}
+                      collapsedCount={5}
+                      className="vh-pill-row"
+                      renderItem={(label, pillIndex) => (
+                        <HighlightsPill
+                          key={`${label?.translated_name ?? "highlight"}-${pillIndex}`}
+                          iconKey={label?.icon}
+                          label={label?.translated_name}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="vh-room-feature-group">
+                    <p className="vh-feature-group-title">Room facilities</p>
+                    <ExpandableChipList
+                      items={everyRoom?.room_data?.facilities}
+                      collapsedCount={8}
+                      className="vh-facility-row"
+                      renderItem={(label, facilityIndex) => (
+                        <span
+                          key={`${label?.name ?? "facility"}-${facilityIndex}`}
+                          className="facilities-pill"
+                        >
+                          <Falcons.FaCheck aria-hidden="true" />
+                          {label?.name}
+                        </span>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 

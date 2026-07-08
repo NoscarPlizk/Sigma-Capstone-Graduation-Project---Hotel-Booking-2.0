@@ -337,12 +337,16 @@
 .vh-room-summary {
   display: grid;
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-areas:
+    "media copy"
+    "features features";
   gap: 18px;
   margin-bottom: 18px;
 }
 
 .vh-room-media {
   min-width: 0;
+  grid-area: media;
 }
 
 .ha-hoinsecimage {
@@ -354,6 +358,7 @@
 
 .vh-room-copy {
   min-width: 0;
+  grid-area: copy;
 }
 
 .vh-room-title-row {
@@ -366,6 +371,28 @@
 
 .vh-room-description {
   margin: 14px 0 2px;
+}
+
+.vh-room-feature-grid {
+  grid-area: features;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 4px;
+}
+
+.vh-room-feature-group {
+  min-width: 0;
+}
+
+.vh-feature-group-title {
+  margin: 0 0 10px;
+  color: var(--vh-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .highlights-pill,
@@ -668,6 +695,10 @@
 
   .inside-table.vh-offer-row > * + * {
     border-top: 1px solid var(--vh-line);
+  }
+
+  .vh-room-feature-grid {
+    grid-template-columns: 1fr;
   }
 }
 
