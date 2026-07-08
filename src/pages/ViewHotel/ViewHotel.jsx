@@ -1,354 +1,409 @@
-import { Row, Col, Container, Button, Modal, Card } from "react-bootstrap";
+import { Container, Modal } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-
 import { useDispatch, useSelector } from "react-redux";
-import { storeBookRoom, clearBookedRooms } from "./Redux/StoreBookingRoom/BookingSlice_ViewHotel.js";
-// import { openModal, closeModal } from './Redux/ShowModal/ModalShowSlice.js'
 
+import { storeBookRoom, clearBookedRooms } from "./Redux/StoreBookingRoom/BookingSlice_ViewHotel.js";
 import "./ViewHotel.css";
-import { BookedList } from '../../content/data transfer/bookedListContent';
-import getHotelDetails from '../../content/api/GetHotelDetails';
-import getHotelPhoto from '../../content/api/GetHotelPhoto';
+
+import { BookedList } from "../../content/data transfer/bookedListContent";
+import getHotelDetails from "../../content/api/GetHotelDetails";
+import getHotelPhoto from "../../content/api/GetHotelPhoto";
 import getRoomList from "../../content/api/GetRoomList";
 import getDescriptionAndInfo from "../../content/api/GetDescriptionAndInfo";
 
 import * as Falcons from "react-icons/fa";
-import { FaChair, FaCheck, FaHeart, FaMoneyBill1Wave, FaPerson, FaPlane, FaShare, FaWifi } from "react-icons/fa6";
-import { FaChild } from "react-icons/fa";
+import { FaHeart, FaShare } from "react-icons/fa6";
 
-import MainPurchasePortal from "../PurchasePortal/MainPurchasePortal.jsx"; 
+import MainPurchasePortal from "../PurchasePortal/MainPurchasePortal.jsx";
 
-import AvaliableFacilitiesLabel from './component/AvaliableFacilitiesLabel.jsx'
-import SelectMenu from '../../component/SelectMenu/SelectMenu.jsx';
-import DescriptionDetails from './component/DescriptionDetails.jsx';
-import HotelGallery from './component/HotelGallery.jsx';
+import AvaliableFacilitiesLabel from "./component/AvaliableFacilitiesLabel.jsx";
+import SelectMenu from "../../component/SelectMenu/SelectMenu.jsx";
+import DescriptionDetails from "./component/DescriptionDetails.jsx";
+import HotelGallery from "./component/HotelGallery.jsx";
 import PerksListColumn from "./component/PerksListRelatedFunction/PerksListColumn.jsx";
-
-import ConvertToFarKey from './component/Sub-Function/ConvertToFarKey.js';
-import HaveChargeBreakfast from "./component/PerksListRelatedFunction/SubComponent/HaveChargeBreakfast.jsx";
-import SplitCancelationBoldText from "./component/PerksListRelatedFunction/SubComponent/SplitCancelationBoldText.jsx";
-import ChildAgeFreePolicy from "./component/PerksListRelatedFunction/SubComponent/ChildAgeFreePolicy.jsx";
-import SplitNoPaymentBoldText from "./component/PerksListRelatedFunction/SubComponent/SplitNoPaymentBoldText.jsx";
+import ConvertToFarKey from "./component/Sub-Function/ConvertToFarKey.js";
 import AdultorChildIcon from "./component/AdultorChildIcon.jsx";
 
-  function HighlightsPill({ iconKey, label }) {
-    // console.log({iconKey: iconKey});
-    // console.log({label: label});
+function formatPrice(value) {
+  return Number.isFinite(Number(value)) ? Number(value).toFixed(2) : "0.00";
+}
 
-    const farKey = ConvertToFarKey(iconKey); 
-    // console.log({farKey: farKey});
-    const Icon = Falcons[farKey];
-    // console.log({Icon: Icon});
+function HighlightsPill({ iconKey, label }) {
+  const farKey = ConvertToFarKey(iconKey);
+  const Icon = Falcons[farKey];
 
-    if (!Icon) {
-      // console.log({NoIcon: Icon}); 
-      return(
-      <span className="highlights-pill">{label}</span>
-    )};
-
-    return (
-      <span className="highlights-pill">
-        <Icon className="pill-icon" aria-hidden="true" />
-        {label}
-      </span>
-    )
-  };
-
-  function PurchaseEndPoint({ saveHouse, currency, setOpenModalPurchasePortal }) {
-    // const dispatch = useDispatch(); 
-    // console.log("EndPoint:", saveHouse);
-    
-    function SumAllSelRoomAmtNPrc() {
-      let cal_allamount = 0;
-      let cal_totalprice = 0;
-
-      saveHouse.forEach(baseObj => {        
-        baseObj.base_select_room.forEach(baseOff => {
-          cal_allamount += baseOff.amount;
-        });
-      });
-
-      saveHouse.forEach(baseObj => {        
-        baseObj.base_select_room.forEach(baseOff => {
-          const valueofPrice = baseOff.amount * Number(
-            baseOff?.
-            spec_room_data?.
-            product_price_breakdown?.
-            all_inclusive_amount?.
-            value?.
-            toFixed(2)
-          );
-
-          cal_totalprice += valueofPrice;
-        });
-      });
-
-      const nested_object = {
-        cal_allamount: cal_allamount,
-        cal_totalprice: cal_totalprice.toFixed(2)
-      }
-
-      return nested_object;
-    }
-
-    const SumedAmountnPrc = SumAllSelRoomAmtNPrc();
-    // console.log("SumedAmountnPrc:", SumedAmountnPrc);
-
-    return (
-      <>
-        <div>
-          {SumedAmountnPrc.cal_allamount 
-            ? <div>            
-                <h5 id="amount_of_rooms">
-                  <strong>
-                  {SumedAmountnPrc.cal_allamount} rooms for 
-                  </strong>
-                </h5>
-                <div className="ep-TotalPricePurchase">
-                  {currency}{' '}{SumedAmountnPrc.cal_totalprice}
-                </div>
-              <button 
-                className="finalpurchase_Button"
-                onClick={() => setOpenModalPurchasePortal(true)}
-              >
-                I'll reserve
-              </button>
-              </div>
-            : <div>
-                <h5>Please select the rooms to book.</h5>
-              </div>
-          }
-
-        </div>
-        <div>
-          {saveHouse.length > 0 
-          ? saveHouse.map((baseObj, index) => (
-              <div key={index} className="ep-mainroomframe">
-                <div className="ep-offroomtitle">
-                  <img 
-                    src={baseObj?.base_main_photos ?? ''} 
-                    alt={`image of ${baseObj?.base_room_name ?? 'n/a'}`}
-                    width='60' height='60'
-                  />
-                  <h5>{baseObj?.base_room_name ?? 'n/a'}</h5>
-                </div>
-                <div>
-                  {baseObj.base_select_room.map((baseOff, index) => {
-                    const { nr_adults, nr_children, product_price_breakdown } = baseOff.spec_room_data;
-                    const { value, currency } = product_price_breakdown.all_inclusive_amount;
-                    const allroomprice = Number(value?.toFixed(2) * baseOff.amount).toFixed(2);
-
-                    return (
-                      <div key={index} className="ep-offroomlist">
-                        <div className="pax-co">
-                          <AdultorChildIcon
-                            amount_adults={nr_adults ?? undefined}
-                            amount_child={nr_children ?? undefined}
-                          />
-                        </div>
-                        <div className="room_amt-co">
-                          {baseOff?.amount} X rooms
-                        </div>  
-                        <div className="price-co">
-                          {currency ?? ''}
-                          {' '}
-                          { baseOff.amount === 1 
-                            ? value?.toFixed(2) 
-                            : allroomprice
-                          }
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))
-          : ''}
-        </div>  
-      </>
-    )
+  if (!Icon) {
+    return <span className="highlights-pill">{label}</span>;
   }
 
-  function HotelRoomType({ roomList, childAgeString, currency, setOpenModalPurchasePortal }) {
+  return (
+    <span className="highlights-pill">
+      <Icon className="pill-icon" aria-hidden="true" />
+      {label}
+    </span>
+  );
+}
 
-    const dispatch = useDispatch();
-    const saveHouse = useSelector(state => state.viewhotel_selectbooking.saveHouse);
+function ExpandableText({ text, collapsedLines = 4, className = "" }) {
+  const [expanded, setExpanded] = useState(false);
+  const safeText = typeof text === "string" ? text.trim() : "";
+  const shouldCollapse = safeText.length > 240 || safeText.split("\n").length > 2;
 
-    if (!roomList) return <div>Loading....</div>;
-    // console.log("roomList", roomList);
-    // console.log({ room_photo: roomList?.data?.rooms });
-    const rooms = roomList?.data?.block;
-    const rooms_data = roomList?.data?.rooms;
+  if (!safeText) {
+    return null;
+  }
 
-    console.log("rooms_in_SingleListRoomsBox:", rooms);
-    function processingAllOption(rooms, rooms_data) {
-      if (!rooms || !rooms_data) return [];
-      const map = new Map();
-      for (const room of rooms) {
-        const roomId = room.room_id;
-        if (!map.has(roomId)) map.set(roomId, []);
-        map.get(roomId).push(room);
-      }
-      console.log("First_map:", map);
-      const data = Array.from(map, ([roomId, roomSelection]) => {
-        const base = roomSelection[0];
-        return {
-          room_id: roomId,
-          room_name: base.room_name,
-          room_surface_in_m2: base.room_surface_in_m2,
-          room_data: rooms_data[roomId],
-          offers: roomSelection,
-        }
-      })
+  return (
+    <div className="vh-expandable-block">
+      <div
+        className={`vh-expandable-copy ${expanded ? "is-expanded" : "is-collapsed"} ${className}`.trim()}
+        style={!expanded && shouldCollapse ? { WebkitLineClamp: collapsedLines } : undefined}
+      >
+        {safeText}
+      </div>
+      {shouldCollapse ? (
+        <button
+          type="button"
+          className="vh-inline-button"
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
-      return data;
-    }
-  
-    const Rooms_AllOptions = processingAllOption(rooms, rooms_data);
-    
-    console.log("Rooms_AllOptions:", Rooms_AllOptions);
+function ExpandableChipList({
+  items,
+  collapsedCount = 8,
+  className = "",
+  renderItem,
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const safeItems = Array.isArray(items) ? items.filter(Boolean) : [];
+  const shouldCollapse = safeItems.length > collapsedCount;
+  const visibleItems = expanded || !shouldCollapse ? safeItems : safeItems.slice(0, collapsedCount);
 
-    console.log("saveHouse:", saveHouse);
+  if (safeItems.length === 0) {
+    return null;
+  }
 
-    return (
-      <div className="border">
-        <div className="ha-tablehead">
-          <h3><strong>Room Type</strong></h3>
-          <h3><strong>Purchase for</strong></h3>
+  return (
+    <div className="vh-expandable-block">
+      <div className={className}>
+        {visibleItems.map((item, index) => renderItem(item, index))}
+      </div>
+      {shouldCollapse ? (
+        <button
+          type="button"
+          className="vh-inline-button"
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? "Show less" : `Show all ${safeItems.length}`}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function PurchaseEndPoint({ saveHouse, currency, setOpenModalPurchasePortal }) {
+  const totals = saveHouse.reduce(
+    (summary, baseObj) => {
+      (baseObj?.base_select_room ?? []).forEach((baseOff) => {
+        const amount = Number(baseOff?.amount ?? 0);
+        const price = Number(
+          baseOff?.spec_room_data?.product_price_breakdown?.all_inclusive_amount?.value ?? 0
+        );
+
+        summary.roomCount += amount;
+        summary.totalPrice += amount * price;
+      });
+
+      return summary;
+    },
+    { roomCount: 0, totalPrice: 0 }
+  );
+
+  return (
+    <div className="vh-summary-card">
+      <div className="vh-summary-head">
+        <p className="vh-eyebrow">Booking summary</p>
+        <h4>Your selection</h4>
+      </div>
+
+      {totals.roomCount > 0 ? (
+        <>
+          <div className="vh-summary-total">
+            <span>{totals.roomCount} room selections</span>
+            <strong>
+              {currency} {formatPrice(totals.totalPrice)}
+            </strong>
+          </div>
+          <button
+            type="button"
+            className="finalpurchase_Button"
+            onClick={() => setOpenModalPurchasePortal(true)}
+          >
+            Reserve now
+          </button>
+        </>
+      ) : (
+        <div className="vh-summary-empty">
+          Choose room offers below to build your reservation summary.
         </div>
-        <div className="ha">
-          <div className="ha-hotelinfosec">
-            {Rooms_AllOptions.map((everyRoom, index) => 
-              (
-                <div key={index}>
-                  <div className="hotelnreserveboxsec">
-                    <h4>{everyRoom.room_name}</h4>
-                    <div className="ct">
-                      <div className="ct-left">
-                        <img 
-                          className="ha-hoinsecimage"
-                          src={everyRoom?.room_data?.photos[0]?.url_original ?? []}
-                        />
-                        <div>
-                          <div>
-                          {everyRoom?.room_data?.bed_configurations[0]?.bed_types.map((label, index) => (
-                            <div key={index}>
-                              <p><strong>{label.name_with_count}</strong></p>
-                            </div>
-                          ))}
-                          </div>
-                          <div className="my-3">
-                            {everyRoom?.room_data?.description}
-                          </div>
-                          <div className="my-3">
-                            {everyRoom?.room_data?.highlights?.map((label, index) => (
-                              <HighlightsPill 
-                                key={index} 
-                                iconKey={label.icon} 
-                                label={label.translated_name}
-                              />
-                            ))}
-                          </div>
-                          <div className="my-3">
-                            {everyRoom?.room_data?.facilities?.map((label, index) => (
-                              <span key={index} className="facilities-pill">
-                                <Falcons.FaCheck />
-                                {label.name}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ct-right">
-                        <div className="inside-table-header">
-                          <p className="ith-guest">Number of Guests</p>
-                          <p className="ith-perks">Your Perks</p>
-                          <p className="ith-price">Price</p>
-                          <p className="ith-rooms">Select Rooms</p>
-                        </div>
-                        <div>
-                          {everyRoom.offers.map((offer, index) => (
-                            <div key={index} className="inside-table">
-                              <div className="it-guest-co table-content-row">
-                                  <AdultorChildIcon 
-                                    amount_adults={offer?.nr_adults}
-                                    amount_child={offer?.nr_children}
-                                  />
-                              </div>
-                              <div className="it-perks-co table-content-row">
-                                <PerksListColumn 
-                                  offer={offer} 
-                                  childAgeString={childAgeString} 
-                                />
-                              </div>
-                              <div className="it-price-co table-content-row">
-                                <div>
-                                  <p>Total Price</p>
-                                  {offer?.product_price_breakdown?.all_inclusive_amount?.currency ?? ''}                
-                                  <h5>
-                                    {offer?.product_price_breakdown?.all_inclusive_amount?.value.toFixed(2)}
-                                  </h5>  
-                                </div>
-                                <div>
-                                  <p>Per Night Price</p>
-                                  {offer?.product_price_breakdown?.gross_amount_per_night?.currency ?? ''}
-                                  <h5>
-                                    {offer?.product_price_breakdown?.gross_amount_per_night?.value.toFixed(2)}
-                                  </h5>
-                                </div>
-                              </div>
-                              <div className="it-rooms-co table-content-button">
-                                <select 
-                                  name="room_number" 
-                                  id="room_number" 
-                                  onChange={(e) => 
-                                    dispatch(
-                                      storeBookRoom({
-                                        mainRoomInfo: everyRoom, 
-                                        offer, 
-                                        roomAmount: e.target.value,
-                                      })
-                                  )}
-                                >
-                                  <option value="0">0</option>
-                                  <option value="1">1</option>
-                                  <option value="2">2</option>
-                                  <option value="3">3</option>
-                                  <option value="4">4</option>
-                                  <option value="5">5</option>
-                                  <option value="6">6</option>
-                                  <option value="7">7</option>
-                                  <option value="8">8</option>
-                                  <option value="9">9</option>
-                                  <option value="10">10</option>
-                                </select>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+      )}
+
+      <div className="vh-summary-list">
+        {saveHouse.map((baseObj, index) => (
+          <div key={`${baseObj?.base_room_name ?? "room"}-${index}`} className="ep-mainroomframe">
+            <div className="ep-offroomtitle">
+              <img
+                src={baseObj?.base_main_photos ?? ""}
+                alt={baseObj?.base_room_name ? `${baseObj.base_room_name} preview` : "Selected room"}
+                width="64"
+                height="64"
+              />
+              <div>
+                <h5>{baseObj?.base_room_name ?? "Room option"}</h5>
+                <p>{baseObj?.base_select_room?.length ?? 0} offer(s) selected</p>
+              </div>
+            </div>
+
+            <div>
+              {(baseObj?.base_select_room ?? []).map((baseOff, offerIndex) => {
+                const roomData = baseOff?.spec_room_data ?? {};
+                const priceBreakdown = roomData?.product_price_breakdown ?? {};
+                const allInclusive = priceBreakdown?.all_inclusive_amount ?? {};
+                const totalForOffer = Number(baseOff?.amount ?? 0) * Number(allInclusive?.value ?? 0);
+
+                return (
+                  <div key={offerIndex} className="ep-offroomlist">
+                    <div className="pax-co">
+                      <AdultorChildIcon
+                        amount_adults={roomData?.nr_adults ?? 0}
+                        amount_child={roomData?.nr_children ?? 0}
+                      />
+                    </div>
+                    <div className="room_amt-co">{baseOff?.amount ?? 0} x room</div>
+                    <div className="price-co">
+                      {allInclusive?.currency ?? currency} {formatPrice(totalForOffer)}
                     </div>
                   </div>
-                </div>
-              )
-            )}
+                );
+              })}
+            </div>
           </div>
-          <div className="hotelnreserveboxsec ha-reservesec">
-            <PurchaseEndPoint 
-              saveHouse={saveHouse} 
-              currency={currency}
-              setOpenModalPurchasePortal={setOpenModalPurchasePortal}
-            />
-          </div>
-        </div>
+        ))}
       </div>
-    );  
+    </div>
+  );
+}
+
+function HotelRoomType({ roomList, childAgeString, currency, setOpenModalPurchasePortal }) {
+  const dispatch = useDispatch();
+  const saveHouse = useSelector((state) => state.viewhotel_selectbooking.saveHouse);
+
+  if (!roomList) {
+    return <div className="vh-loading-card">Loading available rooms...</div>;
   }
 
-  
+  const rooms = roomList?.data?.block;
+  const roomsData = roomList?.data?.rooms;
+
+  function processingAllOption(allRooms, mappedRoomsData) {
+    if (!allRooms || !mappedRoomsData) {
+      return [];
+    }
+
+    const roomMap = new Map();
+
+    for (const room of allRooms) {
+      const roomId = room.room_id;
+
+      if (!roomMap.has(roomId)) {
+        roomMap.set(roomId, []);
+      }
+
+      roomMap.get(roomId).push(room);
+    }
+
+    return Array.from(roomMap, ([roomId, roomSelection]) => {
+      const base = roomSelection[0];
+
+      return {
+        room_id: roomId,
+        room_name: base.room_name,
+        room_surface_in_m2: base.room_surface_in_m2,
+        room_data: mappedRoomsData[roomId],
+        offers: roomSelection,
+      };
+    });
+  }
+
+  const roomsAllOptions = processingAllOption(rooms, roomsData);
+
+  return (
+    <div className="vh-availability-shell">
+      <div className="vh-room-layout">
+        <div className="vh-room-list">
+          {roomsAllOptions.map((everyRoom, index) => (
+            <article key={everyRoom.room_id ?? index} className="hotelnreserveboxsec vh-room-card">
+              <div className="vh-room-summary">
+                <div className="vh-room-media">
+                  <img
+                    className="ha-hoinsecimage"
+                    src={everyRoom?.room_data?.photos?.[0]?.url_original ?? ""}
+                    alt={everyRoom?.room_name ? `${everyRoom.room_name} preview` : "Room preview"}
+                  />
+                </div>
+
+                <div className="vh-room-copy">
+                  <div className="vh-room-title-row">
+                    <h4>{everyRoom.room_name}</h4>
+                    {everyRoom?.room_surface_in_m2 ? (
+                      <span className="vh-meta-badge">{everyRoom.room_surface_in_m2} m2</span>
+                    ) : null}
+                  </div>
+
+                  <div className="vh-bed-list">
+                    {(everyRoom?.room_data?.bed_configurations?.[0]?.bed_types ?? []).map((label, bedIndex) => (
+                      <span key={bedIndex} className="vh-meta-badge">
+                        {label.name_with_count}
+                      </span>
+                    ))}
+                  </div>
+
+                  <ExpandableText
+                    text={everyRoom?.room_data?.description}
+                    collapsedLines={4}
+                    className="vh-room-description"
+                  />
+
+                  <ExpandableChipList
+                    items={everyRoom?.room_data?.highlights}
+                    collapsedCount={5}
+                    className="vh-pill-row"
+                    renderItem={(label, pillIndex) => (
+                      <HighlightsPill
+                        key={`${label?.translated_name ?? "highlight"}-${pillIndex}`}
+                        iconKey={label?.icon}
+                        label={label?.translated_name}
+                      />
+                    )}
+                  />
+
+                  <ExpandableChipList
+                    items={everyRoom?.room_data?.facilities}
+                    collapsedCount={8}
+                    className="vh-facility-row"
+                    renderItem={(label, facilityIndex) => (
+                      <span
+                        key={`${label?.name ?? "facility"}-${facilityIndex}`}
+                        className="facilities-pill"
+                      >
+                        <Falcons.FaCheck aria-hidden="true" />
+                        {label?.name}
+                      </span>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="ct-right vh-offers-panel">
+                <div className="inside-table-header vh-offers-header">
+                  <p className="ith-guest">Guests</p>
+                  <p className="ith-perks">Offer details</p>
+                  <p className="ith-price">Price</p>
+                  <p className="ith-rooms">Rooms</p>
+                </div>
+
+                <div className="vh-offers-list">
+                  {everyRoom.offers.map((offer, offerIndex) => (
+                    <div key={offerIndex} className="inside-table vh-offer-row">
+                      <div className="it-guest-co table-content-row vh-offer-cell">
+                        <span className="vh-cell-label">Guests</span>
+                        <AdultorChildIcon
+                          amount_adults={offer?.nr_adults ?? 0}
+                          amount_child={offer?.nr_children ?? 0}
+                        />
+                      </div>
+
+                      <div className="it-perks-co table-content-row vh-offer-cell">
+                        <span className="vh-cell-label">Offer details</span>
+                        <div className="vh-perks-wrap">
+                          <PerksListColumn offer={offer} childAgeString={childAgeString} />
+                        </div>
+                      </div>
+
+                      <div className="it-price-co table-content-row vh-offer-cell">
+                        <span className="vh-cell-label">Price</span>
+                        <div className="vh-price-stack">
+                          <p className="vh-price-caption">Total</p>
+                          <h5>
+                            {offer?.product_price_breakdown?.all_inclusive_amount?.currency ?? currency}{" "}
+                            {formatPrice(
+                              offer?.product_price_breakdown?.all_inclusive_amount?.value
+                            )}
+                          </h5>
+                        </div>
+                        <div className="vh-price-stack">
+                          <p className="vh-price-caption">Per night</p>
+                          <h5>
+                            {offer?.product_price_breakdown?.gross_amount_per_night?.currency ?? currency}{" "}
+                            {formatPrice(
+                              offer?.product_price_breakdown?.gross_amount_per_night?.value
+                            )}
+                          </h5>
+                        </div>
+                      </div>
+
+                      <div className="it-rooms-co table-content-button vh-offer-cell vh-select-cell">
+                        <span className="vh-cell-label">Rooms</span>
+                        <select
+                          name={`room_number_${everyRoom.room_id}_${offerIndex}`}
+                          id={`room_number_${everyRoom.room_id}_${offerIndex}`}
+                          className="vh-room-select"
+                          defaultValue="0"
+                          onChange={(event) =>
+                            dispatch(
+                              storeBookRoom({
+                                mainRoomInfo: everyRoom,
+                                offer,
+                                roomAmount: event.target.value,
+                              })
+                            )
+                          }
+                        >
+                          {Array.from({ length: 11 }, (_, amount) => (
+                            <option key={amount} value={amount}>
+                              {amount}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <aside className="hotelnreserveboxsec ha-reservesec vh-summary-panel">
+          <PurchaseEndPoint
+            saveHouse={saveHouse}
+            currency={currency}
+            setOpenModalPurchasePortal={setOpenModalPurchasePortal}
+          />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 export default function ViewHotel() {
-  // const APIurl = useContext(BookedList).APIurl;
   const currency = useContext(BookedList).currency;
   const start_date = useContext(BookedList).initialDate;
   const end_date = useContext(BookedList).dueDate;
@@ -356,34 +411,46 @@ export default function ViewHotel() {
   const childAgeString = useContext(BookedList).childAgeString;
   const roomAmount = useContext(BookedList).roomAmount;
   const { state } = useLocation();
+  const dispatch = useDispatch();
+  const selectedRooms = useSelector((data) => data.viewhotel_selectbooking.saveHouse);
 
   const hotelsData = state?.hotels;
-  console.log("hotelsData", hotelsData);
+  const hotelId = state?.hotels?.hotel_id;
 
-  const dispatch = useDispatch();
-
-  const [ openModalPurchasePortal, setOpenModalPurchasePortal ] = useState(false);
-
-  const [ hotelPhotoData, setHotelPhotoData ] = useState(null);
-  const [ hotelDetailsData, setHotelDetailsData ] = useState(null);
-  const [ hotelDescriptionData, setHotelDescriptionData ] = useState(null);
-  const [ roomList, setRoomList ] = useState(null);
+  const [openModalPurchasePortal, setOpenModalPurchasePortal] = useState(false);
+  const [hotelPhotoData, setHotelPhotoData] = useState(null);
+  const [hotelDetailsData, setHotelDetailsData] = useState(null);
+  const [hotelDescriptionData, setHotelDescriptionData] = useState(null);
+  const [roomList, setRoomList] = useState(null);
 
   const facilities = hotelDetailsData?.data?.facilities_block?.facilities ?? [];
-  console.log("facilities:", facilities);
-  const hotelId = state?.hotels?.hotel_id;
-  console.log("hotelId", hotelId);
+  const hotelData = hotelDetailsData?.data ?? {};
+  const propertyClass = hotelData?.rawData?.accuratePropertyClass ?? 0;
 
   useEffect(() => {
     async function load() {
-      const [ photos, details, roomlists, description ] = await Promise.all(
-        [
-          getHotelPhoto(hotelsData),
-          getHotelDetails(hotelsData, start_date, end_date, adult_pax, childAgeString, roomAmount, currency),
-          getRoomList(hotelsData, start_date, end_date, adult_pax, childAgeString, roomAmount, currency),
-          getDescriptionAndInfo(hotelId)
-        ]
-      );
+      const [photos, details, roomlists, description] = await Promise.all([
+        getHotelPhoto(hotelsData),
+        getHotelDetails(
+          hotelsData,
+          start_date,
+          end_date,
+          adult_pax,
+          childAgeString,
+          roomAmount,
+          currency
+        ),
+        getRoomList(
+          hotelsData,
+          start_date,
+          end_date,
+          adult_pax,
+          childAgeString,
+          roomAmount,
+          currency
+        ),
+        getDescriptionAndInfo(hotelId),
+      ]);
 
       setHotelPhotoData(photos);
       setHotelDetailsData(details);
@@ -393,82 +460,122 @@ export default function ViewHotel() {
 
     load();
     dispatch(clearBookedRooms());
-  }, []);
+  }, [
+    adult_pax,
+    childAgeString,
+    currency,
+    dispatch,
+    end_date,
+    hotelId,
+    hotelsData,
+    roomAmount,
+    start_date,
+  ]);
 
-  console.log("hotelPhotoData:", hotelPhotoData?.data[0]?.url);
-  console.log("hotelDetailsData:", hotelDetailsData);
-  console.log("roomList:", roomList);
-  console.log("hotelDescriptionData:", hotelDescriptionData);
-
-  const BookedHotelNMainInfo = {
+  const bookedHotelNMainInfo = {
     hotelDetailsData: hotelDetailsData?.data,
     hotelPhotoData: hotelPhotoData?.data,
-    selectedRooms: useSelector(state => state.viewhotel_selectbooking.saveHouse),
+    selectedRooms,
     checkInNOutDate: {
-      start_date: start_date,
-      end_date: end_date
+      start_date,
+      end_date,
     },
-    currency: currency
-  }
+    currency,
+  };
 
-  console.log("BookedHotelNMainInfo:", BookedHotelNMainInfo);
-    
   return (
-    <>        
-      <Modal 
+    <>
+      <Modal
         dialogClassName="ModalPurchasePortal"
-        show={openModalPurchasePortal} 
+        show={openModalPurchasePortal}
         onHide={() => setOpenModalPurchasePortal(false)}
       >
         <Modal.Body>
-          <div className="d-flex justify-content-end">
-            <button onClick={() => setOpenModalPurchasePortal(false)}> x </button>
+          <div className="vh-modal-close-row">
+            <button
+              type="button"
+              className="vh-icon-button"
+              onClick={() => setOpenModalPurchasePortal(false)}
+            >
+              x
+            </button>
           </div>
-          <MainPurchasePortal BookedHotelNMainInfo={BookedHotelNMainInfo} />
+          <MainPurchasePortal BookedHotelNMainInfo={bookedHotelNMainInfo} />
         </Modal.Body>
       </Modal>
-      <Container className="Shell">
+
+      <Container className="Shell view-hotel-page">
         <div className="SelectMenu-Resize">
           <SelectMenu />
         </div>
-        <div className="d-flex justify-content-between">
-          <div>
-            <div className="mt-2 mb-2">
-              {hotelDetailsData?.data?.rawData?.accuratePropertyClass
-                &&  Array.from({ length: hotelDetailsData?.data?.rawData?.accuratePropertyClass },
-                    (_, index) => (
-                      <span key={index}>⭐</span>
-                    ))
-              }
+
+        <section className="vh-hero">
+          <div className="vh-hero-copy">
+            <div className="vh-star-row">
+              {Array.from({ length: propertyClass }, (_, index) => (
+                <span key={index} className="vh-star">
+                  ★
+                </span>
+              ))}
             </div>
-            <h3>{hotelDetailsData?.data?.hotel_name ?? ''}</h3>
-            <p>{hotelDetailsData?.data?.address ?? ''}</p>
+
+            <h1>{hotelData?.hotel_name ?? ""}</h1>
+            <p className="vh-address">{hotelData?.address ?? ""}</p>
+
+            <div className="vh-hero-meta">
+              {hotelData?.accommodation_type_name ? (
+                <span className="vh-meta-badge">{hotelData.accommodation_type_name}</span>
+              ) : null}
+              {hotelData?.available_rooms ? (
+                <span className="vh-meta-badge">
+                  {hotelData.available_rooms} room types available
+                </span>
+              ) : null}
+              {hotelData?.city ? <span className="vh-meta-badge">{hotelData.city}</span> : null}
+            </div>
           </div>
-          <div>
-            <div>
-              <FaHeart />
-              <FaShare />
+
+          <div className="vh-rating-card">
+            <div className="vh-action-row">
+              <button type="button" className="vh-icon-button" aria-label="Save hotel">
+                <FaHeart />
+              </button>
+              <button type="button" className="vh-icon-button" aria-label="Share hotel">
+                <FaShare />
+              </button>
             </div>
-            <div className="d-flex justify-content-center align-items-center">
-              <h5 className="me-2">{hotelDetailsData?.data?.rawData?.reviewScoreWord}</h5>
-              <div className="">
-                {hotelDetailsData?.data?.rawData?.reviewScore}
-              </div>
+
+            <div className="vh-rating-copy">
+              <p>{hotelData?.rawData?.reviewScoreWord ?? "Guest rating"}</p>
+              <div className="vh-rating-score">{hotelData?.rawData?.reviewScore ?? "--"}</div>
             </div>
           </div>
-        </div>
+        </section>
+
         <HotelGallery hotelPhotoData={hotelPhotoData} />
-        <AvaliableFacilitiesLabel facilities={facilities} />
-        <DescriptionDetails hotelDescriptionData={hotelDescriptionData} />
-        <Row>
-          <h3>Avalibility</h3>
+
+        <section className="vh-section-grid">
+          <DescriptionDetails hotelDescriptionData={hotelDescriptionData} />
+          <AvaliableFacilitiesLabel facilities={facilities} />
+        </section>
+
+        <section className="vh-availability-section">
+          <div className="vh-section-intro">
+            <p className="vh-eyebrow">Availability</p>
+            <h3>Available room offers</h3>
+            <p className="vh-section-subcopy">
+              Compare room details, keep long descriptions collapsed by default, and expand only
+              what you need.
+            </p>
+          </div>
+
           <HotelRoomType
-            roomList={roomList} 
-            childAgeString={childAgeString} 
-            currency={currency} 
+            roomList={roomList}
+            childAgeString={childAgeString}
+            currency={currency}
             setOpenModalPurchasePortal={setOpenModalPurchasePortal}
           />
-        </Row>
+        </section>
       </Container>
     </>
   );
