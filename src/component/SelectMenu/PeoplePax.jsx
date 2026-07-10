@@ -3,16 +3,24 @@ import { useState } from "react";
 
 function SubPlusMinusBar({ title, state, setState }) {
   return (
-    <>
-      <div className="d-flex justify-content-between align-items-center">
-        <h5 className="mb-0">{title}</h5>
-        <div className="d-flex align-items-center gap-3">
-          <Button onClick={() => setState(state + 1)}>+</Button>
-          <h3 className="mb-0">{state}</h3>
-          <Button onClick={() => setState(state - 1)}>-</Button>
-        </div>
+    <div className="peoplepax-row">
+      <h5 className="peoplepax-label">{title}</h5>
+      <div className="peoplepax-counter">
+        <Button
+          className="peoplepax-stepper"
+          onClick={() => setState(state + 1)}
+        >
+          +
+        </Button>
+        <span className="peoplepax-value">{state}</span>
+        <Button
+          className="peoplepax-stepper"
+          onClick={() => setState(Math.max(0, state - 1))}
+        >
+          -
+        </Button>
       </div>
-    </>
+    </div>
   )
 } 
 
@@ -37,22 +45,31 @@ function SpecialSubPlusMinusBar({ title, state, setState, astate, aSetState }) {
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center gap-3">
-        <h5 className="mb-0">{title}</h5>
-        <div className="d-flex align-items-center gap-3">
-          <Button onClick={() => addChild()}>+</Button>
-          <h3 className="mb-0">{state}</h3>
-          <Button onClick={() => removeChild()}>-</Button>
+    <div className="peoplepax-section">
+      <div className="peoplepax-row">
+        <h5 className="peoplepax-label">{title}</h5>
+        <div className="peoplepax-counter">
+          <Button className="peoplepax-stepper" onClick={() => addChild()}>
+            +
+          </Button>
+          <span className="peoplepax-value">{state}</span>
+          <Button className="peoplepax-stepper" onClick={() => removeChild()}>
+            -
+          </Button>
         </div>
       </div>
       { state > 0 && 
-        <div className="gap-2 p-1 border mt-2">
+        <div className="peoplepax-children-panel">
+          <p className="peoplepax-description">
+            To find your child a suitable stay with the correct price, tell us each
+            child's age at check-out.
+          </p>
           <Row className="g-2">
             { astate.length > 0 && astate.map((age, index) => 
               (
                 <Col xs={6} key={index} >
                   <Form.Control 
+                    className="peoplepax-age-input"
                     type='number'
                     min={0}
                     max={17}
@@ -64,10 +81,6 @@ function SpecialSubPlusMinusBar({ title, state, setState, astate, aSetState }) {
               ))
             }
           </Row>
-          <p>
-            To find you a place to stay that fits your entire group along with correct prices, 
-            we need to know how old your child will be at check-out
-          </p>
         </div>
       }
     </div>
@@ -88,8 +101,8 @@ export default function PeoplePax({
     <div>
       <h6 className="seg-title">How many People?</h6>
       <Form.Control
+        className="seg-control peoplepax-trigger"
         readOnly
-        style={{ cursor: "pointer" }} 
         placeholder={`${adultPax} Adults . ${childPax} Children . ${roomAmount} Rooms`}
         ref={PeopleRef}
         onClick={() => setMainShow(true)} 
@@ -102,10 +115,7 @@ export default function PeoplePax({
         rootClose
       >
         <Popover className="peoplepax-popover"> 
-          <div 
-            className="d-flex flex-column align-item-center p-2 gap-2" 
-            style={{ width: 300 }}
-            >
+          <div className="peoplepax-panel">
             <SubPlusMinusBar 
               title={"Adult"} 
               state={adultPax} 
