@@ -1,0 +1,141 @@
+.stripe-step-card,
+.stripe-loading-card,
+.stripe-error-card {
+  padding: 28px;
+}
+
+.stripe-step-header,
+.stripe-summary-head,
+.stripe-summary-total {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.stripe-step-header {
+  margin-bottom: 22px;
+}
+
+.stripe-step-header h2,
+.stripe-elements-head h3,
+.stripe-summary-head h3 {
+  margin: 0;
+}
+
+.stripe-summary-card,
+.stripe-elements-shell {
+  padding: 22px;
+  border: 1px solid var(--pp-line);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--pp-card-soft) 100%);
+}
+
+.stripe-summary-card {
+  display: grid;
+  gap: 18px;
+}
+
+.stripe-summary-address {
+  margin: 8px 0 0;
+  color: var(--pp-muted);
+  line-height: 1.6;
+}
+
+.stripe-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stripe-summary-metric {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--pp-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.stripe-summary-metric span,
+.stripe-summary-total span {
+  color: var(--pp-muted);
+  font-size: 0.92rem;
+}
+
+.stripe-summary-room-list {
+  display: grid;
+  gap: 10px;
+}
+
+.stripe-summary-room-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(85, 123, 153, 0.08);
+}
+
+.stripe-summary-total {
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--pp-line);
+}
+
+.stripe-summary-total strong {
+  font-size: 1.2rem;
+}
+
+.stripe-elements-shell {
+  margin-top: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.stripe-form {
+  display: grid;
+  gap: 18px;
+}
+
+.stripe-payment-element {
+  padding: 16px;
+  border: 1px solid var(--pp-line);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.stripe-form-message {
+  margin: 0;
+  color: #b44d4d;
+  font-weight: 600;
+}
+
+.stripe-submit-button {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .stripe-step-header,
+  .stripe-summary-head,
+  .stripe-summary-total,
+  .stripe-summary-room-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stripe-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575px) {
+  .stripe-step-card,
+  .stripe-loading-card,
+  .stripe-error-card,
+  .stripe-summary-card,
+  .stripe-elements-shell {
+    padding: 22px 20px;
+  }
+}

@@ -13,11 +13,51 @@ import { BookedList } from "../../content/data transfer/bookedListContent";
 
 import MainHotelInfomation from "./component/MainHotelInfomation";
 import GuestnHotelDetailsPortal from "./SubPage/GuestnHotelDetailsPortal/GuestnHotelDetailsPortal";
-import PaymentPortal from "./SubPage/PaymentPortal/PaymentPortal";
 import StripePaymentPage from "./SubPage/StripePaymentPage/StripePaymentPage";
 import './MainPurchasePortal.css';
 
 const LoadingComponent = () => <div>Loading</div>;
+
+const STEP_ITEMS = [
+  {
+    id: "GuestnHotelDetailsPortal",
+    label: "Guest details",
+    description: "Guest names and contact details",
+  },
+  {
+    id: "StripePaymentPage",
+    label: "Payment",
+    description: "Secure final payment",
+  },
+];
+
+function PurchaseStepTracker({ activeStepId }) {
+  const activeIndex = STEP_ITEMS.findIndex((item) => item.id === activeStepId);
+
+  return (
+    <div className="purchase-stepper" aria-label="Booking progress">
+      {STEP_ITEMS.map((item, index) => {
+        const isActive = item.id === activeStepId;
+        const isComplete = activeIndex > index;
+
+        return (
+          <div
+            key={item.id}
+            className={`purchase-step ${isActive ? "is-active" : ""} ${isComplete ? "is-complete" : ""}`.trim()}
+          >
+            <div className="purchase-step-marker">
+              {isComplete ? "✓" : index + 1}
+            </div>
+            <div className="purchase-step-copy">
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function MainPurchasePortal({ BookedHotelNMainInfo }) {
   const [ subPage, setSubPage ] = useState('GuestnHotelDetailsPortal');
@@ -103,24 +143,38 @@ export default function MainPurchasePortal({ BookedHotelNMainInfo }) {
   );
 
   return (
-    <>
-      <Container className="mt-4">
-        <div className="MainPurchasePortalFrame">
-          <div className="MainHotelInfomation">
+    <div className="purchase-portal-page">
+      <Container className="purchase-portal-container">
+        <header className="purchase-portal-hero">
+          <div>
+            <p className="purchase-eyebrow">Final booking step</p>
+            <h1>Complete your hotel reservation</h1>
+            <p className="purchase-hero-copy">
+              Review the stay details from the hotel page, assign guest names,
+              and confirm a payment method before the booking record is saved.
+            </p>
+          </div>
+        </header>
+
+        <PurchaseStepTracker activeStepId={subPage} />
+
+        <div className="purchase-portal-layout">
+          <aside className="purchase-portal-sidebar">
             <MainHotelInfomation 
               BookedHotelNMainInfo={BookedHotelNMainInfo}
               objectDateNCalculate={objectDateNCalculate}
               bookingRegistry={bookingRegistry}
             />
-          </div>
-          <div className="RightPart">
+          </aside>
+
+          <section className="purchase-portal-main">
             <DisplayComponent 
               bookingRegistry={bookingRegistry}
               setSubPage={setSubPage}
             />
-          </div>
+          </section>
         </div>
       </Container>
-    </>
+    </div>
   )
 }

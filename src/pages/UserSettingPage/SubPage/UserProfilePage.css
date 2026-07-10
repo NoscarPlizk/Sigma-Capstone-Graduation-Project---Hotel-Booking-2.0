@@ -1,13 +1,355 @@
-.EveryChildBox {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
+.user-profile-page {
+  display: grid;
+  gap: 24px;
 }
 
-.SecondLongBox {
+.profile-overview-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.9fr);
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid rgba(47, 72, 88, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 30px rgba(58, 84, 74, 0.07);
+}
+
+.profile-overview-main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #2a9d8f 0%, #f4a261 100%);
+  color: #fffef9;
+  font-size: 1.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profile-overview-copy {
+  min-width: 0;
+}
+
+.profile-section-eyebrow {
+  margin: 0 0 10px;
+  color: #3c8378;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-overview-copy h2 {
+  margin: 0;
+  color: #22313f;
+  font-size: clamp(1.7rem, 3vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.profile-overview-copy p:last-child {
+  margin: 12px 0 0;
+  color: #627479;
+  line-height: 1.6;
+}
+
+.profile-overview-stats {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-completion,
+.profile-highlights {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: #f5f8f7;
+}
+
+.profile-completion-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #3b4e52;
+}
+
+.profile-completion-header strong {
+  color: #22313f;
+  font-size: 1.1rem;
+}
+
+.profile-progress.progress {
+  height: 10px;
+  background: #dde8e4;
+}
+
+.profile-progress .progress-bar {
+  background: linear-gradient(90deg, #2a9d8f 0%, #f4a261 100%);
+}
+
+.profile-completion-caption {
+  display: inline-block;
+  margin-top: 10px;
+  color: #687b80;
+  font-size: 0.9rem;
+}
+
+.profile-highlights {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #41565b;
+  font-size: 0.95rem;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.profile-highlight-item svg {
+  color: #2f7f74;
+  flex-shrink: 0;
+}
+
+.profile-sections {
+  display: grid;
+  gap: 24px;
+}
+
+.profile-section {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-section-heading h3 {
+  margin: 0;
+  color: #22313f;
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+
+.profile-section-heading p:last-child {
+  margin: 10px 0 0;
+  color: #66797d;
+  line-height: 1.6;
+}
+
+.profile-section-rows {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-row-card {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid rgba(47, 72, 88, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 24px rgba(58, 84, 74, 0.06);
+}
+
+.profile-row-main {
   display: flex;
   justify-content: space-between;
-  flex-grow: 1;
+  gap: 18px;
+}
+
+.profile-row-label-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.profile-row-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(42, 157, 143, 0.12);
+  color: #2f7f74;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.profile-row-copy strong {
+  display: block;
+  color: #22313f;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.profile-row-copy p {
+  margin: 6px 0 0;
+  color: #6a7c80;
+  line-height: 1.5;
+}
+
+.profile-row-value-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: min(100%, 320px);
+  max-width: 420px;
+  flex: 1;
+}
+
+.profile-row-value {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f6f8f8;
+  color: #31464d;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.profile-row-value-positive {
+  background: rgba(42, 157, 143, 0.11);
+  color: #246f66;
+}
+
+.profile-row-value-muted {
+  background: #f1f4f4;
+  color: #73858a;
+}
+
+.profile-row-actions {
+  display: flex;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.profile-action-button.btn {
+  min-width: 88px;
+  min-height: 42px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.profile-action-button-primary.btn {
+  border: none;
+  background: #233746;
+}
+
+.profile-action-button-primary.btn:hover,
+.profile-action-button-primary.btn:focus,
+.profile-action-button-primary.btn:active {
+  background: #1d2d39;
+}
+
+.profile-action-button.btn span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: rgba(42, 157, 143, 0.12);
+  color: #2f7f74;
+  font-weight: 600;
+}
+
+.profile-row-editor {
+  padding-top: 4px;
+}
+
+.profile-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-editor-field {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-editor-field .form-label {
+  margin: 0;
+  color: #38505a;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.profile-editor-field .form-control,
+.profile-editor-field .form-select {
+  min-height: 48px;
+  border: 1px solid #cfdad6;
+  border-radius: 12px;
+  background: #fbfdfc;
+  color: #273b43;
+  box-shadow: none;
+}
+
+.profile-editor-field .form-control:focus,
+.profile-editor-field .form-select:focus {
+  border-color: #78aca2;
+  box-shadow: 0 0 0 0.16rem rgba(42, 157, 143, 0.14);
+}
+
+.profile-editor-field textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.profile-row-card .alert {
+  margin: 0;
+  border-radius: 14px;
+}
+
+@media (max-width: 991px) {
+  .profile-overview-band {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .profile-overview-band,
+  .profile-row-card {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .profile-row-main,
+  .profile-row-value-group,
+  .profile-overview-main {
+    flex-direction: column;
+  }
+
+  .profile-row-value-group {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .profile-row-actions {
+    justify-content: flex-start;
+  }
+
+  .profile-editor-grid {
+    grid-template-columns: 1fr;
+  }
 }

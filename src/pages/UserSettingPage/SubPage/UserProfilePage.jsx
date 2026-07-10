@@ -1,114 +1,289 @@
-import { Image, Col, Row } from "react-bootstrap";
-import { Fragment, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Alert, Button, Form, ProgressBar, Spinner } from "react-bootstrap";
+import {
+  FiCalendar,
+  FiCheckCircle,
+  FiCreditCard,
+  FiFlag,
+  FiGlobe,
+  FiHome,
+  FiMail,
+  FiPhone,
+  FiUser,
+} from "react-icons/fi";
 import { useAuth } from "../../../content/Firebase/AuthContext";
 import "./UserProfilePage.css";
 
 import { countryRegionOptions } from "../../../content/countryRegionOptions";
 import { nationalityData } from "../../../content/nationalityData";
 
-function ProfileRow({ label, displayValue, editContent, onSave }) {
-  const [openEdit, setOpenEdit] = useState(false);
+function hasContent(value) {
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
 
-  function handleSave() {
-    onSave();
-    setOpenEdit(false);
+  if (value && typeof value === "object") {
+    return Object.values(value).some((entry) => hasContent(entry));
+  }
+
+  return Boolean(value);
+}
+
+function getInitials(profile) {
+  const firstName = profile?.name?.first_name?.trim();
+  const lastName = profile?.name?.last_name?.trim();
+  const displayName = profile?.display_name?.trim();
+  const email = profile?.email?.trim();
+
+  if (firstName || lastName) {
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "GU";
+  }
+
+  if (displayName) {
+    return displayName.slice(0, 2).toUpperCase();
+  }
+
+  return (email || "GU").slice(0, 2).toUpperCase();
+}
+
+function formatRealName(name) {
+  const firstName = name?.first_name?.trim() || "";
+  const lastName = name?.last_name?.trim() || "";
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  return fullName || "Not set";
+}
+
+function formatPhone(phone) {
+  const regionCode = phone?.region_number_code?.trim() || "";
+  const telephoneNumber = phone?.telephone_number?.trim() || "";
+  return regionCode && telephoneNumber ? `${regionCode} ${telephoneNumber}` : "Not set";
+}
+
+function formatPassport(passport) {
+  const fullName = `${passport?.first_name || ""} ${passport?.last_name || ""}`.trim();
+  const country = passport?.passport_country?.trim() || "";
+  const number = passport?.passport_number?.trim() || "";
+
+  if (!fullName && !country && !number) {
+    return "Not set";
+  }
+
+  return [fullName, country, number].filter(Boolean).join(" | ");
+}
+
+function ProfileSection({ eyebrow, title, description, children }) {
+  return (
+    <section className="profile-section">
+      <div className="profile-section-heading">
+        <p className="profile-section-eyebrow">{eyebrow}</p>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <div className="profile-section-rows">{children}</div>
+    </section>
+  );
+}
+
+function ProfileRow({
+  icon,
+  label,
+  helperText,
+  displayValue,
+  editContent,
+  onSave,
+  valueTone = "default",
+  readOnly = false,
+}) {
+  const [openEdit, setOpenEdit] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const Icon = icon;
+
+  async function handleSave() {
+    if (!onSave) {
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setErrorMessage("");
+      await onSave();
+      setOpenEdit(false);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Unable to save this field right now.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
-    <div className="EveryChildBox">
-      <div>
-        <strong>{label}:</strong>
-      </div>
-
-      <div className="SecondLongBox">
-        <div>{displayValue || ""}</div>
-
-        {openEdit && <div>{editContent}</div>}
-
-        {onSave && (
-          <div>
-            {!openEdit ? (
-              <button onClick={() => setOpenEdit(true)}>Edit</button>
-            ) : (
-              <div>
-                <button onClick={() => setOpenEdit(false)}>Cancel</button>
-                <button onClick={handleSave}>Save</button>
-              </div>
-            )}
+    <article className="profile-row-card">
+      <div className="profile-row-main">
+        <div className="profile-row-label-group">
+          <span className="profile-row-icon">
+            <Icon />
+          </span>
+          <div className="profile-row-copy">
+            <strong>{label}</strong>
+            <p>{helperText}</p>
           </div>
-        )}
+        </div>
+
+        <div className="profile-row-value-group">
+          <div className={`profile-row-value profile-row-value-${valueTone}`}>
+            {displayValue || "Not set"}
+          </div>
+
+          {!readOnly ? (
+            <div className="profile-row-actions">
+              {!openEdit ? (
+                <Button
+                  type="button"
+                  variant="outline-secondary"
+                  className="profile-action-button"
+                  onClick={() => setOpenEdit(true)}
+                >
+                  Edit
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="light"
+                    className="profile-action-button"
+                    onClick={() => {
+                      setOpenEdit(false);
+                      setErrorMessage("");
+                    }}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    className="profile-action-button profile-action-button-primary"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Spinner animation="border" size="sm" />
+                        <span>Saving</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="profile-readonly-badge">Synced</div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {openEdit ? <div className="profile-row-editor">{editContent}</div> : null}
+      {errorMessage ? <Alert variant="danger">{errorMessage}</Alert> : null}
+    </article>
   );
 }
 
 function TextProfileField({
+  icon,
   label,
+  helperText,
   fieldKey,
   value,
-  SaveSpecDocFirestore,
+  saveSpecDocFirestore,
   type = "text",
+  as = "input",
+  rows,
 }) {
   const inputRef = useRef(null);
   const safeValue = value || "";
 
   return (
     <ProfileRow
+      icon={icon}
       label={label}
-      displayValue={safeValue}
+      helperText={helperText}
+      displayValue={safeValue || "Not set"}
       editContent={
-        <input
-          type={type}
-          ref={inputRef}
-          defaultValue={safeValue}
-          placeholder={safeValue}
-        />
+        <Form.Group className="profile-editor-field">
+          <Form.Control
+            ref={inputRef}
+            as={as}
+            rows={rows}
+            type={as === "input" ? type : undefined}
+            defaultValue={safeValue}
+            placeholder={`Enter ${label.toLowerCase()}`}
+          />
+        </Form.Group>
       }
-      onSave={() => {
-        SaveSpecDocFirestore({
-          [fieldKey]: inputRef.current.value,
-        });
-      }}
+      onSave={() =>
+        saveSpecDocFirestore({
+          [fieldKey]: inputRef.current?.value || "",
+        })
+      }
     />
   );
 }
 
 function SelectProfileField({
+  icon,
   label,
+  helperText,
   fieldKey,
   value,
   options,
-  SaveSpecDocFirestore,
+  saveSpecDocFirestore,
 }) {
   const selectRef = useRef(null);
 
   return (
     <ProfileRow
+      icon={icon}
       label={label}
-      displayValue={value || ""}
+      helperText={helperText}
+      displayValue={value || "Not set"}
       editContent={
-        <select ref={selectRef} defaultValue={value || options[0]}>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <Form.Group className="profile-editor-field">
+          <Form.Select ref={selectRef} defaultValue={value || options[0]}>
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </Form.Select>
+        </Form.Group>
       }
-      onSave={() => {
-        SaveSpecDocFirestore({
-          [fieldKey]: selectRef.current.value,
-        });
-      }}
+      onSave={() =>
+        saveSpecDocFirestore({
+          [fieldKey]: selectRef.current?.value || "",
+        })
+      }
     />
   );
 }
 
-function ReadOnlyProfileField({ label, value }) {
-  return <ProfileRow label={label} displayValue={value || ""} />;
+function ReadOnlyProfileField({ icon, label, helperText, value }) {
+  return (
+    <ProfileRow
+      icon={icon}
+      label={label}
+      helperText={helperText}
+      displayValue={value || "Not set"}
+      readOnly
+      valueTone={value ? "positive" : "muted"}
+    />
+  );
 }
 
-function LegalName({ userName, SaveSpecDocFirestore }) {
+function LegalName({ userName, saveSpecDocFirestore }) {
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
 
@@ -117,114 +292,97 @@ function LegalName({ userName, SaveSpecDocFirestore }) {
 
   return (
     <ProfileRow
-      label="Real Name"
-      displayValue={
-        firstName.length > 0
-          ? `${firstName} ${lastName}`
-          : "No Name Please Set Name"
-      }
+      icon={FiUser}
+      label="Legal name"
+      helperText="Use the name that matches your booking and travel documents."
+      displayValue={formatRealName(userName)}
       editContent={
-        <div>
-          <div>
-            First Name:
-            <input
-              type="text"
-              ref={firstNameRef}
-              defaultValue={firstName}
-              placeholder={firstName}
-            />
-          </div>
-
-          <div>
-            Last Name:
-            <input
-              type="text"
-              ref={lastNameRef}
-              defaultValue={lastName}
-              placeholder={lastName}
-            />
-          </div>
+        <div className="profile-editor-grid">
+          <Form.Group className="profile-editor-field">
+            <Form.Label>First name</Form.Label>
+            <Form.Control ref={firstNameRef} type="text" defaultValue={firstName} />
+          </Form.Group>
+          <Form.Group className="profile-editor-field">
+            <Form.Label>Last name</Form.Label>
+            <Form.Control ref={lastNameRef} type="text" defaultValue={lastName} />
+          </Form.Group>
         </div>
       }
-      onSave={() => {
-        SaveSpecDocFirestore({
+      onSave={() =>
+        saveSpecDocFirestore({
           name: {
-            first_name: firstNameRef.current.value,
-            last_name: lastNameRef.current.value,
+            first_name: firstNameRef.current?.value || "",
+            last_name: lastNameRef.current?.value || "",
           },
-        });
-      }}
+        })
+      }
     />
   );
 }
 
-function PhoneNumber({ phone, SaveSpecDocFirestore }) {
+function PhoneNumber({ phone, saveSpecDocFirestore }) {
   const regionRef = useRef(null);
   const phoneRef = useRef(null);
 
   const regionCountryCode =
     phone?.region_country_short_name_code || phone?.region_country_code || "";
-  const regionCountry =
-    phone?.region_country_name || phone?.region_country || "";
+  const regionCountry = phone?.region_country_name || phone?.region_country || "";
   const regionCode = phone?.region_number_code || phone?.region_code || "";
   const telephoneNumber = phone?.telephone_number || "";
 
   const selectedRegion =
-    countryRegionOptions.find(
-      (country) => country.code === regionCountryCode
-    ) ||
+    countryRegionOptions.find((country) => country.code === regionCountryCode) ||
     countryRegionOptions.find(
       (country) =>
         country.phoneCode === regionCode && country.name === regionCountry
     ) ||
     countryRegionOptions[0];
 
-  const displayPhone =
-    regionCode.length > 0 && telephoneNumber.length > 0
-      ? `${regionCode} ${telephoneNumber}`
-      : "";
-
   return (
     <ProfileRow
-      label="Phone"
-      displayValue={displayPhone}
+      icon={FiPhone}
+      label="Phone number"
+      helperText="Used for reservation updates and property contact if needed."
+      displayValue={formatPhone(phone)}
       editContent={
-        <div>
-          <select
-            ref={regionRef}
-            id="Telephone Region"
-            defaultValue={selectedRegion?.code}
-            required
-          >
-            {countryRegionOptions.map((region) => (
-              <option key={region.code} value={region.code}>
-                {region.phoneCode} {region.name}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="text"
-            ref={phoneRef}
-            defaultValue={telephoneNumber}
-            placeholder={displayPhone}
-            required
-          />
+        <div className="profile-editor-grid">
+          <Form.Group className="profile-editor-field">
+            <Form.Label>Region</Form.Label>
+            <Form.Select
+              ref={regionRef}
+              defaultValue={selectedRegion?.code}
+              aria-label="Phone region"
+            >
+              {countryRegionOptions.map((region) => (
+                <option key={region.code} value={region.code}>
+                  {region.phoneCode} {region.name}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+          <Form.Group className="profile-editor-field">
+            <Form.Label>Telephone number</Form.Label>
+            <Form.Control
+              ref={phoneRef}
+              type="text"
+              defaultValue={telephoneNumber}
+              placeholder="Enter your phone number"
+            />
+          </Form.Group>
         </div>
       }
       onSave={() => {
-        const selectedCountryCode = regionRef.current.value;
-
+        const selectedCountryCode = regionRef.current?.value || "";
         const selectedCountry = countryRegionOptions.find(
           (country) => country.code === selectedCountryCode
         );
 
-        SaveSpecDocFirestore({
+        return saveSpecDocFirestore({
           phone: {
             region_country_short_name_code: selectedCountry?.code || "",
             region_number_code: selectedCountry?.phoneCode || "",
             region_country_name: selectedCountry?.name || "",
-            telephone_number: phoneRef.current.value,
+            telephone_number: phoneRef.current?.value || "",
           },
         });
       }}
@@ -232,7 +390,7 @@ function PhoneNumber({ phone, SaveSpecDocFirestore }) {
   );
 }
 
-function Passport({ passport, SaveSpecDocFirestore }) {
+function Passport({ passport, saveSpecDocFirestore }) {
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
   const countryRef = useRef(null);
@@ -243,39 +401,25 @@ function Passport({ passport, SaveSpecDocFirestore }) {
   const passportCountry = passport?.passport_country || "";
   const passportNumber = passport?.passport_number || "";
 
-  const displayPassport = passport
-    ? `${firstName} ${lastName} ${passportCountry}: ${passportNumber}`
-    : "";
-
   return (
     <ProfileRow
+      icon={FiCreditCard}
       label="Passport"
-      displayValue={displayPassport}
+      helperText="Save passport details to speed up international bookings."
+      displayValue={formatPassport(passport)}
       editContent={
-        <div>
-          <div>
-            First Name:
-            <input
-              id="Passport_First_Name"
-              type="text"
-              ref={firstNameRef}
-              defaultValue={firstName}
-            />
-          </div>
-
-          <div>
-            Last Name:
-            <input
-              id="Passport_Last_Name"
-              type="text"
-              ref={lastNameRef}
-              defaultValue={lastName}
-            />
-          </div>
-
-          <div>
-            Issue Country:
-            <select
+        <div className="profile-editor-grid">
+          <Form.Group className="profile-editor-field">
+            <Form.Label>First name</Form.Label>
+            <Form.Control ref={firstNameRef} type="text" defaultValue={firstName} />
+          </Form.Group>
+          <Form.Group className="profile-editor-field">
+            <Form.Label>Last name</Form.Label>
+            <Form.Control ref={lastNameRef} type="text" defaultValue={lastName} />
+          </Form.Group>
+          <Form.Group className="profile-editor-field">
+            <Form.Label>Issue country</Form.Label>
+            <Form.Select
               ref={countryRef}
               defaultValue={passportCountry || nationalityData[0]}
             >
@@ -284,115 +428,177 @@ function Passport({ passport, SaveSpecDocFirestore }) {
                   {country}
                 </option>
               ))}
-            </select>
-          </div>
-
-          <div>
-            Passport Number:
-            <input
-              id="Passport_Number"
-              type="text"
+            </Form.Select>
+          </Form.Group>
+          <Form.Group className="profile-editor-field">
+            <Form.Label>Passport number</Form.Label>
+            <Form.Control
               ref={passportNumberRef}
+              type="text"
               defaultValue={passportNumber}
             />
-          </div>
+          </Form.Group>
         </div>
       }
-      onSave={() => {
-        SaveSpecDocFirestore({
+      onSave={() =>
+        saveSpecDocFirestore({
           passport: {
-            first_name: firstNameRef.current.value,
-            last_name: lastNameRef.current.value,
-            passport_country: countryRef.current.value,
-            passport_number: passportNumberRef.current.value,
+            first_name: firstNameRef.current?.value || "",
+            last_name: lastNameRef.current?.value || "",
+            passport_country: countryRef.current?.value || "",
+            passport_number: passportNumberRef.current?.value || "",
           },
-        });
-      }}
+        })
+      }
     />
   );
 }
 
 export default function UserProfilePage() {
-  const { userProfile, SaveSpecDocFirestore } = useAuth();
+  const { userProfile, saveSpecDocFirestore, SaveSpecDocFirestore } = useAuth();
+  const persistProfile = saveSpecDocFirestore || SaveSpecDocFirestore;
 
-  const profileRows = [
-    <LegalName
-      userName={userProfile?.name}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <TextProfileField
-      label="Display Name"
-      fieldKey="display_name"
-      value={userProfile?.display_name}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <ReadOnlyProfileField label="Email" value={userProfile?.email} />,
-    <PhoneNumber
-      phone={userProfile?.phone}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <TextProfileField
-      label="Date of Birth"
-      fieldKey="birth_date"
-      value={userProfile?.birth_date}
-      type="date"
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <SelectProfileField
-      label="Gender"
-      fieldKey="gender"
-      value={userProfile?.gender}
-      options={["Male", "Female", "I prefer not to say"]}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <TextProfileField
-      label="Residential Address"
-      fieldKey="address"
-      value={userProfile?.address}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <SelectProfileField
-      label="Nationality"
-      fieldKey="nationality"
-      value={userProfile?.nationality}
-      options={nationalityData}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-    <Passport
-      passport={userProfile?.passport}
-      SaveSpecDocFirestore={SaveSpecDocFirestore}
-    />,
-  ];
+  const profileChecks = useMemo(
+    () => [
+      hasContent(userProfile?.name),
+      hasContent(userProfile?.display_name),
+      hasContent(userProfile?.email),
+      hasContent(userProfile?.phone),
+      hasContent(userProfile?.birth_date),
+      hasContent(userProfile?.gender),
+      hasContent(userProfile?.address),
+      hasContent(userProfile?.nationality),
+      hasContent(userProfile?.passport),
+    ],
+    [userProfile]
+  );
+
+  const completedCount = profileChecks.filter(Boolean).length;
+  const completionPercent = Math.round((completedCount / profileChecks.length) * 100);
+  const initials = getInitials(userProfile);
 
   return (
-    <div>
-      <div className="d-flex justify-content-between">
-        <div>
-          <h2>User Profile</h2>
-        </div>
-
-        <div>
-          <div className="d-flex">
-            <Image
-              src="https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg"
-              roundedCircle
-              style={{ width: 100, height: 100 }}
-            />
+    <div className="user-profile-page">
+      <section className="profile-overview-band">
+        <div className="profile-overview-main">
+          <div className="profile-avatar">{initials}</div>
+          <div className="profile-overview-copy">
+            <p className="profile-section-eyebrow">Profile overview</p>
+            <h2>{userProfile?.display_name || formatRealName(userProfile?.name)}</h2>
+            <p>
+              Keep your personal details accurate so checkout, invoices, and
+              property check-in stay consistent.
+            </p>
           </div>
         </div>
-      </div>
 
-      <hr />
+        <div className="profile-overview-stats">
+          <div className="profile-completion">
+            <div className="profile-completion-header">
+              <span>Profile completeness</span>
+              <strong>{completionPercent}%</strong>
+            </div>
+            <ProgressBar now={completionPercent} className="profile-progress" />
+            <span className="profile-completion-caption">
+              {completedCount} of {profileChecks.length} sections filled
+            </span>
+          </div>
 
-      <div>
-        <Col>
-          {profileRows.map((row, index) => (
-            <Fragment key={index}>
-              <Row>{row}</Row>
-              {index !== profileRows.length - 1 && <hr />}
-            </Fragment>
-          ))}
-        </Col>
+          <div className="profile-highlights">
+            <div className="profile-highlight-item">
+              <FiMail />
+              <span>{userProfile?.email || "No email saved"}</span>
+            </div>
+            <div className="profile-highlight-item">
+              <FiPhone />
+              <span>{formatPhone(userProfile?.phone)}</span>
+            </div>
+            <div className="profile-highlight-item">
+              <FiCheckCircle />
+              <span>Firestore sync active</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="profile-sections">
+        <ProfileSection
+          eyebrow="Identity"
+          title="Personal details"
+          description="Core account information that appears in your guest profile."
+        >
+          <LegalName
+            userName={userProfile?.name}
+            saveSpecDocFirestore={persistProfile}
+          />
+          <TextProfileField
+            icon={FiUser}
+            label="Display name"
+            helperText="Shown across your account and reservation views."
+            fieldKey="display_name"
+            value={userProfile?.display_name}
+            saveSpecDocFirestore={persistProfile}
+          />
+          <ReadOnlyProfileField
+            icon={FiMail}
+            label="Email address"
+            helperText="Controlled by your authentication account."
+            value={userProfile?.email}
+          />
+          <TextProfileField
+            icon={FiCalendar}
+            label="Date of birth"
+            helperText="Required by some properties and payment providers."
+            fieldKey="birth_date"
+            value={userProfile?.birth_date}
+            type="date"
+            saveSpecDocFirestore={persistProfile}
+          />
+          <SelectProfileField
+            icon={FiFlag}
+            label="Gender"
+            helperText="Optional profile detail stored with your guest record."
+            fieldKey="gender"
+            value={userProfile?.gender}
+            options={["Male", "Female", "I prefer not to say"]}
+            saveSpecDocFirestore={persistProfile}
+          />
+        </ProfileSection>
+
+        <ProfileSection
+          eyebrow="Contact"
+          title="Reachability"
+          description="Details properties can use to reach you before arrival."
+        >
+          <PhoneNumber phone={userProfile?.phone} saveSpecDocFirestore={persistProfile} />
+          <TextProfileField
+            icon={FiHome}
+            label="Residential address"
+            helperText="Use your primary residential address for billing context."
+            fieldKey="address"
+            value={userProfile?.address}
+            as="textarea"
+            rows={3}
+            saveSpecDocFirestore={persistProfile}
+          />
+          <SelectProfileField
+            icon={FiGlobe}
+            label="Nationality"
+            helperText="Used when a booking flow asks for citizenship information."
+            fieldKey="nationality"
+            value={userProfile?.nationality}
+            options={nationalityData}
+            saveSpecDocFirestore={persistProfile}
+          />
+        </ProfileSection>
+
+        <ProfileSection
+          eyebrow="Travel"
+          title="Travel document"
+          description="Passport data you may need for international reservations."
+        >
+          <Passport passport={userProfile?.passport} saveSpecDocFirestore={persistProfile} />
+        </ProfileSection>
       </div>
     </div>
   );

@@ -1,13 +1,368 @@
-.MainPurchasePortalFrame {
-  display: grid;
-  grid-template-columns: 4fr 7fr;
-  grid-template-rows: max-content max-content max-content;
-  grid-template-areas: 
-    "MainHotelInfomation RightPart"
-    "MainHotelInfomation RightPart"
-    "MainHotelInfomation RightPart";
-  gap: 20px;
+:root {
+  --pp-bg: #eef4f7;
+  --pp-card: #fcfeff;
+  --pp-card-soft: #f5f9fc;
+  --pp-line: #d8e3eb;
+  --pp-line-strong: #bccdd9;
+  --pp-text: #223746;
+  --pp-muted: #61798d;
+  --pp-accent: #557b99;
+  --pp-accent-deep: #2f5068;
+  --pp-accent-soft: #e4eef5;
+  --pp-success: #3c7b63;
+  --pp-shadow: 0 22px 52px rgba(71, 103, 128, 0.08);
 }
 
-.MainHotelInfomation { grid-area: MainHotelInfomation; }
-.RightPart { grid-area: RightPart; }
+.purchase-portal-page {
+  min-height: 100vh;
+  padding: 28px 0 56px;
+  color: var(--pp-text);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.75), transparent 28%),
+    linear-gradient(180deg, #f7fbfd 0%, var(--pp-bg) 100%);
+}
+
+.purchase-portal-container {
+  display: grid;
+  gap: 22px;
+}
+
+.purchase-portal-hero {
+  padding: 28px 30px;
+  border: 1px solid var(--pp-line);
+  border-radius: 28px;
+  background: rgba(252, 254, 255, 0.92);
+  box-shadow: var(--pp-shadow);
+}
+
+.purchase-eyebrow {
+  margin: 0 0 10px;
+  color: var(--pp-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.purchase-portal-hero h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.purchase-hero-copy {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--pp-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.purchase-stepper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.purchase-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--pp-line);
+  border-radius: 22px;
+  background: rgba(252, 254, 255, 0.9);
+  box-shadow: var(--pp-shadow);
+}
+
+.purchase-step-marker {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--pp-line-strong);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--pp-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.purchase-step-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.purchase-step-copy strong {
+  font-size: 0.98rem;
+}
+
+.purchase-step-copy span {
+  color: var(--pp-muted);
+  font-size: 0.9rem;
+}
+
+.purchase-step.is-active {
+  border-color: rgba(85, 123, 153, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(228, 238, 245, 0.88));
+}
+
+.purchase-step.is-active .purchase-step-marker {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--pp-accent), var(--pp-accent-deep));
+  color: #fff;
+}
+
+.purchase-step.is-complete .purchase-step-marker {
+  border-color: transparent;
+  background: rgba(60, 123, 99, 0.14);
+  color: var(--pp-success);
+}
+
+.purchase-portal-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.25fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.purchase-portal-sidebar {
+  position: sticky;
+  top: 20px;
+}
+
+.purchase-portal-main {
+  min-width: 0;
+}
+
+.MainHotelInfomation,
+.purchase-stage-card,
+.purchase-form-card,
+.purchase-room-shell,
+.purchase-callout,
+.purchase-primary-action,
+.stripe-step-card,
+.stripe-loading-card,
+.stripe-error-card {
+  border: 1px solid var(--pp-line);
+  border-radius: 28px;
+  background: var(--pp-card);
+  box-shadow: var(--pp-shadow);
+}
+
+.purchase-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.purchase-section-header h2,
+.purchase-section-header h3,
+.purchase-summary-header h3 {
+  margin: 0;
+}
+
+.purchase-section-copy {
+  margin: 10px 0 0;
+  color: var(--pp-muted);
+  line-height: 1.6;
+}
+
+.purchase-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--pp-accent-soft);
+  color: var(--pp-accent-deep);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.purchase-empty-copy {
+  margin: 0;
+  color: var(--pp-muted);
+  line-height: 1.6;
+}
+
+.MainHotelInfomation {
+  overflow: hidden;
+}
+
+.MainHotelImg {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+}
+
+.purchase-summary-body {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+
+.purchase-star-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.purchase-star {
+  color: #7393ad;
+  font-size: 0.98rem;
+}
+
+.purchase-summary-title-group h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.2;
+}
+
+.purchase-summary-address {
+  margin: 10px 0 0;
+  color: var(--pp-muted);
+  line-height: 1.65;
+}
+
+.purchase-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.purchase-summary-metric {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--pp-line);
+  border-radius: 18px;
+  background: var(--pp-card-soft);
+}
+
+.purchase-summary-metric span,
+.purchase-summary-total-card p,
+.purchase-summary-total-card span {
+  color: var(--pp-muted);
+  font-size: 0.9rem;
+}
+
+.purchase-summary-section {
+  display: grid;
+  gap: 14px;
+}
+
+.purchase-summary-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.purchase-summary-section-head h4 {
+  margin: 0;
+}
+
+.purchase-summary-room-list {
+  display: grid;
+  gap: 10px;
+}
+
+.purchase-summary-room-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--pp-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.purchase-summary-room-item strong {
+  display: block;
+}
+
+.purchase-summary-room-item span {
+  color: var(--pp-accent-deep);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.purchase-summary-total-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--pp-accent), var(--pp-accent-deep));
+  color: #fff;
+}
+
+.purchase-summary-total-card p,
+.purchase-summary-total-card span {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.purchase-summary-total-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+@media (max-width: 991px) {
+  .purchase-stepper,
+  .purchase-portal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .purchase-portal-sidebar {
+    position: static;
+  }
+
+  .purchase-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575px) {
+  .purchase-portal-page {
+    padding: 20px 0 40px;
+  }
+
+  .purchase-portal-hero,
+  .purchase-step,
+  .MainHotelInfomation,
+  .purchase-stage-card,
+  .purchase-form-card,
+  .purchase-room-shell,
+  .purchase-callout,
+  .purchase-primary-action,
+  .stripe-step-card,
+  .stripe-loading-card,
+  .stripe-error-card {
+    border-radius: 22px;
+  }
+
+  .purchase-portal-hero {
+    padding: 24px 22px;
+  }
+
+  .purchase-summary-body {
+    padding: 22px 20px;
+  }
+
+  .purchase-summary-section-head,
+  .purchase-summary-room-item,
+  .purchase-summary-total-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

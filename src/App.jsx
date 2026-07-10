@@ -14,7 +14,7 @@ import SearchToHotelList from "./pages/SearchToHotelList/SearchToHotelList";
 import ViewHotel from "./pages/ViewHotel/ViewHotel";
 import UserSettingPage from "./pages/UserSettingPage/UserSettingPage";
 import PaymentCompletePage from "./pages/PaymentCompletePage/PaymentCompletePage";
-import PaymentCompletePrototypePage from "./pages/PaymentCompletePrototypePage/PaymentCompletePrototypePage";
+// import PaymentCompletePrototypePage from "./pages/PaymentCompletePrototypePage/PaymentCompletePrototypePage";
 import BookedHotelHistory from "./pages/BookedHotelHistory";
 import MainHome from "./pages/MainHome/MainHome";
 
@@ -111,7 +111,7 @@ function AppInner({
         <Route path="usersetting" element={<UserSettingPage />} />
         <Route path="bookedhotelhistory" element={<BookedHotelHistory />} />
         <Route path="paymentcomplete" element={<PaymentCompletePage />} />
-        <Route path="payment-complete-prototype" element={<PaymentCompletePrototypePage />} />
+        {/* <Route path="payment-complete-prototype" element={<PaymentCompletePrototypePage />} /> */}
       </Route>
     </Routes>
   );
