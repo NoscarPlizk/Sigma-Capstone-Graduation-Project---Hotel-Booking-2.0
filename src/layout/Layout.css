@@ -1,0 +1,168 @@
+.app-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  min-height: 76px;
+  border-bottom: 1px solid rgba(46, 63, 74, 0.08);
+  background: rgba(248, 250, 249, 0.94);
+  box-shadow: 0 10px 24px rgba(26, 43, 52, 0.05);
+  backdrop-filter: blur(12px);
+}
+
+.app-navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.app-navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 0;
+  text-decoration: none;
+}
+
+.app-navbar-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #dde8e3 0%, #eef3f0 100%);
+  color: #29404a;
+  font-size: 1.05rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.app-navbar-brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.app-navbar-brand-copy strong {
+  color: #213540;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.app-navbar-brand-copy span {
+  color: #73848a;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.app-navbar-link {
+  padding: 0;
+}
+
+.app-navbar-link .nav-link {
+  padding: 0;
+}
+
+.app-navbar-button.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid #d8e2de;
+  box-shadow: none;
+  font-weight: 600;
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.app-navbar-button.btn:hover,
+.app-navbar-button.btn:focus,
+.app-navbar-button.btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(48, 71, 74, 0.07);
+}
+
+.app-navbar-button svg {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.app-navbar-button span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.app-navbar-button span strong {
+  color: #29404a;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.app-navbar-button-primary.btn {
+  border-color: #cfdad6;
+  background: #233746;
+  color: #f8fbfc;
+}
+
+.app-navbar-button-primary.btn:hover,
+.app-navbar-button-primary.btn:focus,
+.app-navbar-button-primary.btn:active {
+  border-color: #233746;
+  background: #1d2c36;
+  color: #f8fbfc;
+}
+
+.app-navbar-button-utility.btn {
+  background: #f8fbf9;
+  color: #29404a;
+}
+
+.app-navbar-button-utility.btn:hover,
+.app-navbar-button-utility.btn:focus,
+.app-navbar-button-utility.btn:active {
+  border-color: #bfd0c8;
+  background: #f1f6f3;
+  color: #223742;
+}
+
+@media (max-width: 991px) {
+  .app-navbar-container {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-navbar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-navbar-actions {
+    gap: 10px;
+  }
+
+  .app-navbar-link,
+  .app-navbar-link .nav-link,
+  .app-navbar-button.btn {
+    width: 100%;
+  }
+
+  .app-navbar-button.btn {
+    justify-content: flex-start;
+  }
+}

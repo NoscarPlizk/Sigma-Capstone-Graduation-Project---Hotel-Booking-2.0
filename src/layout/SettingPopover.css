@@ -1,0 +1,172 @@
+.account-popover-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 18px rgba(20, 40, 55, 0.14);
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.account-popover-trigger:hover,
+.account-popover-trigger:focus-visible {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.account-popover-trigger-avatar {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+}
+
+.account-popover.popover {
+  min-width: 290px;
+  border: 1px solid #d9e3df;
+  border-radius: 18px;
+  background: rgba(252, 254, 253, 0.98);
+  box-shadow: 0 18px 34px rgba(33, 52, 63, 0.16);
+  overflow: hidden;
+}
+
+.account-popover .popover-arrow {
+  display: none;
+}
+
+.account-popover-header.popover-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid #e3ebe7;
+  background: linear-gradient(135deg, #f4f8f6 0%, #eef4f2 100%);
+}
+
+.account-popover-header-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(42, 157, 143, 0.14);
+  color: #2d7b70;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.account-popover-header-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.account-popover-header-copy strong {
+  color: #233746;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.account-popover-eyebrow {
+  color: #64827e;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-popover-body.popover-body {
+  padding: 12px;
+}
+
+.account-popover-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.account-popover-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d8e4df;
+  border-radius: 14px;
+  background: #f8fbf9;
+  color: #253a45;
+  text-align: left;
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.account-popover-action:hover,
+.account-popover-action:focus-visible {
+  border-color: #97c1b8;
+  background: #f3f8f6;
+  box-shadow: 0 10px 18px rgba(70, 108, 99, 0.08);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.account-popover-action-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.account-popover-action-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(42, 157, 143, 0.12);
+  color: #2d7b70;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.account-popover-action-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-popover-action-copy strong {
+  color: #233746;
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.account-popover-action-copy span {
+  color: #6b8083;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.account-popover-action-arrow {
+  color: #74868a;
+  flex-shrink: 0;
+}
+
+.account-popover-action-logout {
+  border-color: #ecd9d4;
+  background: #fff8f6;
+}
+
+.account-popover-action-logout:hover,
+.account-popover-action-logout:focus-visible {
+  border-color: #e4b8ae;
+  background: #fff2ee;
+}
+
+.account-popover-action-icon-logout {
+  background: rgba(231, 111, 81, 0.12);
+  color: #c45e46;
+}
