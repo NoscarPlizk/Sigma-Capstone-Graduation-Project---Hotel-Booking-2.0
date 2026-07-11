@@ -1,12 +1,48 @@
 import { useNavigate } from "react-router-dom";
 import { OverlayTrigger, Popover, Image } from "react-bootstrap";
-import { FiChevronRight, FiLogOut, FiSettings, FiUser } from "react-icons/fi";
+import { FiChevronRight, FiLogOut, FiMail, FiSettings, FiUser } from "react-icons/fi";
 import { logoutUser } from "../content/Firebase/authservice";
 import { auth } from "../content/Firebase/firebase";
+import { useAuth } from "../content/Firebase/AuthContext";
 import "./SettingPopover.css";
+
+function getAvatarUrl(profile, firebaseUser) {
+  return profile?.avatar?.url?.trim() || firebaseUser?.photoURL?.trim() || "";
+}
+
+function getInitials(profile, firebaseUser) {
+  const displayName =
+    profile?.display_name?.trim() ||
+    `${profile?.name?.first_name || ""} ${profile?.name?.last_name || ""}`.trim() ||
+    firebaseUser?.displayName?.trim() ||
+    firebaseUser?.email?.trim() ||
+    "GU";
+
+  const parts = displayName.split(/\s+/).filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  return displayName.slice(0, 2).toUpperCase();
+}
+
+function getDisplayName(profile, firebaseUser) {
+  return (
+    profile?.display_name?.trim() ||
+    `${profile?.name?.first_name || ""} ${profile?.name?.last_name || ""}`.trim() ||
+    firebaseUser?.displayName?.trim() ||
+    "Guest profile"
+  );
+}
 
 export default function SettingPopover() {
   const redirect = useNavigate();
+  const { userProfile, firebaseUser } = useAuth();
+  const avatarUrl = getAvatarUrl(userProfile, firebaseUser);
+  const initials = getInitials(userProfile, firebaseUser);
+  const displayName = getDisplayName(userProfile, firebaseUser);
+  const email = userProfile?.email?.trim() || firebaseUser?.email?.trim() || "No email available";
 
   const SignOutProcess = async () => {
     try {
@@ -20,12 +56,25 @@ export default function SettingPopover() {
   const popover = (
     <Popover id="user-popover" className="account-popover">
       <Popover.Header as="div" className="account-popover-header">
-        <div className="account-popover-header-icon">
-          <FiUser />
+        <div className="account-popover-header-avatar">
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt="Current user avatar"
+              className="account-popover-header-avatar-image"
+              roundedCircle
+            />
+          ) : (
+            <span className="account-popover-header-avatar-fallback">{initials}</span>
+          )}
         </div>
         <div className="account-popover-header-copy">
           <span className="account-popover-eyebrow">Account</span>
-          <strong>User menu</strong>
+          <strong>{displayName}</strong>
+          <span className="account-popover-header-email">
+            <FiMail />
+            {email}
+          </span>
         </div>
       </Popover.Header>
       <Popover.Body className="account-popover-body">
@@ -76,11 +125,16 @@ export default function SettingPopover() {
         rootClose
       >
         <button type="button" className="account-popover-trigger">
-          <Image
-            src="https://png.pngtree.com/png-vector/20190909/ourmid/pngtree-outline-user-icon-png-image_1727916.jpg"
-            className="account-popover-trigger-avatar"
-            roundedCircle
-          />
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt="Current user avatar"
+              className="account-popover-trigger-avatar"
+              roundedCircle
+            />
+          ) : (
+            <span className="account-popover-trigger-fallback">{initials}</span>
+          )}
         </button>
       </OverlayTrigger>
     </>

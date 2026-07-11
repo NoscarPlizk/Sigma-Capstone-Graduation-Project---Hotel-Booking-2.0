@@ -1,14 +1,17 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, Form, ProgressBar, Spinner } from "react-bootstrap";
 import {
   FiCalendar,
+  FiCamera,
   FiCheckCircle,
   FiCreditCard,
   FiFlag,
   FiGlobe,
   FiHome,
+  FiImage,
   FiMail,
   FiPhone,
+  FiTrash2,
   FiUser,
 } from "react-icons/fi";
 import { useAuth } from "../../../content/Firebase/AuthContext";
@@ -70,6 +73,10 @@ function formatPassport(passport) {
   }
 
   return [fullName, country, number].filter(Boolean).join(" | ");
+}
+
+function getAvatarUrl(profile) {
+  return profile?.avatar?.url?.trim() || "";
 }
 
 function ProfileSection({ eyebrow, title, description, children }) {
@@ -454,8 +461,216 @@ function Passport({ passport, saveSpecDocFirestore }) {
   );
 }
 
+function AvatarProfileField({ userProfile, uploadUserAvatar, removeUserAvatar }) {
+  const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const storedAvatarUrl = getAvatarUrl(userProfile);
+  const previewUrl = localPreviewUrl || storedAvatarUrl;
+  const initials = getInitials(userProfile);
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+    };
+  }, [localPreviewUrl]);
+
+  function resetLocalSelection() {
+    if (localPreviewUrl) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+
+    setSelectedFile(null);
+    setLocalPreviewUrl("");
+    setUploadProgress(0);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  function handleFileSelection(event) {
+    const nextFile = event.target.files?.[0];
+
+    if (!nextFile) {
+      return;
+    }
+
+    if (!nextFile.type.startsWith("image/")) {
+      setErrorMessage("Please choose a valid image file.");
+      resetLocalSelection();
+      return;
+    }
+
+    if (localPreviewUrl) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+
+    setErrorMessage("");
+    setSelectedFile(nextFile);
+    setLocalPreviewUrl(URL.createObjectURL(nextFile));
+  }
+
+  async function handleUpload() {
+    if (!selectedFile) {
+      setErrorMessage("Choose an image before uploading.");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setErrorMessage("");
+      await uploadUserAvatar(selectedFile, setUploadProgress);
+      resetLocalSelection();
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(error?.message || "Unable to upload avatar right now.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function handleRemove() {
+    try {
+      setIsRemoving(true);
+      setErrorMessage("");
+      await removeUserAvatar();
+      resetLocalSelection();
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(error?.message || "Unable to remove avatar right now.");
+    } finally {
+      setIsRemoving(false);
+    }
+  }
+
+  return (
+    <article className="profile-row-card profile-avatar-card">
+      <div className="profile-avatar-editor">
+        <div className="profile-avatar-preview" aria-hidden="true">
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Current profile avatar preview"
+              className="profile-avatar-image"
+            />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </div>
+
+        <div className="profile-avatar-actions-panel">
+          <div className="profile-row-label-group">
+            <span className="profile-row-icon">
+              <FiImage />
+            </span>
+            <div className="profile-row-copy">
+              <strong>Profile avatar</strong>
+              <p>
+                Upload a square image for your account avatar. JPG, PNG, or WebP
+                up to 2 MB.
+              </p>
+            </div>
+          </div>
+
+          <Form.Control
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelection}
+            className="profile-avatar-input"
+          />
+
+          <div className="profile-avatar-button-row">
+            <Button
+              type="button"
+              variant="outline-secondary"
+              className="profile-action-button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || isRemoving}
+            >
+              <FiCamera />
+              <span>{selectedFile ? "Choose another" : "Choose image"}</span>
+            </Button>
+
+            <Button
+              type="button"
+              className="profile-action-button profile-action-button-primary"
+              onClick={handleUpload}
+              disabled={!selectedFile || isUploading || isRemoving}
+            >
+              {isUploading ? (
+                <>
+                  <Spinner animation="border" size="sm" />
+                  <span>Uploading</span>
+                </>
+              ) : (
+                <>
+                  <FiImage />
+                  <span>Upload avatar</span>
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="light"
+              className="profile-action-button"
+              onClick={handleRemove}
+              disabled={(!storedAvatarUrl && !selectedFile) || isUploading || isRemoving}
+            >
+              {isRemoving ? (
+                <>
+                  <Spinner animation="border" size="sm" />
+                  <span>Removing</span>
+                </>
+              ) : (
+                <>
+                  <FiTrash2 />
+                  <span>Remove avatar</span>
+                </>
+              )}
+            </Button>
+          </div>
+
+          <div className="profile-avatar-meta">
+            <span>
+              {selectedFile
+                ? `${selectedFile.name} (${Math.ceil(selectedFile.size / 1024)} KB)`
+                : storedAvatarUrl
+                  ? "Avatar saved in Firebase Storage."
+                  : "No avatar uploaded yet."}
+            </span>
+          </div>
+
+          {isUploading ? (
+            <div className="profile-avatar-progress">
+              <ProgressBar now={uploadProgress} label={`${uploadProgress}%`} />
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {errorMessage ? <Alert variant="danger">{errorMessage}</Alert> : null}
+    </article>
+  );
+}
+
 export default function UserProfilePage() {
-  const { userProfile, saveSpecDocFirestore, SaveSpecDocFirestore } = useAuth();
+  const {
+    userProfile,
+    saveSpecDocFirestore,
+    SaveSpecDocFirestore,
+    uploadUserAvatar,
+    removeUserAvatar,
+  } = useAuth();
   const persistProfile = saveSpecDocFirestore || SaveSpecDocFirestore;
 
   const profileChecks = useMemo(
@@ -476,12 +691,19 @@ export default function UserProfilePage() {
   const completedCount = profileChecks.filter(Boolean).length;
   const completionPercent = Math.round((completedCount / profileChecks.length) * 100);
   const initials = getInitials(userProfile);
+  const avatarUrl = getAvatarUrl(userProfile);
 
   return (
     <div className="user-profile-page">
       <section className="profile-overview-band">
         <div className="profile-overview-main">
-          <div className="profile-avatar">{initials}</div>
+          <div className="profile-avatar">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Profile avatar" className="profile-avatar-image" />
+            ) : (
+              initials
+            )}
+          </div>
           <div className="profile-overview-copy">
             <p className="profile-section-eyebrow">Profile overview</p>
             <h2>{userProfile?.display_name || formatRealName(userProfile?.name)}</h2>
@@ -527,6 +749,11 @@ export default function UserProfilePage() {
           title="Personal details"
           description="Core account information that appears in your guest profile."
         >
+          <AvatarProfileField
+            userProfile={userProfile}
+            uploadUserAvatar={uploadUserAvatar}
+            removeUserAvatar={removeUserAvatar}
+          />
           <LegalName
             userName={userProfile?.name}
             saveSpecDocFirestore={persistProfile}

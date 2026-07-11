@@ -2,8 +2,21 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import useLocalStorage from "use-local-storage";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import {
+  deleteField,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { auth, db, storage } from "./firebase";
 import isEqual from 'fast-deep-equal';
 
 const AuthContext = createContext(null);
@@ -13,6 +26,11 @@ const EMPTY_PHONE = {
   region_country_short_name_code: "",
   telephone_number: "",
 };
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+
+function buildAvatarStoragePath(uid) {
+  return `users/${uid}/avatar/profile-image`;
+}
 
 function normalizePhone(phone) {
   if (!phone || typeof phone !== "object") {
@@ -40,6 +58,30 @@ function shouldMigratePhone(phone) {
     "region_country" in phone ||
     "region_country_code" in phone
   );
+}
+
+function normalizeAvatar(avatar) {
+  if (!avatar || typeof avatar !== "object") {
+    return null;
+  }
+
+  const url = avatar.url?.trim() || "";
+  const storagePath = avatar.storage_path?.trim() || "";
+
+  if (!url && !storagePath) {
+    return null;
+  }
+
+  return {
+    url,
+    storage_path: storagePath,
+    file_name: avatar.file_name?.trim() || "",
+    content_type: avatar.content_type?.trim() || "",
+    size_bytes:
+      typeof avatar.size_bytes === "number" && Number.isFinite(avatar.size_bytes)
+        ? avatar.size_bytes
+        : 0,
+  };
 }
 
 export function AuthProvider({ children }) {
@@ -86,6 +128,7 @@ export function AuthProvider({ children }) {
           return {
             ...cleanProfile,
             phone: normalizePhone(cleanProfile.phone),
+            avatar: normalizeAvatar(cleanProfile.avatar),
           };
         }
 
@@ -195,13 +238,115 @@ export function AuthProvider({ children }) {
     console.log('SaveSpecDocFirestore Success');
   }
 
+  async function uploadUserAvatar(file, onProgress) {
+    if (!firebaseUser?.uid) {
+      throw new Error("No logged-in user.");
+    }
+
+    if (!(file instanceof File)) {
+      throw new Error("Please choose an image file.");
+    }
+
+    if (!file.type.startsWith("image/")) {
+      throw new Error("Only image uploads are allowed.");
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      throw new Error("Avatar image must be 2 MB or smaller.");
+    }
+
+    const storagePath = buildAvatarStoragePath(firebaseUser.uid);
+    const avatarRef = ref(storage, storagePath);
+
+    await new Promise((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(avatarRef, file, {
+        contentType: file.type,
+      });
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          if (!onProgress) {
+            return;
+          }
+
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          onProgress(progress);
+        },
+        reject,
+        resolve
+      );
+    });
+
+    const avatarUrl = await getDownloadURL(avatarRef);
+    const avatarPayload = {
+      url: avatarUrl,
+      storage_path: storagePath,
+      file_name: file.name,
+      content_type: file.type,
+      size_bytes: file.size,
+    };
+
+    await setDoc(
+      doc(db, "users", firebaseUser.uid),
+      {
+        avatar: avatarPayload,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    setUserProfile((prev) => ({
+      ...(prev ?? {}),
+      avatar: avatarPayload,
+    }));
+
+    return avatarPayload;
+  }
+
+  async function removeUserAvatar() {
+    if (!firebaseUser?.uid) {
+      throw new Error("No logged-in user.");
+    }
+
+    const avatarStoragePath =
+      userProfile?.avatar?.storage_path || buildAvatarStoragePath(firebaseUser.uid);
+
+    try {
+      await deleteObject(ref(storage, avatarStoragePath));
+    } catch (error) {
+      if (error?.code !== "storage/object-not-found") {
+        throw error;
+      }
+    }
+
+    await setDoc(
+      doc(db, "users", firebaseUser.uid),
+      {
+        avatar: deleteField(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    setUserProfile((prev) => ({
+      ...(prev ?? {}),
+      avatar: null,
+    }));
+  }
+
   return (
     <AuthContext.Provider
       value={{
         firebaseUser,
         userProfile,
         authLoading,
+        saveSpecDocFirestore: SaveSpecDocFirestore,
         SaveSpecDocFirestore,
+        uploadUserAvatar,
+        removeUserAvatar,
         isLoggedIn: !!firebaseUser
       }}
     >

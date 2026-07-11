@@ -83,6 +83,10 @@ function countCompletedFields(profile) {
   return values.filter((value) => typeof value === "string" && value.trim()).length;
 }
 
+function getAvatarUrl(profile) {
+  return profile?.avatar?.url?.trim() || "";
+}
+
 function ButtonBox({ item, isActive }) {
   const dispatch = useDispatch();
   const Icon = item.icon;
@@ -195,6 +199,7 @@ export default function UserSettingPage() {
   const userDisplayName = userProfile?.display_name || userProfile?.name?.first_name || "";
   const completedFields = countCompletedFields(userProfile);
   const initials = getInitials(userDisplayName, userEmail);
+  const avatarUrl = getAvatarUrl(userProfile);
 
   return (
     <div className="settings-page-shell">
@@ -210,7 +215,17 @@ export default function UserSettingPage() {
           </div>
 
           <div className="settings-hero-summary">
-            <div className="settings-hero-avatar">{initials}</div>
+            <div className="settings-hero-avatar">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Current account avatar"
+                  className="settings-hero-avatar-image"
+                />
+              ) : (
+                initials
+              )}
+            </div>
             <div className="settings-hero-meta">
               <strong>{userDisplayName || "Guest profile"}</strong>
               <span>
