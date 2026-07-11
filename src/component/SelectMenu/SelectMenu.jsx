@@ -1,5 +1,5 @@
-import { Button, Card } from "react-bootstrap";
-import { useContext, useRef, useEffect } from "react";
+import { Button, Card, Spinner } from "react-bootstrap";
+import { useContext, useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookedList } from "../../content/data transfer/bookedListContent";
 import "./SelectMenu.css";
@@ -8,6 +8,7 @@ import searchHotelDestination from "../../content/api/SearchHotelDestination";
 import searchHotels from "../../content/api/SearchHotel";
 
 export default function SelectMenu() {
+  const [isSearching, setIsSearching] = useState(false);
   const {
     search, setSearch,
     currency,
@@ -31,20 +32,32 @@ export default function SelectMenu() {
 
 
   async function startQuery() {
-    const hotdesdata = await searchHotelDestination(search);
-    console.log({ selectMenu_hotdesdata: hotdesdata })
-    const seahot = await searchHotels(
-      hotdesdata, 
-      adultPax, 
-      childAgeString, 
-      initialDate, 
-      dueDate, 
-      roomAmount,
-      currency 
-    )
-    console.log({ selectMenu_seahot: seahot })
-    setSearchFetchData(seahot);
-    redirect('/searchtohotellist');
+    if (isSearching) {
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      const hotdesdata = await searchHotelDestination(search);
+      console.log({ selectMenu_hotdesdata: hotdesdata })
+      const seahot = await searchHotels(
+        hotdesdata, 
+        adultPax, 
+        childAgeString, 
+        initialDate, 
+        dueDate, 
+        roomAmount,
+        currency 
+      )
+      console.log({ selectMenu_seahot: seahot })
+      setSearchFetchData(seahot);
+      redirect('/searchtohotellist');
+    } catch (error) {
+      console.error("SelectMenu search failed:", error);
+    } finally {
+      setIsSearching(false);
+    }
   };
     
   return (
@@ -96,8 +109,22 @@ export default function SelectMenu() {
             />
           </div>
           <div className="seg-btn-col">
-            <Button className="seg-btn" onClick={startQuery} >
-              Search
+            <Button className="seg-btn" onClick={startQuery} disabled={isSearching}>
+              {isSearching ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="seg-btn-spinner"
+                  />
+                  Searching...
+                </>
+              ) : (
+                "Search"
+              )}
             </Button>
           </div>
         </div>

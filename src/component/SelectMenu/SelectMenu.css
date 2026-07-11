@@ -81,6 +81,10 @@
   font-weight: 700;
 }
 
+.seg-btn-spinner {
+  margin-right: 0.45rem;
+}
+
 .seg-btn:hover,
 .seg-btn:focus,
 .seg-btn:active {
