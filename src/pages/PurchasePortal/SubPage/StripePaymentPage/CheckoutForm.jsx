@@ -5,7 +5,9 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 
-export default function CheckoutForm() {
+const PAYMENT_COMPLETE_FLOW_SOURCE = "purchase-portal-stripe";
+
+export default function CheckoutForm({ paymentIntentId }) {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
@@ -21,6 +23,22 @@ export default function CheckoutForm() {
     setIsProcessing(true);
     setMessage("");
 
+    if (!paymentIntentId) {
+      setMessage("Payment session is missing. Please reload the payment step.");
+      setIsProcessing(false);
+      return;
+    }
+
+    sessionStorage.setItem(
+      `paymentCompleteFlow:${paymentIntentId}`,
+      JSON.stringify({
+        source: PAYMENT_COMPLETE_FLOW_SOURCE,
+        status: "submitted",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      })
+    );
+
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
@@ -29,6 +47,7 @@ export default function CheckoutForm() {
     });
 
     if (result.error) {
+      sessionStorage.removeItem(`paymentCompleteFlow:${paymentIntentId}`);
       setMessage(result.error.message || "Payment failed");
       setIsProcessing(false);
       return;

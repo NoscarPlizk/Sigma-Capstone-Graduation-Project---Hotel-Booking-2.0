@@ -5,6 +5,7 @@ import { useAuth } from "../../content/Firebase/AuthContext";
 import "./PaymentCompletePage.css";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const PAYMENT_COMPLETE_FLOW_SOURCE = "purchase-portal-stripe";
 
 function formatMoney(amount, currency = "MYR") {
   const numberAmount = Number(amount || 0);
@@ -35,40 +36,82 @@ function delay(ms) {
   });
 }
 
+function readSessionJson(key) {
+  if (!key) return null;
+
+  const rawValue = sessionStorage.getItem(key);
+
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawValue);
+  } catch {
+    return null;
+  }
+}
+
 export default function PaymentCompletePage() {
   const navigate = useNavigate();
-  const { firebaseUser, userProfile } = useAuth();
+  const { firebaseUser, userProfile, authLoading } = useAuth();
+  const firebaseUid = firebaseUser?.uid ?? null;
 
   const [searchParams] = useSearchParams();
-  const bookingCode = searchParams.get("booking_code");
   const paymentIntentId = searchParams.get("payment_intent");
+  const redirectStatus = searchParams.get("redirect_status");
 
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState(
+    "Validating your payment return..."
+  );
   const [errorMessage, setErrorMessage] = useState("");
 
   const importStateKey = paymentIntentId
     ? `bookingImportState:${paymentIntentId}`
     : null;
+  const bookingRegistryKey = paymentIntentId
+    ? `bookingRegistry:${paymentIntentId}`
+    : null;
+  const paymentCompleteFlowKey = paymentIntentId
+    ? `paymentCompleteFlow:${paymentIntentId}`
+    : null;
 
   function getSavedBookingRegistry(currentPaymentIntentId) {
-    if (!currentPaymentIntentId) return null;
+    return readSessionJson(`bookingRegistry:${currentPaymentIntentId}`);
+  }
 
-    const saved = sessionStorage.getItem(
-      `bookingRegistry:${currentPaymentIntentId}`
+  function setFlowState(status) {
+    if (!paymentCompleteFlowKey) {
+      return;
+    }
+
+    const currentFlow = readSessionJson(paymentCompleteFlowKey);
+
+    sessionStorage.setItem(
+      paymentCompleteFlowKey,
+      JSON.stringify({
+        source: PAYMENT_COMPLETE_FLOW_SOURCE,
+        status,
+        createdAt: currentFlow?.createdAt ?? Date.now(),
+        updatedAt: Date.now(),
+      })
     );
-
-    if (!saved) return null;
-
-    return JSON.parse(saved);
   }
 
   useEffect(() => {
-    if (paymentIntentId && (!firebaseUser || !userProfile)) {
+    if (authLoading) {
       return undefined;
     }
 
     const controller = new AbortController();
+
+    async function failFlow(message) {
+      setBooking(null);
+      setErrorMessage(message);
+      setLoading(false);
+    }
 
     async function ImportIntoDB(currentPaymentIntentId) {
       if (!importStateKey) {
@@ -84,13 +127,7 @@ export default function PaymentCompletePage() {
       const existingImportState = sessionStorage.getItem(importStateKey);
 
       if (existingImportState === "completed") {
-        return {
-          success: true,
-          alreadyImported: true,
-        };
-      }
-
-      if (existingImportState === "started") {
+        setFlowState("completed");
         return {
           success: true,
           alreadyImported: true,
@@ -98,6 +135,8 @@ export default function PaymentCompletePage() {
       }
 
       sessionStorage.setItem(importStateKey, "started");
+      setFlowState("finalizing");
+      setLoadingMessage("Saving your confirmed booking...");
 
       const response = await fetch(
         `${BACKEND_URL}/api/start-setting-registry-data-in-db`,
@@ -138,33 +177,30 @@ export default function PaymentCompletePage() {
 
       if (!response.ok || !data?.success) {
         sessionStorage.removeItem(importStateKey);
+        setFlowState("failed");
         throw new Error(data?.message || "Failed to save booking into DB.");
       }
 
       sessionStorage.setItem(importStateKey, "completed");
       sessionStorage.removeItem(`bookingRegistry:${currentPaymentIntentId}`);
+      setFlowState("completed");
 
       return data;
     }
 
     async function fetchBookingSummary() {
-      let apiUrl = "";
-
-      if (bookingCode) {
-        apiUrl = `${BACKEND_URL}/api/booking-records/by-code/${encodeURIComponent(
-          bookingCode
-        )}`;
-      } else if (paymentIntentId) {
-        apiUrl = `${BACKEND_URL}/api/booking-records/by-payment-intent/${encodeURIComponent(
-          paymentIntentId
-        )}`;
-      } else {
+      if (!paymentIntentId) {
         throw new Error("Missing booking code or payment intent ID.");
       }
 
-      let lastError = null;
+      const apiUrl = `${BACKEND_URL}/api/booking-records/by-payment-intent/${encodeURIComponent(
+        paymentIntentId
+      )}`;
 
-      for (let attempt = 0; attempt < 4; attempt += 1) {
+      let lastError = null;
+      setLoadingMessage("Loading your confirmed booking...");
+
+      for (let attempt = 0; attempt < 8; attempt += 1) {
         const response = await fetch(apiUrl, {
           method: "GET",
           signal: controller.signal,
@@ -181,22 +217,65 @@ export default function PaymentCompletePage() {
           result?.message || "Failed to fetch booking summary."
         );
 
-        if (response.status !== 404 || attempt === 3) {
+        if (response.status !== 404 || attempt === 7) {
           throw lastError;
         }
 
-        await delay(400 * (attempt + 1));
+        await delay(500 * (attempt + 1));
       }
 
       throw lastError ?? new Error("Failed to fetch booking summary.");
     }
 
     async function runPaymentSuccessFlow() {
+      if (!paymentIntentId) {
+        await failFlow(
+          "This page is only available after a completed Stripe booking payment."
+        );
+        return;
+      }
+
+      if (redirectStatus && redirectStatus !== "succeeded") {
+        await failFlow(
+          "Payment was not completed through the booking checkout flow."
+        );
+        return;
+      }
+
+      const paymentCompleteFlow = readSessionJson(paymentCompleteFlowKey);
+      const hasValidFlowMarker =
+        paymentCompleteFlow?.source === PAYMENT_COMPLETE_FLOW_SOURCE;
+      const hasSavedBookingRegistry = Boolean(
+        bookingRegistryKey && sessionStorage.getItem(bookingRegistryKey)
+      );
+      const existingImportState = importStateKey
+        ? sessionStorage.getItem(importStateKey)
+        : null;
+      const hasKnownCheckoutState =
+        hasValidFlowMarker ||
+        hasSavedBookingRegistry ||
+        existingImportState === "started" ||
+        existingImportState === "completed";
+
+      if (!hasKnownCheckoutState) {
+        await failFlow(
+          "Invalid access. Complete the booking from Purchase Portal to open this page."
+        );
+        return;
+      }
+
+      if (!firebaseUid) {
+        await failFlow("Please sign in again to finish loading your booking.");
+        return;
+      }
+
       try {
         setLoading(true);
+        setBooking(null);
         setErrorMessage("");
+        setLoadingMessage("Validating your payment return...");
 
-        if (paymentIntentId) {
+        if (hasSavedBookingRegistry) {
           await ImportIntoDB(paymentIntentId);
         }
 
@@ -215,13 +294,22 @@ export default function PaymentCompletePage() {
     return () => {
       controller.abort();
     };
-  }, [bookingCode, paymentIntentId, firebaseUser, userProfile]);
+  }, [
+    authLoading,
+    bookingRegistryKey,
+    firebaseUid,
+    importStateKey,
+    paymentCompleteFlowKey,
+    paymentIntentId,
+    redirectStatus,
+  ]);
 
   if (loading) {
     return (
       <main className="payment-complete-page">
         <section className="payment-card">
-          <p className="loading-text">Loading your confirmed booking...</p>
+          <div className="loading-indicator" aria-hidden="true" />
+          <p className="loading-text">{loadingMessage}</p>
         </section>
       </main>
     );

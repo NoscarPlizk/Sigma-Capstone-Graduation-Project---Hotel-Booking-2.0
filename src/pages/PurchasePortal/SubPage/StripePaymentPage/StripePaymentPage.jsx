@@ -95,6 +95,7 @@ function PurchaseInfoWindow({ bookingRegistry }) {
 
 export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
   const [clientSecret, setClientSecret] = useState("");
+  const [paymentIntentId, setPaymentIntentId] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -123,6 +124,7 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
         }
 
         setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentIntentId);
 
         sessionStorage.setItem(
           `bookingRegistry:${data.paymentIntentId}`,
@@ -211,7 +213,7 @@ export default function StripePaymentPage({ bookingRegistry, setSubPage }) {
           </div>
 
           <Elements stripe={stripePromise} options={options}>
-            <CheckoutForm />
+            <CheckoutForm paymentIntentId={paymentIntentId} />
           </Elements>
         </div>
       ) : null}
