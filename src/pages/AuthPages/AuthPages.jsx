@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Modal, Button, Form, Container, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { loginUser, registerUser } from "../../content/Firebase/authService";
+import { loginUser, loginWithGoogle, registerUser } from "../../content/Firebase/authService";
 import "./AuthPages.css";
 
 export default function AuthPages() {
@@ -29,12 +29,22 @@ export default function AuthPages() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      await registerUser(email, password, name);
+      await registerUser(email, password, username);
       setShow(false);
       redirect("/");
     } catch (error) {
       console.error("Register error:", error.message);
       alert("Register failed.");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+      redirect("/");
+    } catch (error) {
+      console.error("Google login error:", error.message);
+      alert("Google login failed.");
     }
   };
 
@@ -118,6 +128,17 @@ export default function AuthPages() {
 
                   <Button className="auth-primary-button" type="submit">
                     Login
+                  </Button>
+
+                  <div className="auth-divider" aria-hidden="true">
+                    <span />
+                    <p>or</p>
+                    <span />
+                  </div>
+
+                  <Button className="auth-google-button" type="button" onClick={handleGoogleLogin}>
+                    <span className="auth-google-mark" aria-hidden="true">G</span>
+                    Continue with Google
                   </Button>
 
                   <Button className="auth-secondary-button" type="button" onClick={handleShowRegister}>

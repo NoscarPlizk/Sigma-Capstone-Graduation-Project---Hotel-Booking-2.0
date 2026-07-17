@@ -48,6 +48,33 @@ function normalizePhone(phone) {
   };
 }
 
+function normalizeName(name) {
+  if (name && typeof name === "object") {
+    return {
+      first_name: typeof name.first_name === "string" ? name.first_name.trim() : "",
+      last_name: typeof name.last_name === "string" ? name.last_name.trim() : "",
+    };
+  }
+
+  if (typeof name === "string") {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    return {
+      first_name: parts[0] ?? "",
+      last_name: parts.slice(1).join(" "),
+    };
+  }
+
+  return {
+    first_name: "",
+    last_name: "",
+  };
+}
+
+function formatDisplayName(name) {
+  const normalizedName = normalizeName(name);
+  return [normalizedName.first_name, normalizedName.last_name].filter(Boolean).join(" ");
+}
+
 function shouldMigratePhone(phone) {
   if (!phone || typeof phone !== "object") {
     return true;
@@ -57,6 +84,16 @@ function shouldMigratePhone(phone) {
     "region_code" in phone ||
     "region_country" in phone ||
     "region_country_code" in phone
+  );
+}
+
+function shouldMigrateName(name) {
+  return (
+    typeof name === "string" ||
+    !name ||
+    typeof name !== "object" ||
+    !("first_name" in name) ||
+    !("last_name" in name)
   );
 }
 
@@ -125,8 +162,15 @@ export function AuthProvider({ children }) {
           if (!firestoreProfile) return null;
 
           const { createdAt: _createdAt, updatedAt: _updatedAt, ...cleanProfile  } = firestoreProfile;
+
+          const normalizedName = normalizeName(cleanProfile.name);
+          const normalizedDisplayName =
+            cleanProfile.display_name?.trim() || formatDisplayName(normalizedName);
+
           return {
             ...cleanProfile,
+            name: normalizedName,
+            display_name: normalizedDisplayName,
             phone: normalizePhone(cleanProfile.phone),
             avatar: normalizeAvatar(cleanProfile.avatar),
           };
@@ -137,9 +181,23 @@ export function AuthProvider({ children }) {
         const actualFirestoreData = normalizeUserProfile(rawFirestoreData);
         // if exsting user details, else detected is new user without info, generate blank info
         if (userDocSnap.exists()) {
+          const profilePatch = {};
+
           if (shouldMigratePhone(rawFirestoreData?.phone)) {
+            profilePatch.phone = actualFirestoreData.phone;
+          }
+
+          if (shouldMigrateName(rawFirestoreData?.name)) {
+            profilePatch.name = actualFirestoreData.name;
+          }
+
+          if (!rawFirestoreData?.display_name?.trim() && actualFirestoreData.display_name) {
+            profilePatch.display_name = actualFirestoreData.display_name;
+          }
+
+          if (Object.keys(profilePatch).length > 0) {
             await updateDoc(userDocRef, {
-              phone: actualFirestoreData.phone,
+              ...profilePatch,
               updatedAt: serverTimestamp(),
             });
           }
@@ -163,16 +221,16 @@ export function AuthProvider({ children }) {
           
           const blankProfile = {
             uid: user.uid,
-            name: user.displayName || "",
-            display_name: "",
-            email: user.email,
+            name: normalizeName(user.displayName),
+            display_name: user.displayName?.trim() || "",
+            email: user.email ?? "",
             phone: { ...EMPTY_PHONE },
             address: "",
             createdAt: serverTimestamp()
           };
 
           await setDoc(doc(db, "users", user.uid), blankProfile);
-          setUserProfile(blankProfile);
+          setUserProfile(normalizeUserProfile(blankProfile));
         }
 
       } catch (error) {
