@@ -8,7 +8,7 @@ const ReduxProvider = Provider;
 import { MasterReduxStore } from './content/data transfer/MasterReduxStore'
 
 import useLocalStorage from "use-local-storage";
-import AuthPages from "./pages/AuthPages";
+import AuthPages from "./pages/AuthPages/AuthPages";
 import Layout from "./layout/Layout";
 import SearchToHotelList from "./pages/SearchToHotelList/SearchToHotelList";
 import ViewHotel from "./pages/ViewHotel/ViewHotel";

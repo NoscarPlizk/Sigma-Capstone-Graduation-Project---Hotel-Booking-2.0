@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Modal, Button, Form, Container, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { loginUser, registerUser } from "../content/Firebase/authService";
+import { loginUser, registerUser } from "../../content/Firebase/authService";
 import "./AuthPages.css";
 
 export default function AuthPages() {
